@@ -13,9 +13,35 @@ pub trait Noun<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
-    Self: Cue + Jam + Eq + Hash + Sized,
+    Self: Cue<A, C, Self> + Jam<A, C, Self> + Eq + Hash + Sized,
 {
     fn into_atom(self) -> Result<A, Self>;
 
     fn into_cell(self) -> Result<C, Self>;
+}
+
+/// Convert a noun into the implementing type.
+pub trait FromNoun<A, C, N>
+where
+    A: Atom<C, N>,
+    C: Cell<A, N>,
+    N: Noun<A, C>,
+    Self: Sized,
+{
+    type Error;
+
+    fn from_noun(noun: N) -> Result<Self, Self::Error>;
+}
+
+/// Convert the implementing type into a noun.
+pub trait IntoNoun<A, C, N>
+where
+    A: Atom<C, N>,
+    C: Cell<A, N>,
+    N: Noun<A, C>,
+    Self: Sized,
+{
+    type Error;
+
+    fn into_noun(self) -> Result<N, Self::Error>;
 }
