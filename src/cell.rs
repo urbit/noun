@@ -1,12 +1,9 @@
-use crate::{atom::Atom, IntoNoun, Noun};
+use crate::{IntoNoun, Noun};
 
-pub trait Cell<A, N>
-where
-    A: Atom<Self, N>,
-    N: Noun<A, Self>,
-    Self: IntoNoun<A, Self, N> + Sized,
-{
-    fn get(&self, idx: usize) -> Option<N>;
+pub trait Cell: IntoNoun + Sized {
+    type Noun: Noun;
 
-    fn into_parts(self) -> (Option<N>, Option<N>);
+    fn get(&self, idx: usize) -> Option<<Self as Cell>::Noun>;
+
+    fn into_parts(self) -> (Option<<Self as Cell>::Noun>, Option<<Self as Cell>::Noun>);
 }

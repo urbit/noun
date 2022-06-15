@@ -10,41 +10,29 @@ use crate::{
 use std::hash::Hash;
 
 /// Convert a noun into the implementing type.
-pub trait FromNoun<A, C, N>
-where
-    A: Atom<C, N>,
-    C: Cell<A, N>,
-    N: Noun<A, C>,
-    Self: Sized,
-{
+pub trait FromNoun: Sized {
     type Error;
+    type Noun: Noun;
 
-    fn from_noun(noun: N) -> Result<Self, Self::Error>;
+    fn from_noun(noun: Self::Noun) -> Result<Self, Self::Error>;
 }
 
 /// Convert the implementing type into a noun.
-pub trait IntoNoun<A, C, N>
-where
-    A: Atom<C, N>,
-    C: Cell<A, N>,
-    N: Noun<A, C>,
-    Self: Sized,
-{
+pub trait IntoNoun: Sized {
     type Error;
+    type Noun: Noun;
 
-    fn into_noun(self) -> Result<N, Self::Error>;
+    fn into_noun(self) -> Result<Self::Noun, Self::Error>;
 }
 
-pub trait Noun<A, C>
-where
-    A: Atom<C, Self>,
-    C: Cell<A, Self>,
-    Self: Cue<A, C, Self> + Jam<A, C, Self> + Eq + Hash + Sized,
-{
+pub trait Noun: Cue + Jam + Mug + Sized {
+    type Atom: Atom;
+    type Cell: Cell;
     type Error;
 
-    fn into_atom(self) -> Result<A, <Self as Noun<A, C>>::Error>;
+    fn into_atom(self) -> Result<Self::Atom, <Self as Noun>::Error>;
 
-    fn into_cell(self) -> Result<C, <Self as Noun<A, C>>::Error>;
+    fn into_cell(self) -> Result<Self::Cell, <Self as Noun>::Error>;
 }
 
+pub trait Mug: Eq + Hash {}
