@@ -9,17 +9,6 @@ use crate::{
 };
 use std::hash::Hash;
 
-pub trait Noun<A, C>
-where
-    A: Atom<C, Self>,
-    C: Cell<A, Self>,
-    Self: Cue<A, C, Self> + Jam<A, C, Self> + Eq + Hash + Sized,
-{
-    fn into_atom(self) -> Result<A, Self>;
-
-    fn into_cell(self) -> Result<C, Self>;
-}
-
 /// Convert a noun into the implementing type.
 pub trait FromNoun<A, C, N>
 where
@@ -45,3 +34,17 @@ where
 
     fn into_noun(self) -> Result<N, Self::Error>;
 }
+
+pub trait Noun<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: Cue<A, C, Self> + Jam<A, C, Self> + Eq + Hash + Sized,
+{
+    type Error;
+
+    fn into_atom(self) -> Result<A, <Self as Noun<A, C>>::Error>;
+
+    fn into_cell(self) -> Result<C, <Self as Noun<A, C>>::Error>;
+}
+
