@@ -3,7 +3,7 @@ use crate::{
 };
 use std::hash::{Hash, Hasher};
 
-#[derive(Eq, Hash)]
+#[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
     Atom(Atom),
     Cell(Cell),
@@ -71,7 +71,7 @@ impl PartialEq for Noun {
     }
 }
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
 
 impl _Atom for Atom {
@@ -91,7 +91,7 @@ impl _IntoNoun for Atom {
     }
 }
 
-#[derive(Eq)]
+#[derive(Clone, Debug, Eq)]
 pub struct Cell {
     head: Option<Box<Noun>>,
     tail: Option<Box<Noun>>,
@@ -123,5 +123,60 @@ impl _IntoNoun for Cell {
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {
         self.head == other.head && self.tail == other.tail
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Wrap a value in an Option<Box<>>.
+    macro_rules! b {
+        ($inner:expr) => {
+            Some(Box::new($inner))
+        };
+    }
+
+    /// Create a new Noun::Atom from a list of numbers.
+    macro_rules! na {
+        ($elem:expr , $n:expr) => {
+            let vec = vec![$elem; $n];
+            Noun::Atom(Atom(vec))
+        };
+        ($($x:expr),+ $(,)?) => {
+            {
+                let mut vec = Vec::new();
+                $(
+                    vec.push($x);
+
+                 )*
+                Noun::Atom(Atom(vec))
+            }
+        };
+    }
+
+    /// Create a new cell from a pair of Option<Box<<>>.
+    macro_rules! nc {
+        ($head:expr, $tail:expr) => {
+            Noun::Cell(Cell {
+                head: $head,
+                tail: $tail,
+            })
+        };
+    }
+
+    #[test]
+    fn noun_get() {
+        // [[4 5] [6 14 15]]
+        let tt = nc!(b!(na![14]), b!(na![15]));
+        let t = nc!(b!(na![6]), b!(tt.clone()));
+        let h = nc!(b!(na![4]), b!(na![5]));
+        let n = nc!(b!(h.clone()), b!(t.clone()));
+
+        assert_eq!(n.get(1), Some(&n));
+        assert_eq!(n.get(2), Some(&h));
+        assert_eq!(n.get(3), Some(&t));
+        assert_eq!(n.get(7), Some(&tt));
+        assert_eq!(n.get(12), None);
     }
 }
