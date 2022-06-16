@@ -131,43 +131,134 @@ impl PartialEq for Cell {
 mod tests {
     use super::*;
 
-    /// Wrap a value in an Option<Box<>>.
-    macro_rules! b {
-        ($inner:expr) => {
-            Some(Box::new($inner))
-        };
-    }
+    #[test]
+    fn bitstream() -> Result<(), std::io::Error> {
+        use bitstream_io::{BigEndian, BitReader, LittleEndian};
 
-    /// Create a new Noun::Atom from a list of numbers.
-    macro_rules! na {
-        ($elem:expr , $n:expr) => {
-            let vec = vec![$elem; $n];
-            Noun::Atom(Atom(vec))
-        };
-        ($($x:expr),+ $(,)?) => {
+        // Read a byte at a time.
+        {
+            // LSB first.
             {
-                let mut vec = Vec::new();
-                $(
-                    vec.push($x);
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
 
-                 )*
-                Noun::Atom(Atom(vec))
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[0]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[1]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[2]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[3]);
             }
-        };
-    }
 
-    /// Create a new cell from a pair of Option<Box<<>>.
-    macro_rules! nc {
-        ($head:expr, $tail:expr) => {
-            Noun::Cell(Cell {
-                head: $head,
-                tail: $tail,
-            })
-        };
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[0]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[1]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[2]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[3]);
+            }
+        }
+
+        // Read a word at a time.
+        {
+            // LSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+
+                let val: u32 = bitstream.read(u32::BITS)?;
+                assert_eq!(val, 0xc0b0a00);
+            }
+
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let val: u32 = bitstream.read(u32::BITS)?;
+                assert_eq!(val, 0xa0b0c);
+            }
+        }
+
+        // Count bits.
+        {
+            // LSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xf];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+
+                let len: u32 = bitstream.read_unary1()?;
+                assert_eq!(len, 9);
+            }
+
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0xf0, 0xa, 0xb, 0x0];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let len: u32 = bitstream.read_unary0()?;
+                assert_eq!(len, 4);
+            }
+        }
+
+        Ok(())
     }
 
     #[test]
+    fn noun_cue() {}
+
+    #[test]
     fn noun_get() {
+        /// Wrap a value in an Option<Box<>>.
+        macro_rules! b {
+            ($inner:expr) => {
+                Some(Box::new($inner))
+            };
+        }
+
+        /// Create a new Noun::Atom from a list of numbers.
+        macro_rules! na {
+            ($elem:expr , $n:expr) => {
+                let vec = vec![$elem; $n];
+                Noun::Atom(Atom(vec))
+            };
+            ($($x:expr),+ $(,)?) => {
+                {
+                    let mut vec = Vec::new();
+                    $(
+                        vec.push($x);
+
+                     )*
+                        Noun::Atom(Atom(vec))
+                }
+            };
+        }
+
+        /// Create a new cell from a pair of Option<Box<<>>.
+        macro_rules! nc {
+            ($head:expr, $tail:expr) => {
+                Noun::Cell(Cell {
+                    head: $head,
+                    tail: $tail,
+                })
+            };
+        }
+
         // [[4 5] [6 14 15]]
         let tt = nc!(b!(na![14]), b!(na![15]));
         let t = nc!(b!(na![6]), b!(tt.clone()));
