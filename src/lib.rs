@@ -15,7 +15,7 @@ pub trait Cell: IntoNoun + Sized {
     fn into_parts(self) -> (Option<<Self as Cell>::Noun>, Option<<Self as Cell>::Noun>);
 }
 
-pub trait Noun: Cue + Eq + Hash + Jam + Sized {
+pub trait Noun: Cue + Hash + Jam + Sized {
     type Atom: Atom;
     type Cell: Cell;
     type Error;
@@ -25,6 +25,13 @@ pub trait Noun: Cue + Eq + Hash + Jam + Sized {
     fn into_atom(self) -> Result<Self::Atom, <Self as Noun>::Error>;
 
     fn into_cell(self) -> Result<Self::Cell, <Self as Noun>::Error>;
+}
+
+/// Unifying equality.
+pub trait UnifyEq: Eq {
+    type Ctx;
+
+    fn eq(&self, other: &Self, _ctx: Self::Ctx) -> bool;
 }
 
 pub trait Cue: Sized {
