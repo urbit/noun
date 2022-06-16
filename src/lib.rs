@@ -1,5 +1,6 @@
 pub mod r#enum;
 
+use bitstream_io::{BitRead, BitWrite};
 use std::hash::Hash;
 
 pub trait Atom: IntoNoun + Sized {
@@ -29,13 +30,13 @@ pub trait Noun: Cue + Eq + Hash + Jam + Sized {
 pub trait Cue: Sized {
     type Error;
 
-    fn cue(jammed_val: Vec<u8>) -> Result<Self, <Self as Cue>::Error>;
+    fn cue(src: impl BitRead) -> Result<Self, <Self as Cue>::Error>;
 }
 
 pub trait Jam: Sized {
     type Error;
 
-    fn jam(self) -> Result<Vec<u8>, <Self as Jam>::Error>;
+    fn jam(self, sink: &mut impl BitWrite) -> Result<(), <Self as Jam>::Error>;
 }
 
 /// Convert a noun into the implementing type.

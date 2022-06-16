@@ -1,6 +1,7 @@
 use crate::{
     Atom as _Atom, Cell as _Cell, Cue as _Cue, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
 };
+use bitstream_io::{BitRead, BitWrite};
 use std::hash::{Hash, Hasher};
 
 #[derive(Eq, Clone, Debug, Hash)]
@@ -12,7 +13,7 @@ pub enum Noun {
 impl _Cue for Noun {
     type Error = ();
 
-    fn cue(_jammed_val: Vec<u8>) -> Result<Self, <Self as _Cue>::Error> {
+    fn cue(_src: impl BitRead) -> Result<Self, <Self as _Cue>::Error> {
         todo!()
     }
 }
@@ -20,7 +21,7 @@ impl _Cue for Noun {
 impl _Jam for Noun {
     type Error = ();
 
-    fn jam(self) -> Result<Vec<u8>, <Self as _Jam>::Error> {
+    fn jam(self, _sink: &mut impl BitWrite) -> Result<(), <Self as _Jam>::Error> {
         todo!()
     }
 }
