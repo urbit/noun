@@ -6,22 +6,20 @@ pub trait Atom: IntoNoun + Sized {
     type Error;
 
     fn as_bytes(&self) -> &[u8];
-
-    fn as_u64(&self) -> Result<u64, <Self as Atom>::Error>;
 }
 
 pub trait Cell: IntoNoun + Sized {
     type Noun: Noun;
 
-    fn get(&self, idx: usize) -> Option<<Self as Cell>::Noun>;
-
     fn into_parts(self) -> (Option<<Self as Cell>::Noun>, Option<<Self as Cell>::Noun>);
 }
 
-pub trait Noun: Cue + Jam + Mug + Sized {
+pub trait Noun: Cue + Eq + Hash + Jam + Sized {
     type Atom: Atom;
     type Cell: Cell;
     type Error;
+
+    fn get(&self, idx: usize) -> Option<&Self>;
 
     fn into_atom(self) -> Result<Self::Atom, <Self as Noun>::Error>;
 
@@ -39,8 +37,6 @@ pub trait Jam: Sized {
 
     fn jam(self) -> Result<Vec<u8>, <Self as Jam>::Error>;
 }
-
-pub trait Mug: Eq + Hash {}
 
 /// Convert a noun into the implementing type.
 pub trait FromNoun: Sized {
