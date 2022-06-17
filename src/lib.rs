@@ -4,8 +4,6 @@ use bitstream_io::{BitRead, BitWrite};
 use std::{collections::HashMap, hash::Hash};
 
 pub trait Atom: IntoNoun + Sized {
-    type Error;
-
     fn new(val: Vec<u8>) -> Self;
 
     fn as_bytes(&self) -> &[u8];
@@ -23,13 +21,12 @@ pub trait Cell: IntoNoun + Sized {
 pub trait Noun: Hash + Sized {
     type Atom: Atom;
     type Cell: Cell;
-    type Error;
 
     fn get(&self, idx: usize) -> Option<&Self>;
 
-    fn into_atom(self) -> Result<Self::Atom, <Self as Noun>::Error>;
+    fn into_atom(self) -> Result<Self::Atom, ()>;
 
-    fn into_cell(self) -> Result<Self::Cell, <Self as Noun>::Error>;
+    fn into_cell(self) -> Result<Self::Cell, ()>;
 }
 
 /// Unifying equality.
@@ -121,17 +118,14 @@ pub trait Cue: Noun + Sized {
 }
 
 pub trait Jam: Noun + Sized {
-    type Error;
-
-    fn jam(self, sink: &mut impl BitWrite) -> Result<(), <Self as Jam>::Error>;
+    fn jam(self, sink: &mut impl BitWrite) -> Result<(), ()>;
 }
 
 /// Convert a noun into the implementing type.
 pub trait FromNoun: Sized {
-    type Error;
     type Noun: Noun;
 
-    fn from_noun(noun: Self::Noun) -> Result<Self, Self::Error>;
+    fn from_noun(noun: Self::Noun) -> Result<Self, ()>;
 }
 
 /// Convert the implementing type into a noun.

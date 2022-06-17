@@ -16,9 +16,7 @@ impl _Cue for Noun {
 }
 
 impl _Jam for Noun {
-    type Error = ();
-
-    fn jam(self, _sink: &mut impl BitWrite) -> Result<(), <Self as _Jam>::Error> {
+    fn jam(self, _sink: &mut impl BitWrite) -> Result<(), ()> {
         todo!()
     }
 }
@@ -26,7 +24,6 @@ impl _Jam for Noun {
 impl _Noun for Noun {
     type Atom = Atom;
     type Cell = Cell;
-    type Error = ();
 
     fn get(&self, idx: usize) -> Option<&Noun> {
         if let Self::Cell(cell) = self {
@@ -42,14 +39,14 @@ impl _Noun for Noun {
         }
     }
 
-    fn into_atom(self) -> Result<<Self as _Noun>::Atom, <Self as _Noun>::Error> {
+    fn into_atom(self) -> Result<<Self as _Noun>::Atom, ()> {
         match self {
             Self::Atom(atom) => Ok(atom),
             _ => Err(()),
         }
     }
 
-    fn into_cell(self) -> Result<<Self as _Noun>::Cell, <Self as _Noun>::Error> {
+    fn into_cell(self) -> Result<<Self as _Noun>::Cell, ()> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(()),
@@ -73,8 +70,6 @@ impl PartialEq for Noun {
 pub struct Atom(Vec<u8>);
 
 impl _Atom for Atom {
-    type Error = ();
-
     fn new(val: Vec<u8>) -> Self {
         Self(val)
     }
