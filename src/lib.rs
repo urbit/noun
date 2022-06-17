@@ -68,34 +68,31 @@ where
     fn decode(
         src: &mut impl BitRead,
         _cache: &mut HashMap<usize, Self>,
-        _pos: usize,
+        mut _pos: usize,
     ) -> CueResult<Self> {
-        loop {
-            match src.read_bit() {
-                Ok(true) => {
-                    match src.read_bit() {
-                        // Back reference tag = 0b11.
-                        Ok(true) => {
-                            todo!("back reference");
-                        }
-                        // Cell tag = 0b01.
-                        Ok(false) => {
-                            todo!("cell");
-                        }
-                        Err(_) => todo!("IO error"),
+        match src.read_bit() {
+            Ok(true) => {
+                match src.read_bit() {
+                    // Back reference tag = 0b11.
+                    Ok(true) => {
+                        todo!("back reference");
                     }
-                }
-                // Atom tag = 0b0.
-                Ok(false) => {
-                    let (_atom, _bits_read) = Self::decode_atom(src)?;
-                    //cache.insert(start_idx, atom);
-                    todo!()
-                }
-                Err(_) => {
-                    todo!("IO error")
+                    // Cell tag = 0b01.
+                    Ok(false) => {
+                        todo!("cell");
+                    }
+                    Err(_) => todo!("IO error"),
                 }
             }
+            // Atom tag = 0b0.
+            Ok(false) => {
+                todo!()
+            }
+            Err(_) => {
+                todo!("IO error")
+            }
         }
+        todo!()
     }
 
     /// Decode the length in bits of an atom, returning (len, bits read).
@@ -115,7 +112,11 @@ where
     }
 
     /// Decode an atom, returning (atom, bits read).
-    fn decode_atom(src: &mut impl BitRead) -> CueResult<Self> {
+    fn decode_atom<'a>(
+        src: &mut impl BitRead,
+        cache: &'a mut HashMap<usize, Self>,
+        pos: usize,
+    ) -> CueResult<&'a Self> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
 
@@ -138,12 +139,18 @@ where
         val.push(byte);
 
         let atom = A::new(val).into_noun().unwrap();
+        cache.insert(pos, atom);
+        let atom = cache.get(&pos).unwrap();
 
         Ok((atom, bits_read))
     }
 
     /// Decode a cell, returning (cell, bits read).
-    fn decode_cell(_src: &mut impl BitRead) -> CueResult<Self> {
+    fn decode_cell(
+        _src: &mut impl BitRead,
+        _cache: &mut HashMap<usize, Self>,
+        _pos: usize,
+    ) -> CueResult<Self> {
         todo!()
     }
 }
