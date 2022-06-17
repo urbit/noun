@@ -48,7 +48,7 @@ pub trait Cue: Noun + Sized {
     fn cue(src: impl BitRead) -> Result<Self, <Self as Cue>::Error>;
 
     /// Read the length of an atom or backreference, returning (length, bits read).
-    fn cue_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
+    fn cue_val_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
         let len_of_len = src.read_unary0().expect("count high bits");
         // Length must be 63 bits or less.
         if len_of_len >= u64::BITS {
@@ -62,6 +62,26 @@ pub trait Cue: Noun + Sized {
         let bits_read = 2 * len_of_len + 1;
 
         Ok((len, bits_read))
+    }
+
+    /// Get a cued value (either an atom or backreference), returning (bytes, bits read).
+    fn cue_val(src: &mut impl BitRead) -> Result<(Vec<u8>, u32), ()> {
+        let (mut len, mut bits_read) = Self::cue_val_len(src)?;
+
+        let mut val = Vec::new();
+        while len >= u64::from(u8::BITS) {
+            let byte: u8 = src.read(u8::BITS).expect("read chunk");
+            bits_read += u8::BITS;
+            val.push(byte);
+            len -= u64::from(u8::BITS);
+        }
+        // Consume remaining bits.
+        let len = u32::try_from(len).unwrap();
+        let byte: u8 = src.read(len).expect("read chunk");
+        bits_read += len;
+        val.push(byte);
+
+        Ok((val, bits_read))
     }
 }
 

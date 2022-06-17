@@ -13,27 +13,6 @@ pub enum Noun {
     Cell(Cell),
 }
 
-impl Noun {
-    fn cue_atom(src: &mut impl BitRead) -> Result<(Self, u32), ()> {
-        let (mut len, mut bits_read) = Self::cue_len(src)?;
-
-        let mut val = Vec::new();
-        while len >= u64::from(u8::BITS) {
-            let byte: u8 = src.read(u8::BITS).expect("read chunk");
-            bits_read += u8::BITS;
-            val.push(byte);
-            len -= u64::from(u8::BITS);
-        }
-        // Consume remaining bits.
-        let len = u32::try_from(len).unwrap();
-        let byte: u8 = src.read(len).expect("read chunk");
-        bits_read += len;
-        val.push(byte);
-
-        Ok((Self::Atom(Atom(val)), bits_read))
-    }
-}
-
 impl _Cue for Noun {
     type Atom = Atom;
     type Cell = Cell;
@@ -63,7 +42,8 @@ impl _Cue for Noun {
                 }
                 // Atom tag = 0b0.
                 Ok(false) => {
-                    let (atom, bits_read) = Noun::cue_atom(&mut src)?;
+                    let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
+                    let atom = <Self as _Cue>::Atom::new(cue_val).into_noun()?;
                     cache.insert(start_idx, atom);
                 }
                 Err(_) => {
@@ -295,29 +275,19 @@ mod tests {
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
             let mut curr_idx = 0;
 
-            let (noun, bits_read) = Noun::cue_atom(&mut bitstream)?;
-            match noun {
-                Noun::Atom(Atom(val)) => {
-                    assert_eq!(val[0], 0x8);
-                    assert_eq!(bits_read, 15);
-                }
-                _ => return Err(()),
-            }
+            let (val, bits_read) = Noun::cue_val(&mut bitstream)?;
+            assert_eq!(val[0], 0x8);
+            assert_eq!(bits_read, 15);
         }
 
         {
             let vec: Vec<u8> = vec![0x17, 0x84];
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
 
-            let (noun, bits_read) = Noun::cue_atom(&mut bitstream)?;
-            match noun {
-                Noun::Atom(Atom(val)) => {
-                    assert_eq!(val[0], 0x8);
-                    assert_eq!(val[1], 0x1);
-                    assert_eq!(bits_read, 16);
-                }
-                _ => return Err(()),
-            }
+            let (val, bits_read) = Noun::cue_val(&mut bitstream)?;
+            assert_eq!(val[0], 0x8);
+            assert_eq!(val[1], 0x1);
+            assert_eq!(bits_read, 16);
         }
 
         Ok(())
