@@ -65,7 +65,11 @@ where
     }
 
     /// Recursively decode a bitstream.
-    fn decode(src: &mut impl BitRead, _cache: &mut HashMap<usize, Self>, _pos: usize) -> CueResult<Self> {
+    fn decode(
+        src: &mut impl BitRead,
+        _cache: &mut HashMap<usize, Self>,
+        _pos: usize,
+    ) -> CueResult<Self> {
         loop {
             match src.read_bit() {
                 Ok(true) => {
@@ -94,23 +98,26 @@ where
         }
     }
 
+    /// Decode the length in bits of an atom, returning (len, bits read).
+    fn decode_len(src: &mut impl BitRead) -> CueResult<u64> {
+        let len_of_len = src.read_unary0().expect("count high bits");
+        // Length must be 63 bits or less.
+        if len_of_len >= u64::BITS {
+            todo!("too large")
+        }
+
+        let len: u64 = src.read(len_of_len).expect("get length");
+        // Most significant bit of the length is always one and always omitted, so add it back now.
+        let len = (1 << len_of_len) | len;
+
+        let bits_read = 2 * len_of_len + 1;
+        Ok((len, bits_read))
+    }
+
     /// Decode an atom, returning (atom, bits read).
     fn decode_atom(src: &mut impl BitRead) -> CueResult<Self> {
         // Decode the atom length.
-        let (mut bit_len, mut bits_read) = {
-            let len_of_len = src.read_unary0().expect("count high bits");
-            // Length must be 63 bits or less.
-            if len_of_len >= u64::BITS {
-                todo!("too large")
-            }
-
-            let len: u64 = src.read(len_of_len).expect("get length");
-            // Most significant bit of the length is always one and always omitted, so add it back now.
-            let len = (1 << len_of_len) | len;
-
-            let bits_read = 2 * len_of_len + 1;
-            (len, bits_read)
-        };
+        let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
 
         // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's worth it
         // to omit a branch.

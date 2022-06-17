@@ -223,7 +223,7 @@ mod tests {
                 Noun::Atom(Atom(val)) => {
                     assert_eq!(val[0], 0x8);
                 }
-                _ => return Err(())
+                _ => return Err(()),
             }
         }
 
@@ -238,7 +238,7 @@ mod tests {
                     assert_eq!(val[0], 0x8);
                     assert_eq!(val[1], 0x1);
                 }
-                _ => return Err(())
+                _ => return Err(()),
             }
         }
 
