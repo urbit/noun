@@ -19,12 +19,12 @@ pub trait Cell: IntoNoun + Sized {
 }
 
 pub trait Noun: Hash + Sized {
-    type Atom: Atom;
+    type A: Atom;
     type Cell: Cell;
 
     fn get(&self, idx: usize) -> Option<&Self>;
 
-    fn into_atom(self) -> Result<Self::Atom, ()>;
+    fn into_atom(self) -> Result<Self::A, ()>;
 
     fn into_cell(self) -> Result<Self::Cell, ()>;
 }
@@ -37,7 +37,7 @@ pub trait UnifyEq: Eq {
 }
 
 pub trait Cue: Noun + Sized {
-    type Atom: Atom;
+    type A: Atom;
     type Cell: Cell;
 
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
@@ -65,7 +65,7 @@ pub trait Cue: Noun + Sized {
                 // Atom tag = 0b0.
                 Ok(false) => {
                     let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
-                    let atom = <Self as Cue>::Atom::new(cue_val).into_noun()?;
+                    let atom = <Self as Cue>::A::new(cue_val).into_noun()?;
                     /*
                     cache.insert(start_idx, atom);
                     */

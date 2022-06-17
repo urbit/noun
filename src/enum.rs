@@ -11,7 +11,7 @@ pub enum Noun {
 }
 
 impl _Cue for Noun {
-    type Atom = Atom;
+    type A = Atom;
     type Cell = Cell;
 }
 
@@ -22,7 +22,7 @@ impl _Jam for Noun {
 }
 
 impl _Noun for Noun {
-    type Atom = Atom;
+    type A = Atom;
     type Cell = Cell;
 
     fn get(&self, idx: usize) -> Option<&Noun> {
@@ -39,7 +39,7 @@ impl _Noun for Noun {
         }
     }
 
-    fn into_atom(self) -> Result<<Self as _Noun>::Atom, ()> {
+    fn into_atom(self) -> Result<Self::A, ()> {
         match self {
             Self::Atom(atom) => Ok(atom),
             _ => Err(()),
