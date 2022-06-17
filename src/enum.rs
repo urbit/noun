@@ -1,8 +1,13 @@
 use crate::{
-    Atom as _Atom, Cell as _Cell, Cue as _Cue, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
+    Atom as _Atom, Cell as _Cell, Cue as _Cue, CueResult, IntoNoun as _IntoNoun, Jam as _Jam,
+    Noun as _Noun,
 };
-use bitstream_io::BitWrite;
-use std::hash::{Hash, Hasher};
+use bitstream_io::{BitRead, BitWrite};
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
@@ -10,7 +15,30 @@ pub enum Noun {
     Cell(Cell),
 }
 
-impl _Cue<Atom, Cell> for Noun {}
+impl _Cue<Atom, Cell> for Noun {
+    fn decode_cell(
+        src: &mut impl BitRead,
+        cache: &mut HashMap<usize, Rc<Self>>,
+        head_start: usize,
+    ) -> CueResult<Rc<Self>> {
+        let (head, bits_read) = Self::decode(src, cache, head_start)?;
+        let head = Rc::new(head);
+        cache.insert(head_start, head.clone());
+
+        let tail_start = head_start + usize::try_from(bits_read).expect("usize smaller than u32");
+
+        let (tail, bits_read) = Self::decode(src, cache, tail_start)?;
+        let tail = Rc::new(tail);
+        cache.insert(tail_start, tail.clone());
+
+        let cell = Rc::new(Self::Cell(Cell::new(Some(head), Some(tail))));
+
+        let bits_read =
+            u32::try_from(tail_start - head_start).expect("usize smaller than u32") + bits_read;
+
+        Ok((cell, bits_read))
+    }
+}
 
 impl _Jam<Atom, Cell> for Noun {
     fn jam(self, _sink: &mut impl BitWrite) -> Result<(), ()> {
@@ -81,12 +109,12 @@ impl _IntoNoun<Self, Cell, Noun> for Atom {
 
 #[derive(Clone, Debug, Eq)]
 pub struct Cell {
-    head: Option<Box<Noun>>,
-    tail: Option<Box<Noun>>,
+    head: Option<Rc<Noun>>,
+    tail: Option<Rc<Noun>>,
 }
 
 impl _Cell<Atom, Noun> for Cell {
-    type Head = Box<Noun>;
+    type Head = Rc<Noun>;
     type Tail = Self::Head;
 
     fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self {

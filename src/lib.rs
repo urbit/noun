@@ -1,7 +1,7 @@
 pub mod r#enum;
 
 use bitstream_io::{BitRead, BitWrite};
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash, rc::Rc};
 
 /// (<some type>, bits read)
 type CueResult<T> = Result<(T, u32), ()>;
@@ -59,7 +59,7 @@ where
     Self: Noun<A, C> + Sized,
 {
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
-        let mut cache: HashMap<usize, Self> = HashMap::new();
+        let mut cache = HashMap::new();
         let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
         Ok(noun)
     }
@@ -67,7 +67,7 @@ where
     /// Recursively decode a bitstream.
     fn decode(
         src: &mut impl BitRead,
-        _cache: &mut HashMap<usize, Self>,
+        _cache: &mut HashMap<usize, Rc<Self>>,
         mut _pos: usize,
     ) -> CueResult<Self> {
         match src.read_bit() {
@@ -112,11 +112,15 @@ where
     }
 
     /// Decode an atom, returning (atom, bits read).
-    fn decode_atom<'a>(
+    ///
+    /// src: bitstream.
+    /// cache: mapping from bitstream index to encoded noun starting at that index.
+    /// start: bitstream index that the encoded atom starts at.
+    fn decode_atom(
         src: &mut impl BitRead,
-        cache: &'a mut HashMap<usize, Self>,
-        pos: usize,
-    ) -> CueResult<&'a Self> {
+        cache: &mut HashMap<usize, Rc<Self>>,
+        start: usize,
+    ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
 
@@ -139,20 +143,24 @@ where
         val.push(byte);
 
         let atom = A::new(val).into_noun().unwrap();
-        cache.insert(pos, atom);
-        let atom = cache.get(&pos).unwrap();
+        cache.insert(start, Rc::new(atom));
+        let atom = cache.get(&start).unwrap();
 
-        Ok((atom, bits_read))
+        Ok((Rc::clone(atom), bits_read))
     }
 
-    /// Decode a cell, returning (cell, bits read).
+    /// Decode a cell, returning (cell, bits read). A default implementation because a cell is a
+    /// self referential data type, and its construction cannot be generalized using the Cell
+    /// trait.
+    ///
+    /// src: bitstream.
+    /// cache: mapping from bitstream index to encoded noun starting at that index.
+    /// head_start: bitstream index that the head of the encoded cell starts at.
     fn decode_cell(
-        _src: &mut impl BitRead,
-        _cache: &mut HashMap<usize, Self>,
-        _pos: usize,
-    ) -> CueResult<Self> {
-        todo!()
-    }
+        src: &mut impl BitRead,
+        cache: &mut HashMap<usize, Rc<Self>>,
+        head_start: usize,
+    ) -> CueResult<Rc<Self>>;
 }
 
 pub trait Jam<A, C>
