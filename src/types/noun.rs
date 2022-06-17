@@ -57,6 +57,20 @@ impl _Noun<Atom, Cell> for Noun {
         }
     }
 
+    fn as_atom(&self) -> Result<&Atom, ()> {
+        match self {
+            Self::Atom(atom) => Ok(atom),
+            _ => Err(()),
+        }
+    }
+
+    fn as_cell(&self) -> Result<&Cell, ()> {
+        match self {
+            Self::Cell(cell) => Ok(cell),
+            _ => Err(()),
+        }
+    }
+
     fn into_atom(self) -> Result<Atom, Self> {
         match self {
             Self::Atom(atom) => Ok(atom),
