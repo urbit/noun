@@ -1,7 +1,6 @@
 pub mod cue;
 pub mod jam;
-
-pub mod r#enum;
+pub mod types;
 
 use std::{hash::Hash, ops::Add};
 
@@ -26,6 +25,10 @@ where
     type Tail;
 
     fn new(head: Self::Head, tail: Self::Tail) -> Self;
+
+    fn head(&self) -> &Self::Head;
+
+    fn tail(&self) -> &Self::Tail;
 
     fn into_parts(self) -> (Self::Head, Self::Tail);
 }
