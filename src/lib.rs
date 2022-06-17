@@ -3,45 +3,64 @@ pub mod r#enum;
 use bitstream_io::{BitRead, BitWrite};
 use std::{collections::HashMap, hash::Hash};
 
-pub trait Atom: IntoNoun + Sized {
+pub trait Atom<C, N>
+where
+    C: Cell<Self, N>,
+    N: Noun<Self, C>,
+    Self: IntoNoun<Self, C, N> + Sized,
+{
     fn new(val: Vec<u8>) -> Self;
 
     fn as_bytes(&self) -> &[u8];
 }
 
-pub trait Cell: IntoNoun + Sized {
-    type H;
-    type T;
+pub trait Cell<A, N>
+where
+    A: Atom<Self, N>,
+    N: Noun<A, Self>,
+    Self: IntoNoun<A, Self, N> + Sized,
+{
+    type Head;
+    type Tail;
 
-    fn new(head: Option<Self::H>, tail: Option<Self::T>) -> Self;
+    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self;
 
-    fn into_parts(self) -> (Option<Self::H>, Option<Self::T>);
+    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>);
 }
 
-pub trait Noun: Hash + Sized {
-    type A: Atom;
-    type C: Cell;
+pub trait Noun<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: Hash + Sized,
+{
+    fn new_atom(atom: A) -> Self;
+
+    fn new_cell(cell: C) -> Self;
 
     fn get(&self, idx: usize) -> Option<&Self>;
 
-    fn into_atom(self) -> Result<Self::A, ()>;
+    fn into_atom(self) -> Result<A, ()>;
 
-    fn into_cell(self) -> Result<Self::C, ()>;
+    fn into_cell(self) -> Result<C, ()>;
 }
 
 /// Unifying equality.
-pub trait UnifyEq: Eq {
-    type Ctx;
-
-    fn eq(&self, other: &Self, _ctx: Self::Ctx) -> bool;
+pub trait UnifyEq<C>
+where
+    Self: Eq,
+{
+    fn eq(&self, other: &Self, _ctx: C) -> bool;
 }
 
-pub trait Cue: Noun + Sized {
-    type A: Atom;
-    type C: Cell;
-
+pub trait Cue<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: Noun<A, C> + Sized,
+{
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
-        let mut _cache: HashMap<usize, Self> = HashMap::new();
+        let mut cache: HashMap<usize, Self> = HashMap::new();
         let mut start_idx = 0;
         let mut curr_idx = start_idx;
         let mut _noun: Self;
@@ -65,10 +84,8 @@ pub trait Cue: Noun + Sized {
                 // Atom tag = 0b0.
                 Ok(false) => {
                     let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
-                    let atom = <Self as Cue>::A::new(cue_val).into_noun()?;
-                    /*
+                    let atom = Self::new_atom(A::new(cue_val));
                     cache.insert(start_idx, atom);
-                    */
                 }
                 Err(_) => {
                     todo!("IO error")
@@ -76,7 +93,6 @@ pub trait Cue: Noun + Sized {
             }
             start_idx = curr_idx;
         }
-        todo!()
     }
 
     /// Read the length of an atom or backreference, returning (length, bits read).
@@ -117,20 +133,33 @@ pub trait Cue: Noun + Sized {
     }
 }
 
-pub trait Jam: Noun + Sized {
+pub trait Jam<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: Noun<A, C> + Sized,
+{
     fn jam(self, sink: &mut impl BitWrite) -> Result<(), ()>;
 }
 
 /// Convert a noun into the implementing type.
-pub trait FromNoun: Sized {
-    type N: Noun;
-
-    fn from_noun(noun: Self::N) -> Result<Self, ()>;
+pub trait FromNoun<A, C, N>
+where
+    A: Atom<C, N>,
+    C: Cell<A, N>,
+    N: Noun<A, C>,
+    Self: Sized,
+{
+    fn from_noun(noun: N) -> Result<Self, ()>;
 }
 
 /// Convert the implementing type into a noun.
-pub trait IntoNoun: Sized {
-    type N: Noun;
-
-    fn into_noun(self) -> Result<Self::N, ()>;
+pub trait IntoNoun<A, C, N>
+where
+    A: Atom<C, N>,
+    C: Cell<A, N>,
+    N: Noun<A, C>,
+    Self: Sized,
+{
+    fn into_noun(self) -> Result<N, ()>;
 }

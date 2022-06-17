@@ -10,22 +10,24 @@ pub enum Noun {
     Cell(Cell),
 }
 
-impl _Cue for Noun {
-    type A = Atom;
-    type C = Cell;
-}
+impl _Cue<Atom, Cell> for Noun {}
 
-impl _Jam for Noun {
+impl _Jam<Atom, Cell> for Noun {
     fn jam(self, _sink: &mut impl BitWrite) -> Result<(), ()> {
         todo!()
     }
 }
 
-impl _Noun for Noun {
-    type A = Atom;
-    type C = Cell;
+impl _Noun<Atom, Cell> for Noun {
+    fn new_atom(atom: Atom) -> Self {
+        Self::Atom(atom)
+    }
 
-    fn get(&self, idx: usize) -> Option<&Noun> {
+    fn new_cell(cell: Cell) -> Self {
+        Self::Cell(cell)
+    }
+
+    fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {
                 0 | 1 => Some(self),
@@ -39,14 +41,14 @@ impl _Noun for Noun {
         }
     }
 
-    fn into_atom(self) -> Result<Self::A, ()> {
+    fn into_atom(self) -> Result<Atom, ()> {
         match self {
             Self::Atom(atom) => Ok(atom),
             _ => Err(()),
         }
     }
 
-    fn into_cell(self) -> Result<Self::C, ()> {
+    fn into_cell(self) -> Result<Cell, ()> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(()),
@@ -69,7 +71,7 @@ impl PartialEq for Noun {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
 
-impl _Atom for Atom {
+impl _Atom<Cell, Noun> for Atom {
     fn new(val: Vec<u8>) -> Self {
         Self(val)
     }
@@ -79,10 +81,8 @@ impl _Atom for Atom {
     }
 }
 
-impl _IntoNoun for Atom {
-    type N = Noun;
-
-    fn into_noun(self) -> Result<Self::N, ()> {
+impl _IntoNoun<Self, Cell, Noun> for Atom {
+    fn into_noun(self) -> Result<Noun, ()> {
         Ok(Noun::Atom(self))
     }
 }
@@ -93,15 +93,15 @@ pub struct Cell {
     tail: Option<Box<Noun>>,
 }
 
-impl _Cell for Cell {
-    type H = Box<Noun>;
-    type T = Self::H;
+impl _Cell<Atom, Noun> for Cell {
+    type Head = Box<Noun>;
+    type Tail = Self::Head;
 
-    fn new(head: Option<Self::H>, tail: Option<Self::T>) -> Self {
+    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self {
         Self { head, tail }
     }
 
-    fn into_parts(self) -> (Option<Self::H>, Option<Self::T>) {
+    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>) {
         (self.head, self.tail)
     }
 }
@@ -112,10 +112,8 @@ impl Hash for Cell {
     }
 }
 
-impl _IntoNoun for Cell {
-    type N = Noun;
-
-    fn into_noun(self) -> Result<Self::N, ()> {
+impl _IntoNoun<Atom, Self, Noun> for Cell {
+    fn into_noun(self) -> Result<Noun, ()> {
         Ok(Noun::Cell(self))
     }
 }
