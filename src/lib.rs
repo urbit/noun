@@ -91,7 +91,7 @@ where
         }
     }
 
-    /// Read the length of an atom or backreference, returning (length, bits read).
+    /// Read the length in bits of an atom or backreference, returning (bit length, bits read).
     fn cue_val_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
         let len_of_len = src.read_unary0().expect("count high bits");
         // Length must be 63 bits or less.
@@ -110,19 +110,24 @@ where
 
     /// Get a cued value (either an atom or backreference), returning (bytes, bits read).
     fn cue_val(src: &mut impl BitRead) -> Result<(Vec<u8>, u32), ()> {
-        let (mut len, mut bits_read) = Self::cue_val_len(src)?;
+        let (mut bit_len, mut bits_read) = Self::cue_val_len(src)?;
 
-        let mut val = Vec::new();
-        while len >= u64::from(u8::BITS) {
+        // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's worth it
+        // to omit a branch.
+        let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
+        let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
+
+        let mut val = Vec::with_capacity(byte_len);
+        while bit_len > u64::from(u8::BITS) {
             let byte: u8 = src.read(u8::BITS).expect("read chunk");
             bits_read += u8::BITS;
             val.push(byte);
-            len -= u64::from(u8::BITS);
+            bit_len -= u64::from(u8::BITS);
         }
         // Consume remaining bits.
-        let len = u32::try_from(len).unwrap();
-        let byte: u8 = src.read(len).expect("read chunk");
-        bits_read += len;
+        let bit_len = u32::try_from(bit_len).unwrap();
+        let byte: u8 = src.read(bit_len).expect("read chunk");
+        bits_read += bit_len;
         val.push(byte);
 
         Ok((val, bits_read))
