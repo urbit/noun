@@ -8,7 +8,15 @@ pub trait Atom<C, N>
 where
     C: Cell<Self, N>,
     N: Noun<Self, C>,
-    Self: Add + IntoNoun<Self, C, N> + Sized,
+    Self: Add<Self>
+        + Add<u8>
+        + Add<u16>
+        + Add<u32>
+        + Add<u64>
+        + Add<u128>
+        + Add<usize>
+        + IntoNoun<Self, C, N>
+        + Sized,
 {
     fn new(val: Vec<u8>) -> Self;
 

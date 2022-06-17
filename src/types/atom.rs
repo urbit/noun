@@ -11,7 +11,55 @@ impl Add for Atom {
     type Output = Self;
 
     fn add(self, _rhs: Self) -> Self::Output {
-        self
+        todo!()
+    }
+}
+
+impl Add<u8> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: u8) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<u16> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: u16) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<u32> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: u32) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<u64> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: u64) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<u128> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: u128) -> Self::Output {
+        todo!()
+    }
+}
+
+impl Add<usize> for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: usize) -> Self::Output {
+        todo!()
     }
 }
 
