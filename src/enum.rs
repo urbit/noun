@@ -94,14 +94,14 @@ pub struct Cell {
 }
 
 impl _Cell for Cell {
-    type Head = Box<Noun>;
-    type Tail = Self::Head;
+    type H = Box<Noun>;
+    type T = Self::H;
 
-    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self {
+    fn new(head: Option<Self::H>, tail: Option<Self::T>) -> Self {
         Self { head, tail }
     }
 
-    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>) {
+    fn into_parts(self) -> (Option<Self::H>, Option<Self::T>) {
         (self.head, self.tail)
     }
 }
