@@ -1,6 +1,7 @@
 use crate::{
-    cue::{Cue as _Cue, CueResult},
-    Atom as _Atom, Cell as _Cell, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
+    cue::{Cue, CueResult},
+    jam::Jam,
+    Atom as _Atom, Cell as _Cell, IntoNoun as _IntoNoun, Noun as _Noun,
 };
 use bitstream_io::{BitRead, BitWrite};
 use std::{
@@ -15,7 +16,7 @@ pub enum Noun {
     Cell(Cell),
 }
 
-impl _Cue<Atom, Cell> for Noun {
+impl Cue<Atom, Cell> for Noun {
     fn decode_cell(
         src: &mut impl BitRead,
         cache: &mut HashMap<usize, Rc<Self>>,
@@ -38,7 +39,7 @@ impl _Cue<Atom, Cell> for Noun {
     }
 }
 
-impl _Jam<Atom, Cell> for Noun {
+impl Jam<Atom, Cell> for Noun {
     fn jam(self, _sink: &mut impl BitWrite) -> Result<(), ()> {
         todo!()
     }

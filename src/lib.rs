@@ -1,8 +1,8 @@
 pub mod cue;
+pub mod jam;
 
 pub mod r#enum;
 
-use bitstream_io::BitWrite;
 use std::hash::Hash;
 
 pub trait Atom<C, N>
@@ -49,15 +49,6 @@ where
     Self: Eq,
 {
     fn eq(&self, other: &Self, _ctx: C) -> bool;
-}
-
-pub trait Jam<A, C>
-where
-    A: Atom<C, Self>,
-    C: Cell<A, Self>,
-    Self: Noun<A, C> + Sized,
-{
-    fn jam(self, sink: &mut impl BitWrite) -> Result<(), ()>;
 }
 
 /// Convert a noun into the implementing type.
