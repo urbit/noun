@@ -15,7 +15,7 @@ pub trait Cell: IntoNoun + Sized {
     fn into_parts(self) -> (Option<<Self as Cell>::Noun>, Option<<Self as Cell>::Noun>);
 }
 
-pub trait Noun: Cue + Hash + Jam + Sized {
+pub trait Noun: Hash + Sized {
     type Atom: Atom;
     type Cell: Cell;
     type Error;
@@ -34,13 +34,16 @@ pub trait UnifyEq: Eq {
     fn eq(&self, other: &Self, _ctx: Self::Ctx) -> bool;
 }
 
-pub trait Cue: Sized {
+pub trait Cue: Noun + Sized {
     type Error;
 
     fn cue(src: impl BitRead) -> Result<Self, <Self as Cue>::Error>;
+
+    /// Read the length of an atom or backreference.
+    fn len(src: &mut impl BitRead) -> Result<(Self, usize), ()>;
 }
 
-pub trait Jam: Sized {
+pub trait Jam: Noun + Sized {
     type Error;
 
     fn jam(self, sink: &mut impl BitWrite) -> Result<(), <Self as Jam>::Error>;

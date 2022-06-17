@@ -88,6 +88,10 @@ impl _Cue for Noun {
             start_idx = curr_idx;
         }
     }
+
+    fn len(_src: &mut impl BitRead) -> Result<(Self, usize), ()> {
+        todo!()
+    }
 }
 
 impl _Jam for Noun {
