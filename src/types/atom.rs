@@ -64,8 +64,8 @@ impl Add<usize> for Atom {
 }
 
 impl _Atom<Cell, Noun> for Atom {
-    fn new(val: Vec<u8>) -> Self {
-        Self(val)
+    fn new() -> Self {
+        Self(vec![0])
     }
 
     fn as_bytes(&self) -> &[u8] {

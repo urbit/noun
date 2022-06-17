@@ -143,7 +143,7 @@ mod tests {
         macro_rules! na {
             ($elem:expr , $n:expr) => {
                 let vec = vec![$elem; $n];
-                Noun::Atom(Atom::new(vec))
+                Noun::Atom(Atom::from(vec))
             };
             ($($x:expr),+ $(,)?) => {
                 {
@@ -152,7 +152,7 @@ mod tests {
                         vec.push($x);
 
                      )*
-                        Noun::Atom(Atom::new(vec))
+                        Noun::Atom(Atom::from(vec))
                 }
             };
         }

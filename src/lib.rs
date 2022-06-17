@@ -25,7 +25,7 @@ where
         + IntoNoun<Self, C, N>
         + Sized,
 {
-    fn new(val: Vec<u8>) -> Self;
+    fn new() -> Self;
 
     fn as_bytes(&self) -> &[u8];
 }

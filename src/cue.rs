@@ -101,7 +101,7 @@ where
         bits_read += bit_len;
         val.push(byte);
 
-        let atom = Rc::new(A::new(val).into_noun().unwrap());
+        let atom = Rc::new(A::from(val).into_noun().unwrap());
         if let Some(cache) = cache {
             cache.insert(start, atom.clone());
         }
