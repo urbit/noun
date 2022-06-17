@@ -19,14 +19,6 @@ impl _Jam<Atom, Cell> for Noun {
 }
 
 impl _Noun<Atom, Cell> for Noun {
-    fn new_atom(atom: Atom) -> Self {
-        Self::Atom(atom)
-    }
-
-    fn new_cell(cell: Cell) -> Self {
-        Self::Cell(cell)
-    }
-
     fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {

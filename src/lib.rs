@@ -34,10 +34,6 @@ where
     C: Cell<A, Self>,
     Self: Hash + Sized,
 {
-    fn new_atom(atom: A) -> Self;
-
-    fn new_cell(cell: C) -> Self;
-
     fn get(&self, idx: usize) -> Option<&Self>;
 
     fn into_atom(self) -> Result<A, ()>;
@@ -84,7 +80,7 @@ where
                 // Atom tag = 0b0.
                 Ok(false) => {
                     let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
-                    let atom = Self::new_atom(A::new(cue_val));
+                    let atom = A::new(cue_val).into_noun().unwrap();
                     cache.insert(start_idx, atom);
                 }
                 Err(_) => {
