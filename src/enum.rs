@@ -2,7 +2,10 @@ use crate::{
     Atom as _Atom, Cell as _Cell, Cue as _Cue, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
 };
 use bitstream_io::{BitRead, BitWrite};
-use std::hash::{Hash, Hasher};
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
@@ -10,11 +13,80 @@ pub enum Noun {
     Cell(Cell),
 }
 
+impl Noun {
+    fn cue_atom(src: &mut impl BitRead, curr_idx: &mut usize) -> Result<Self, ()> {
+        let mut bits_read = 0;
+
+        let len_of_len = src.read_unary0().expect("count high bits");
+        println!("len_of_len={}", len_of_len);
+        // Length must be 63 bits or less.
+        if len_of_len >= u64::BITS {
+            todo!("atom is too large")
+        }
+        // BitRead::read_unary0() reads the 0 bit too.
+        bits_read += len_of_len + 1;
+
+        let len: u64 = src.read(len_of_len).expect("get length");
+        println!("len=0b{:b}", len);
+        bits_read += len_of_len;
+        // Most significant bit of the length is always one and always omitted, so add it back now.
+        let mut len = (1 << len_of_len) | len;
+
+        let mut val = Vec::new();
+        while len >= u64::from(u8::BITS) {
+            let byte: u8 = src.read(u8::BITS).expect("read chunk");
+            bits_read += u8::BITS;
+            val.push(byte);
+            len -= u64::from(u8::BITS);
+        }
+        // Consume remaining bits.
+        let len = u32::try_from(len).unwrap();
+        let byte: u8 = src.read(len).expect("read chunk");
+        bits_read += len;
+        val.push(byte);
+
+        *curr_idx += usize::try_from(bits_read).expect("usize is smaller than u32");
+
+        Ok(Self::Atom(Atom(val)))
+    }
+}
+
 impl _Cue for Noun {
     type Error = ();
 
-    fn cue(_src: impl BitRead) -> Result<Self, <Self as _Cue>::Error> {
-        todo!()
+    fn cue(mut src: impl BitRead) -> Result<Self, <Self as _Cue>::Error> {
+        let mut cache: HashMap<usize, Self> = HashMap::new();
+        let mut start_idx = 0;
+        let mut curr_idx = start_idx;
+        let mut _noun: Noun;
+        loop {
+            curr_idx += 1;
+            match src.read_bit() {
+                Ok(true) => {
+                    curr_idx += 1;
+                    match src.read_bit() {
+                        // Back reference tag = 0b11.
+                        Ok(true) => {
+                            todo!("back reference");
+                        }
+                        // Cell tag = 0b01.
+                        Ok(false) => {
+                            todo!("cell");
+                        }
+                        Err(_) => todo!("IO error"),
+                    }
+                }
+                // Atom tag = 0b0.
+                Ok(false) => {
+                    let atom = Noun::cue_atom(&mut src, &mut curr_idx)?;
+                    cache.insert(start_idx, atom);
+                }
+                Err(_) => {
+                    todo!("IO error")
+                }
+            }
+            start_idx = curr_idx;
+        }
     }
 }
 
@@ -130,11 +202,10 @@ impl PartialEq for Cell {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bitstream_io::{BigEndian, BitReader, LittleEndian};
 
     #[test]
     fn bitstream() -> Result<(), std::io::Error> {
-        use bitstream_io::{BigEndian, BitReader, LittleEndian};
-
         // Read a byte at a time.
         {
             // LSB first.
@@ -221,6 +292,40 @@ mod tests {
 
     #[test]
     fn noun_cue() {}
+
+    #[test]
+    fn noun_cue_atom() -> Result<(), ()> {
+        {
+            let vec: Vec<u8> = vec![0x7, 0x4];
+            let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+            let mut curr_idx = 0;
+
+            match Noun::cue_atom(&mut bitstream, &mut curr_idx)? {
+                Noun::Atom(Atom(val)) => {
+                    assert_eq!(val[0], 0x8);
+                    assert_eq!(curr_idx, 15);
+                }
+                _ => return Err(()),
+            }
+        }
+
+        {
+            let vec: Vec<u8> = vec![0x17, 0x84];
+            let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+            let mut curr_idx = 0;
+
+            match Noun::cue_atom(&mut bitstream, &mut curr_idx)? {
+                Noun::Atom(Atom(val)) => {
+                    assert_eq!(val[0], 0x8);
+                    assert_eq!(val[1], 0x1);
+                    assert_eq!(curr_idx, 16);
+                }
+                _ => return Err(()),
+            }
+        }
+
+        Ok(())
+    }
 
     #[test]
     fn noun_get() {
