@@ -29,7 +29,7 @@ impl _Cue<Atom, Cell> for Noun {
         let (tail, bits_read) = Self::decode(src, cache, tail_start)?;
         cache.insert(tail_start, tail.clone());
 
-        let cell = Rc::new(Self::Cell(Cell::new(Some(head), Some(tail))));
+        let cell = Rc::new(Self::Cell(Cell::new(head, tail)));
 
         let bits_read =
             u32::try_from(tail_start - head_start).expect("usize smaller than u32") + bits_read;
@@ -49,10 +49,10 @@ impl _Noun<Atom, Cell> for Noun {
         if let Self::Cell(cell) = self {
             match idx {
                 0 | 1 => Some(self),
-                2 => Some(&*cell.head.as_ref()?),
-                3 => Some(&*cell.tail.as_ref()?),
-                n if n % 2 == 0 => (&*cell.head.as_ref()?).get(idx / 2),
-                _ => (&*cell.tail.as_ref()?).get(idx / 2),
+                2 => Some(&*cell.head.as_ref()),
+                3 => Some(&*cell.tail.as_ref()),
+                n if n % 2 == 0 => (&*cell.head.as_ref()).get(idx / 2),
+                _ => (&*cell.tail.as_ref()).get(idx / 2),
             }
         } else {
             None
@@ -107,19 +107,19 @@ impl _IntoNoun<Self, Cell, Noun> for Atom {
 
 #[derive(Clone, Debug, Eq)]
 pub struct Cell {
-    head: Option<Rc<Noun>>,
-    tail: Option<Rc<Noun>>,
+    head: Rc<Noun>,
+    tail: Rc<Noun>,
 }
 
 impl _Cell<Atom, Noun> for Cell {
     type Head = Rc<Noun>;
     type Tail = Self::Head;
 
-    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self {
+    fn new(head: Self::Head, tail: Self::Tail) -> Self {
         Self { head, tail }
     }
 
-    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>) {
+    fn into_parts(self) -> (Self::Head, Self::Tail) {
         (self.head, self.tail)
     }
 }
