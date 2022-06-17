@@ -3,6 +3,9 @@ pub mod r#enum;
 use bitstream_io::{BitRead, BitWrite};
 use std::{collections::HashMap, hash::Hash};
 
+/// (<some type>, bits read)
+type CueResult<T> = Result<(T, u32), ()>;
+
 pub trait Atom<C, N>
 where
     C: Cell<Self, N>,
@@ -61,7 +64,8 @@ where
         Ok(noun)
     }
 
-    fn decode(src: &mut impl BitRead, _cache: &mut HashMap<usize, Self>, _pos: usize) -> Result<(Self, u32), ()> {
+    /// Recursively decode a bitstream.
+    fn decode(src: &mut impl BitRead, _cache: &mut HashMap<usize, Self>, _pos: usize) -> CueResult<Self> {
         loop {
             match src.read_bit() {
                 Ok(true) => {
@@ -91,7 +95,7 @@ where
     }
 
     /// Decode an atom, returning (atom, bits read).
-    fn decode_atom(src: &mut impl BitRead) -> Result<(Self, u32), ()> {
+    fn decode_atom(src: &mut impl BitRead) -> CueResult<Self> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = {
             let len_of_len = src.read_unary0().expect("count high bits");
@@ -132,7 +136,7 @@ where
     }
 
     /// Decode a cell, returning (cell, bits read).
-    fn decode_cell(_src: &mut impl BitRead) -> Result<(Self, u32), ()> {
+    fn decode_cell(_src: &mut impl BitRead) -> CueResult<Self> {
         todo!()
     }
 }
