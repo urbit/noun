@@ -1,6 +1,6 @@
 use crate::{
-    Atom as _Atom, Cell as _Cell, Cue as _Cue, CueResult, IntoNoun as _IntoNoun, Jam as _Jam,
-    Noun as _Noun,
+    cue::{Cue as _Cue, CueResult},
+    Atom as _Atom, Cell as _Cell, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
 };
 use bitstream_io::{BitRead, BitWrite};
 use std::{
