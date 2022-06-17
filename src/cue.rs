@@ -77,7 +77,7 @@ where
     /// start: bitstream index that the encoded atom starts at.
     fn decode_atom(
         src: &mut impl BitRead,
-        cache: &mut HashMap<usize, Rc<Self>>,
+        cache: Option<&mut HashMap<usize, Rc<Self>>>,
         start: usize,
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
@@ -101,11 +101,12 @@ where
         bits_read += bit_len;
         val.push(byte);
 
-        let atom = A::new(val).into_noun().unwrap();
-        cache.insert(start, Rc::new(atom));
-        let atom = cache.get(&start).unwrap();
+        let atom = Rc::new(A::new(val).into_noun().unwrap());
+        if let Some(cache) = cache {
+            cache.insert(start, atom.clone());
+        }
 
-        Ok((Rc::clone(atom), bits_read))
+        Ok((atom, bits_read))
     }
 
     /// Decode a cell, returning (cell, bits read). A default implementation because a cell is a
