@@ -12,7 +12,7 @@ pub enum Noun {
 
 impl _Cue for Noun {
     type A = Atom;
-    type Cell = Cell;
+    type C = Cell;
 }
 
 impl _Jam for Noun {
@@ -23,7 +23,7 @@ impl _Jam for Noun {
 
 impl _Noun for Noun {
     type A = Atom;
-    type Cell = Cell;
+    type C = Cell;
 
     fn get(&self, idx: usize) -> Option<&Noun> {
         if let Self::Cell(cell) = self {
@@ -46,7 +46,7 @@ impl _Noun for Noun {
         }
     }
 
-    fn into_cell(self) -> Result<<Self as _Noun>::Cell, ()> {
+    fn into_cell(self) -> Result<Self::C, ()> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(()),

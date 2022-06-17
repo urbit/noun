@@ -20,13 +20,13 @@ pub trait Cell: IntoNoun + Sized {
 
 pub trait Noun: Hash + Sized {
     type A: Atom;
-    type Cell: Cell;
+    type C: Cell;
 
     fn get(&self, idx: usize) -> Option<&Self>;
 
     fn into_atom(self) -> Result<Self::A, ()>;
 
-    fn into_cell(self) -> Result<Self::Cell, ()>;
+    fn into_cell(self) -> Result<Self::C, ()>;
 }
 
 /// Unifying equality.
@@ -38,7 +38,7 @@ pub trait UnifyEq: Eq {
 
 pub trait Cue: Noun + Sized {
     type A: Atom;
-    type Cell: Cell;
+    type C: Cell;
 
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut _cache: HashMap<usize, Self> = HashMap::new();
