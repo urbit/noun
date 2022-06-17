@@ -57,17 +57,17 @@ impl _Noun<Atom, Cell> for Noun {
         }
     }
 
-    fn into_atom(self) -> Result<Atom, ()> {
+    fn into_atom(self) -> Result<Atom, Self> {
         match self {
             Self::Atom(atom) => Ok(atom),
-            _ => Err(()),
+            _ => Err(self),
         }
     }
 
-    fn into_cell(self) -> Result<Cell, ()> {
+    fn into_cell(self) -> Result<Cell, Self> {
         match self {
             Self::Cell(cell) => Ok(cell),
-            _ => Err(()),
+            _ => Err(self),
         }
     }
 }

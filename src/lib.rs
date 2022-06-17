@@ -49,9 +49,9 @@ where
 {
     fn get(&self, idx: usize) -> Option<&Self>;
 
-    fn into_atom(self) -> Result<A, ()>;
+    fn into_atom(self) -> Result<A, Self>;
 
-    fn into_cell(self) -> Result<C, ()>;
+    fn into_cell(self) -> Result<C, Self>;
 }
 
 /// Unifying equality.
