@@ -217,7 +217,7 @@ mod tests {
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
             let mut curr_idx = 0;
 
-            let (val, bits_read) = Noun::cue_val(&mut bitstream)?;
+            let (val, bits_read) = Noun::val(&mut bitstream)?;
             assert_eq!(val[0], 0x8);
             assert_eq!(bits_read, 15);
         }
@@ -226,7 +226,7 @@ mod tests {
             let vec: Vec<u8> = vec![0x17, 0x84];
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
 
-            let (val, bits_read) = Noun::cue_val(&mut bitstream)?;
+            let (val, bits_read) = Noun::val(&mut bitstream)?;
             assert_eq!(val[0], 0x8);
             assert_eq!(val[1], 0x1);
             assert_eq!(bits_read, 16);

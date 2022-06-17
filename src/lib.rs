@@ -79,7 +79,7 @@ where
                 }
                 // Atom tag = 0b0.
                 Ok(false) => {
-                    let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
+                    let (cue_val, _bits_read) = Self::val(&mut src)?;
                     let atom = A::new(cue_val).into_noun().unwrap();
                     cache.insert(start_idx, atom);
                 }
@@ -92,7 +92,7 @@ where
     }
 
     /// Read the length in bits of an atom or backreference, returning (bit length, bits read).
-    fn cue_val_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
+    fn val_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
         let len_of_len = src.read_unary0().expect("count high bits");
         // Length must be 63 bits or less.
         if len_of_len >= u64::BITS {
@@ -109,8 +109,8 @@ where
     }
 
     /// Get a cued value (either an atom or backreference), returning (bytes, bits read).
-    fn cue_val(src: &mut impl BitRead) -> Result<(Vec<u8>, u32), ()> {
-        let (mut bit_len, mut bits_read) = Self::cue_val_len(src)?;
+    fn val(src: &mut impl BitRead) -> Result<(Vec<u8>, u32), ()> {
+        let (mut bit_len, mut bits_read) = Self::val_len(src)?;
 
         // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's worth it
         // to omit a branch.
