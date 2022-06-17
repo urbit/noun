@@ -153,6 +153,11 @@ pub struct Atom(Vec<u8>);
 
 impl _Atom for Atom {
     type Error = ();
+    type Val = Vec<u8>;
+
+    fn new(val: Self::Val) -> Self {
+        Self(val)
+    }
 
     fn as_bytes(&self) -> &[u8] {
         &self.0

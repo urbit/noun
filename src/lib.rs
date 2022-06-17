@@ -5,6 +5,9 @@ use std::hash::Hash;
 
 pub trait Atom: IntoNoun + Sized {
     type Error;
+    type Val;
+
+    fn new(val: Self::Val) -> Self;
 
     fn as_bytes(&self) -> &[u8];
 }
