@@ -57,14 +57,14 @@ where
 {
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache: HashMap<usize, Self> = HashMap::new();
-        let mut start_idx = 0;
-        let mut curr_idx = start_idx;
-        let mut _noun: Self;
+        let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
+        Ok(noun)
+    }
+
+    fn decode(src: &mut impl BitRead, _cache: &mut HashMap<usize, Self>, _pos: usize) -> Result<(Self, u32), ()> {
         loop {
-            curr_idx += 1;
             match src.read_bit() {
                 Ok(true) => {
-                    curr_idx += 1;
                     match src.read_bit() {
                         // Back reference tag = 0b11.
                         Ok(true) => {
@@ -79,8 +79,7 @@ where
                 }
                 // Atom tag = 0b0.
                 Ok(false) => {
-                    let (atom, bits_read) = Self::decode_atom(&mut src)?;
-                    curr_idx += bits_read;
+                    let (_atom, _bits_read) = Self::decode_atom(src)?;
                     //cache.insert(start_idx, atom);
                     todo!()
                 }
@@ -88,7 +87,6 @@ where
                     todo!("IO error")
                 }
             }
-            start_idx = curr_idx;
         }
     }
 
@@ -131,6 +129,11 @@ where
         let atom = A::new(val).into_noun().unwrap();
 
         Ok((atom, bits_read))
+    }
+
+    /// Decode a cell, returning (cell, bits read).
+    fn decode_cell(_src: &mut impl BitRead) -> Result<(Self, u32), ()> {
+        todo!()
     }
 }
 
