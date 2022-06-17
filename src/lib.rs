@@ -16,6 +16,7 @@ where
         + Add<u128>
         + Add<usize>
         + Default
+        + Eq
         + From<u8>
         + From<u16>
         + From<u32>
