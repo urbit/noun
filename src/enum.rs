@@ -180,10 +180,15 @@ pub struct Cell {
 }
 
 impl _Cell for Cell {
-    type Noun = Noun;
+    type Head = Box<Noun>;
+    type Tail = Self::Head;
 
-    fn into_parts(self) -> (Option<<Self as _Cell>::Noun>, Option<<Self as _Cell>::Noun>) {
-        (self.head.map(|n| *n), self.tail.map(|n| *n))
+    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self {
+        Self { head, tail }
+    }
+
+    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>) {
+        (self.head, self.tail)
     }
 }
 

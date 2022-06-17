@@ -13,9 +13,12 @@ pub trait Atom: IntoNoun + Sized {
 }
 
 pub trait Cell: IntoNoun + Sized {
-    type Noun: Noun;
+    type Head;
+    type Tail;
 
-    fn into_parts(self) -> (Option<<Self as Cell>::Noun>, Option<<Self as Cell>::Noun>);
+    fn new(head: Option<Self::Head>, tail: Option<Self::Tail>) -> Self;
+
+    fn into_parts(self) -> (Option<Self::Head>, Option<Self::Tail>);
 }
 
 pub trait Noun: Hash + Sized {
