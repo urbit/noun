@@ -1,13 +1,12 @@
 pub mod r#enum;
 
 use bitstream_io::{BitRead, BitWrite};
-use std::hash::Hash;
+use std::{collections::HashMap, hash::Hash};
 
 pub trait Atom: IntoNoun + Sized {
     type Error;
-    type Val;
 
-    fn new(val: Self::Val) -> Self;
+    fn new(val: Vec<u8>) -> Self;
 
     fn as_bytes(&self) -> &[u8];
 }
@@ -41,11 +40,47 @@ pub trait UnifyEq: Eq {
 }
 
 pub trait Cue: Noun + Sized {
-    type Atom;
-    type Cell;
-    type Error;
+    type Atom: Atom;
+    type Cell: Cell;
 
-    fn cue(src: impl BitRead) -> Result<Self, <Self as Cue>::Error>;
+    fn cue(mut src: impl BitRead) -> Result<Self, ()> {
+        let mut _cache: HashMap<usize, Self> = HashMap::new();
+        let mut start_idx = 0;
+        let mut curr_idx = start_idx;
+        let mut _noun: Self;
+        loop {
+            curr_idx += 1;
+            match src.read_bit() {
+                Ok(true) => {
+                    curr_idx += 1;
+                    match src.read_bit() {
+                        // Back reference tag = 0b11.
+                        Ok(true) => {
+                            todo!("back reference");
+                        }
+                        // Cell tag = 0b01.
+                        Ok(false) => {
+                            todo!("cell");
+                        }
+                        Err(_) => todo!("IO error"),
+                    }
+                }
+                // Atom tag = 0b0.
+                Ok(false) => {
+                    let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
+                    let atom = <Self as Cue>::Atom::new(cue_val).into_noun()?;
+                    /*
+                    cache.insert(start_idx, atom);
+                    */
+                }
+                Err(_) => {
+                    todo!("IO error")
+                }
+            }
+            start_idx = curr_idx;
+        }
+        todo!()
+    }
 
     /// Read the length of an atom or backreference, returning (length, bits read).
     fn cue_val_len(src: &mut impl BitRead) -> Result<(u64, u32), ()> {
@@ -101,8 +136,7 @@ pub trait FromNoun: Sized {
 
 /// Convert the implementing type into a noun.
 pub trait IntoNoun: Sized {
-    type Error;
     type Noun: Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, Self::Error>;
+    fn into_noun(self) -> Result<Self::Noun, ()>;
 }

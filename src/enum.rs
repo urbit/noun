@@ -1,11 +1,8 @@
 use crate::{
     Atom as _Atom, Cell as _Cell, Cue as _Cue, IntoNoun as _IntoNoun, Jam as _Jam, Noun as _Noun,
 };
-use bitstream_io::{BitRead, BitWrite};
-use std::{
-    collections::HashMap,
-    hash::{Hash, Hasher},
-};
+use bitstream_io::BitWrite;
+use std::hash::{Hash, Hasher};
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
@@ -16,43 +13,6 @@ pub enum Noun {
 impl _Cue for Noun {
     type Atom = Atom;
     type Cell = Cell;
-    type Error = ();
-
-    fn cue(mut src: impl BitRead) -> Result<Self, <Self as _Cue>::Error> {
-        let mut cache: HashMap<usize, Self> = HashMap::new();
-        let mut start_idx = 0;
-        let mut curr_idx = start_idx;
-        let mut _noun: Noun;
-        loop {
-            curr_idx += 1;
-            match src.read_bit() {
-                Ok(true) => {
-                    curr_idx += 1;
-                    match src.read_bit() {
-                        // Back reference tag = 0b11.
-                        Ok(true) => {
-                            todo!("back reference");
-                        }
-                        // Cell tag = 0b01.
-                        Ok(false) => {
-                            todo!("cell");
-                        }
-                        Err(_) => todo!("IO error"),
-                    }
-                }
-                // Atom tag = 0b0.
-                Ok(false) => {
-                    let (cue_val, _bits_read) = Self::cue_val(&mut src)?;
-                    let atom = <Self as _Cue>::Atom::new(cue_val).into_noun()?;
-                    cache.insert(start_idx, atom);
-                }
-                Err(_) => {
-                    todo!("IO error")
-                }
-            }
-            start_idx = curr_idx;
-        }
-    }
 }
 
 impl _Jam for Noun {
@@ -114,9 +74,8 @@ pub struct Atom(Vec<u8>);
 
 impl _Atom for Atom {
     type Error = ();
-    type Val = Vec<u8>;
 
-    fn new(val: Self::Val) -> Self {
+    fn new(val: Vec<u8>) -> Self {
         Self(val)
     }
 
@@ -126,10 +85,9 @@ impl _Atom for Atom {
 }
 
 impl _IntoNoun for Atom {
-    type Error = ();
     type Noun = Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, Self::Error> {
+    fn into_noun(self) -> Result<Self::Noun, ()> {
         Ok(Noun::Atom(self))
     }
 }
@@ -160,10 +118,9 @@ impl Hash for Cell {
 }
 
 impl _IntoNoun for Cell {
-    type Error = ();
     type Noun = Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, Self::Error> {
+    fn into_noun(self) -> Result<Self::Noun, ()> {
         Ok(Noun::Cell(self))
     }
 }
@@ -177,7 +134,7 @@ impl PartialEq for Cell {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bitstream_io::{BigEndian, BitReader, LittleEndian};
+    use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
 
     #[test]
     fn bitstream() -> Result<(), std::io::Error> {
