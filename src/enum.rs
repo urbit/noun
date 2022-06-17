@@ -80,9 +80,9 @@ impl _Atom for Atom {
 }
 
 impl _IntoNoun for Atom {
-    type Noun = Noun;
+    type N = Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, ()> {
+    fn into_noun(self) -> Result<Self::N, ()> {
         Ok(Noun::Atom(self))
     }
 }
@@ -113,9 +113,9 @@ impl Hash for Cell {
 }
 
 impl _IntoNoun for Cell {
-    type Noun = Noun;
+    type N = Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, ()> {
+    fn into_noun(self) -> Result<Self::N, ()> {
         Ok(Noun::Cell(self))
     }
 }

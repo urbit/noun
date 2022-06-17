@@ -123,14 +123,14 @@ pub trait Jam: Noun + Sized {
 
 /// Convert a noun into the implementing type.
 pub trait FromNoun: Sized {
-    type Noun: Noun;
+    type N: Noun;
 
-    fn from_noun(noun: Self::Noun) -> Result<Self, ()>;
+    fn from_noun(noun: Self::N) -> Result<Self, ()>;
 }
 
 /// Convert the implementing type into a noun.
 pub trait IntoNoun: Sized {
-    type Noun: Noun;
+    type N: Noun;
 
-    fn into_noun(self) -> Result<Self::Noun, ()>;
+    fn into_noun(self) -> Result<Self::N, ()>;
 }
