@@ -15,6 +15,13 @@ where
         + Add<u64>
         + Add<u128>
         + Add<usize>
+        + From<u8>
+        + From<u16>
+        + From<u32>
+        + From<u64>
+        + From<u128>
+        + From<usize>
+        + From<Vec<u8>>
         + IntoNoun<Self, C, N>
         + Sized,
 {
