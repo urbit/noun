@@ -1,6 +1,6 @@
 use crate::{Atom, Cell, Noun};
 use bitstream_io::BitRead;
-use std::{collections::HashMap, fmt::Debug, mem::drop, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, mem::{drop, size_of}, rc::Rc};
 
 /// (<some type>, bits read)
 pub type CueResult<T> = Result<(T, u32), ()>;
@@ -26,32 +26,46 @@ where
     /// Recursively decode a bitstream.
     fn decode(
         src: &mut impl BitRead,
-        _cache: &mut HashMap<u64, Rc<Self>>,
-        mut _pos: u64,
+        cache: &mut HashMap<u64, Rc<Self>>,
+        pos: u64,
     ) -> CueResult<Rc<Self>> {
         match src.read_bit() {
             Ok(true) => {
+                const TAG_LEN: u32 = 2;
                 match src.read_bit() {
                     // Back reference tag = 0b11.
                     Ok(true) => {
-                        todo!("back reference");
+                        let (idx, bits_read) = Self::decode_atom(src, None, pos)?;
+                        let (first, rest) = idx.as_atom()?.as_bytes().split_at(size_of::<u64>());
+                        if rest.len() > 0 {
+                            todo!("idx is larger than 8 bytes")
+                        }
+                        // XXX: watch out for endianness bug.
+                        let idx = u64::from_le_bytes(first.try_into().unwrap());
+                        if let Some(noun) = cache.get(&idx) {
+                            Ok((noun.clone(), TAG_LEN + bits_read))
+                        } else {
+                            Err(())
+                        }
                     }
                     // Cell tag = 0b01.
                     Ok(false) => {
-                        todo!("cell");
+                        let (cell, bits_read) = Self::decode_cell(src, cache, pos)?;
+                        Ok((cell, TAG_LEN + bits_read))
                     }
                     Err(_) => todo!("IO error"),
                 }
             }
             // Atom tag = 0b0.
             Ok(false) => {
-                todo!()
+                const TAG_LEN: u32 = 1;
+                let (atom, bits_read) = Self::decode_atom(src, Some(cache), pos)?;
+                Ok((atom, TAG_LEN + bits_read))
             }
             Err(_) => {
-                todo!("IO error")
+                todo!("I think this is when it's time to exit")
             }
         }
-        todo!()
     }
 
     /// Decode the length in bits of an atom, returning (len, bits read).
