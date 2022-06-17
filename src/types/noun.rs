@@ -16,23 +16,19 @@ pub enum Noun {
 impl Cue<Atom, Cell> for Noun {
     fn decode_cell(
         src: &mut impl BitRead,
-        cache: &mut HashMap<usize, Rc<Self>>,
-        head_start: usize,
+        cache: &mut HashMap<u64, Rc<Self>>,
+        mut pos: u64,
     ) -> CueResult<Rc<Self>> {
-        let (head, bits_read) = Self::decode(src, cache, head_start)?;
-        cache.insert(head_start, head.clone());
+        let (head, head_bits) = Self::decode(src, cache, pos)?;
+        cache.insert(pos, head.clone());
 
-        let tail_start = head_start + usize::try_from(bits_read).expect("usize smaller than u32");
+        pos += u64::from(head_bits);
 
-        let (tail, bits_read) = Self::decode(src, cache, tail_start)?;
-        cache.insert(tail_start, tail.clone());
+        let (tail, tail_bits) = Self::decode(src, cache, pos)?;
+        cache.insert(pos, tail.clone());
 
         let cell = Rc::new(Self::Cell(Cell::new(head, tail)));
-
-        let bits_read =
-            u32::try_from(tail_start - head_start).expect("usize smaller than u32") + bits_read;
-
-        Ok((cell, bits_read))
+        Ok((cell, head_bits + tail_bits))
     }
 }
 

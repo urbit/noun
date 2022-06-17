@@ -26,8 +26,8 @@ where
     /// Recursively decode a bitstream.
     fn decode(
         src: &mut impl BitRead,
-        _cache: &mut HashMap<usize, Rc<Self>>,
-        mut _pos: usize,
+        _cache: &mut HashMap<u64, Rc<Self>>,
+        mut _pos: u64,
     ) -> CueResult<Rc<Self>> {
         match src.read_bit() {
             Ok(true) => {
@@ -74,21 +74,22 @@ where
     ///
     /// src: bitstream.
     /// cache: mapping from bitstream index to encoded noun starting at that index.
-    /// start: bitstream index that the encoded atom starts at.
+    /// pos: bitstream index that the encoded atom starts at.
     fn decode_atom(
         src: &mut impl BitRead,
-        cache: Option<&mut HashMap<usize, Rc<Self>>>,
-        start: usize,
+        cache: Option<&mut HashMap<u64, Rc<Self>>>,
+        pos: u64,
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
 
-        // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's worth it
-        // to omit a branch.
-        let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
-        let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
-
-        let mut val = Vec::with_capacity(byte_len);
+        let mut val = {
+            // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
+            // worth it to omit a branch.
+            let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
+            let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
+            Vec::with_capacity(byte_len)
+        };
         while bit_len > u64::from(u8::BITS) {
             let byte: u8 = src.read(u8::BITS).expect("read chunk");
             bits_read += u8::BITS;
@@ -103,7 +104,7 @@ where
 
         let atom = Rc::new(A::from(val).into_noun().unwrap());
         if let Some(cache) = cache {
-            cache.insert(start, atom.clone());
+            cache.insert(pos, atom.clone());
         }
 
         Ok((atom, bits_read))
@@ -118,7 +119,7 @@ where
     /// head_start: bitstream index that the head of the encoded cell starts at.
     fn decode_cell(
         src: &mut impl BitRead,
-        cache: &mut HashMap<usize, Rc<Self>>,
-        head_start: usize,
+        cache: &mut HashMap<u64, Rc<Self>>,
+        pos: u64,
     ) -> CueResult<Rc<Self>>;
 }

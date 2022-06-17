@@ -7,7 +7,7 @@ mod tests {
     use super::{atom::*, cell::*, noun::*};
     use crate::{cue::Cue as _, Atom as _, Cell as _, Noun as _};
     use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
-    use std::{collections::HashMap, rc::Rc};
+    use std::rc::Rc;
 
     #[test]
     fn bitstream() -> Result<(), std::io::Error> {
@@ -103,7 +103,6 @@ mod tests {
         {
             let vec: Vec<u8> = vec![0x7, 0x4];
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
-            let mut curr_idx = 0;
 
             let (atom, bits_read) = Noun::decode_atom(&mut bitstream, None, 0)?;
             let atom = Rc::try_unwrap(atom).expect("more than 1 reference");
