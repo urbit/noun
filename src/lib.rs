@@ -1,7 +1,7 @@
 pub mod r#enum;
 
 use bitstream_io::{BitRead, BitWrite};
-use std::{collections::HashMap, hash::Hash, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, hash::Hash, mem::drop, rc::Rc};
 
 /// (<some type>, bits read)
 type CueResult<T> = Result<(T, u32), ()>;
@@ -56,11 +56,17 @@ pub trait Cue<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
-    Self: Noun<A, C> + Sized,
+    Self: Noun<A, C> + Debug + Sized,
 {
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();
         let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
+
+        // Dropping the cache guarantees that the top level noun has exactly one reference, which
+        // makes it safe to move out of the Rc.
+        drop(cache);
+        let noun = Rc::try_unwrap(noun).unwrap();
+
         Ok(noun)
     }
 
@@ -69,7 +75,7 @@ where
         src: &mut impl BitRead,
         _cache: &mut HashMap<usize, Rc<Self>>,
         mut _pos: usize,
-    ) -> CueResult<Self> {
+    ) -> CueResult<Rc<Self>> {
         match src.read_bit() {
             Ok(true) => {
                 match src.read_bit() {

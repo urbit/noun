@@ -22,13 +22,11 @@ impl _Cue<Atom, Cell> for Noun {
         head_start: usize,
     ) -> CueResult<Rc<Self>> {
         let (head, bits_read) = Self::decode(src, cache, head_start)?;
-        let head = Rc::new(head);
         cache.insert(head_start, head.clone());
 
         let tail_start = head_start + usize::try_from(bits_read).expect("usize smaller than u32");
 
         let (tail, bits_read) = Self::decode(src, cache, tail_start)?;
-        let tail = Rc::new(tail);
         cache.insert(tail_start, tail.clone());
 
         let cell = Rc::new(Self::Cell(Cell::new(Some(head), Some(tail))));
