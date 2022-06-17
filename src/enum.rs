@@ -7,6 +7,7 @@ use bitstream_io::{BitRead, BitWrite};
 use std::{
     collections::HashMap,
     hash::{Hash, Hasher},
+    ops::Add,
     rc::Rc,
 };
 
@@ -89,6 +90,14 @@ impl PartialEq for Noun {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
+
+impl Add for Atom {
+    type Output = Self;
+
+    fn add(self, _rhs: Self) -> Self::Output {
+        self
+    }
+}
 
 impl _Atom<Cell, Noun> for Atom {
     fn new(val: Vec<u8>) -> Self {

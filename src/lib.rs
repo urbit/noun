@@ -3,13 +3,13 @@ pub mod jam;
 
 pub mod r#enum;
 
-use std::hash::Hash;
+use std::{hash::Hash, ops::Add};
 
 pub trait Atom<C, N>
 where
     C: Cell<Self, N>,
     N: Noun<Self, C>,
-    Self: IntoNoun<Self, C, N> + Sized,
+    Self: Add + IntoNoun<Self, C, N> + Sized,
 {
     fn new(val: Vec<u8>) -> Self;
 
