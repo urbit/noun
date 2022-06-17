@@ -217,19 +217,29 @@ mod tests {
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
             let mut curr_idx = 0;
 
-            let (val, bits_read) = Noun::decode_atom(&mut bitstream)?;
-            assert_eq!(val[0], 0x8);
+            let (atom, bits_read) = Noun::decode_atom(&mut bitstream)?;
             assert_eq!(bits_read, 15);
+            match atom {
+                Noun::Atom(Atom(val)) => {
+                    assert_eq!(val[0], 0x8);
+                }
+                _ => return Err(())
+            }
         }
 
         {
             let vec: Vec<u8> = vec![0x17, 0x84];
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
 
-            let (val, bits_read) = Noun::decode_atom(&mut bitstream)?;
-            assert_eq!(val[0], 0x8);
-            assert_eq!(val[1], 0x1);
+            let (atom, bits_read) = Noun::decode_atom(&mut bitstream)?;
             assert_eq!(bits_read, 16);
+            match atom {
+                Noun::Atom(Atom(val)) => {
+                    assert_eq!(val[0], 0x8);
+                    assert_eq!(val[1], 0x1);
+                }
+                _ => return Err(())
+            }
         }
 
         Ok(())

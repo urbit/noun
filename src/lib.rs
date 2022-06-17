@@ -79,9 +79,10 @@ where
                 }
                 // Atom tag = 0b0.
                 Ok(false) => {
-                    let (atom, _bits_read) = Self::decode_atom(&mut src)?;
-                    let atom = A::new(atom).into_noun().unwrap();
-                    cache.insert(start_idx, atom);
+                    let (atom, bits_read) = Self::decode_atom(&mut src)?;
+                    curr_idx += bits_read;
+                    //cache.insert(start_idx, atom);
+                    todo!()
                 }
                 Err(_) => {
                     todo!("IO error")
@@ -91,8 +92,8 @@ where
         }
     }
 
-    /// Decode an atom, returning (bytes, bits read).
-    fn decode_atom(src: &mut impl BitRead) -> Result<(Vec<u8>, u32), ()> {
+    /// Decode an atom, returning (atom, bits read).
+    fn decode_atom(src: &mut impl BitRead) -> Result<(Self, u32), ()> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = {
             let len_of_len = src.read_unary0().expect("count high bits");
@@ -127,7 +128,9 @@ where
         bits_read += bit_len;
         val.push(byte);
 
-        Ok((val, bits_read))
+        let atom = A::new(val).into_noun().unwrap();
+
+        Ok((atom, bits_read))
     }
 }
 
