@@ -14,23 +14,8 @@ pub enum Noun {
 }
 
 impl Noun {
-    fn cue_atom(src: &mut impl BitRead, curr_idx: &mut usize) -> Result<Self, ()> {
-        let mut bits_read = 0;
-
-        let len_of_len = src.read_unary0().expect("count high bits");
-        println!("len_of_len={}", len_of_len);
-        // Length must be 63 bits or less.
-        if len_of_len >= u64::BITS {
-            todo!("atom is too large")
-        }
-        // BitRead::read_unary0() reads the 0 bit too.
-        bits_read += len_of_len + 1;
-
-        let len: u64 = src.read(len_of_len).expect("get length");
-        println!("len=0b{:b}", len);
-        bits_read += len_of_len;
-        // Most significant bit of the length is always one and always omitted, so add it back now.
-        let mut len = (1 << len_of_len) | len;
+    fn cue_atom(src: &mut impl BitRead) -> Result<(Self, u32), ()> {
+        let (mut len, mut bits_read) = Self::cue_len(src)?;
 
         let mut val = Vec::new();
         while len >= u64::from(u8::BITS) {
@@ -45,13 +30,13 @@ impl Noun {
         bits_read += len;
         val.push(byte);
 
-        *curr_idx += usize::try_from(bits_read).expect("usize is smaller than u32");
-
-        Ok(Self::Atom(Atom(val)))
+        Ok((Self::Atom(Atom(val)), bits_read))
     }
 }
 
 impl _Cue for Noun {
+    type Atom = Atom;
+    type Cell = Cell;
     type Error = ();
 
     fn cue(mut src: impl BitRead) -> Result<Self, <Self as _Cue>::Error> {
@@ -78,7 +63,7 @@ impl _Cue for Noun {
                 }
                 // Atom tag = 0b0.
                 Ok(false) => {
-                    let atom = Noun::cue_atom(&mut src, &mut curr_idx)?;
+                    let (atom, bits_read) = Noun::cue_atom(&mut src)?;
                     cache.insert(start_idx, atom);
                 }
                 Err(_) => {
@@ -87,10 +72,6 @@ impl _Cue for Noun {
             }
             start_idx = curr_idx;
         }
-    }
-
-    fn len(_src: &mut impl BitRead) -> Result<(Self, usize), ()> {
-        todo!()
     }
 }
 
@@ -314,10 +295,11 @@ mod tests {
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
             let mut curr_idx = 0;
 
-            match Noun::cue_atom(&mut bitstream, &mut curr_idx)? {
+            let (noun, bits_read) = Noun::cue_atom(&mut bitstream)?;
+            match noun {
                 Noun::Atom(Atom(val)) => {
                     assert_eq!(val[0], 0x8);
-                    assert_eq!(curr_idx, 15);
+                    assert_eq!(bits_read, 15);
                 }
                 _ => return Err(()),
             }
@@ -326,13 +308,13 @@ mod tests {
         {
             let vec: Vec<u8> = vec![0x17, 0x84];
             let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
-            let mut curr_idx = 0;
 
-            match Noun::cue_atom(&mut bitstream, &mut curr_idx)? {
+            let (noun, bits_read) = Noun::cue_atom(&mut bitstream)?;
+            match noun {
                 Noun::Atom(Atom(val)) => {
                     assert_eq!(val[0], 0x8);
                     assert_eq!(val[1], 0x1);
-                    assert_eq!(curr_idx, 16);
+                    assert_eq!(bits_read, 16);
                 }
                 _ => return Err(()),
             }
