@@ -2,7 +2,7 @@ pub mod cue;
 pub mod jam;
 pub mod types;
 
-use std::{hash::Hash, ops::Add};
+use std::{default::Default, hash::Hash, ops::Add};
 
 pub trait Atom<C, N>
 where
@@ -15,6 +15,7 @@ where
         + Add<u64>
         + Add<u128>
         + Add<usize>
+        + Default
         + From<u8>
         + From<u16>
         + From<u32>
@@ -25,8 +26,6 @@ where
         + IntoNoun<Self, C, N>
         + Sized,
 {
-    fn new() -> Self;
-
     fn as_bytes(&self) -> &[u8];
 }
 

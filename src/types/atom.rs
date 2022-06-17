@@ -2,7 +2,7 @@ use crate::{
     types::{cell::Cell, noun::Noun},
     Atom as _Atom, IntoNoun,
 };
-use std::{hash::Hash, ops::Add};
+use std::{default::Default, hash::Hash, ops::Add};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
@@ -64,12 +64,14 @@ impl Add<usize> for Atom {
 }
 
 impl _Atom<Cell, Noun> for Atom {
-    fn new() -> Self {
-        Self(vec![0])
-    }
-
     fn as_bytes(&self) -> &[u8] {
         &self.0
+    }
+}
+
+impl Default for Atom {
+    fn default() -> Self {
+        Self(vec![0])
     }
 }
 
