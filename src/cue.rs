@@ -143,9 +143,7 @@ where
         }
     }
 
-    /// Decode a cell, returning (cell, bits read). A default implementation because a cell is a
-    /// self referential data type, and its construction cannot be generalized using the Cell
-    /// trait.
+    /// Decode a cell, returning (cell, bits read).
     ///
     /// src: bitstream.
     /// cache: mapping from bitstream index to encoded noun starting at that index.
@@ -153,6 +151,27 @@ where
     fn decode_cell(
         src: &mut impl BitRead,
         cache: &mut HashMap<u64, Rc<Self>>,
-        pos: u64,
-    ) -> CueResult<Rc<Self>>;
+        mut pos: u64,
+    ) -> CueResult<Rc<Self>> {
+        let (head, head_bits) = Self::decode(src, cache, pos)?;
+        cache.insert(pos, head.clone());
+
+        pos += u64::from(head_bits);
+
+        let (tail, tail_bits) = Self::decode(src, cache, pos)?;
+        cache.insert(pos, tail.clone());
+
+        let cell = Rc::new(Self::new_cell(head, tail).into_noun().unwrap());
+        Ok((cell, head_bits + tail_bits))
+    }
+
+    /// The construction of a cell cannot be generalized using the Cell trait for use in this
+    /// context because the Cell::Head and Cell::Tail traits are intentionally not bounded by the
+    /// Noun trait, which would be too onerous on implementers. Besides cell construction, cueing a
+    /// jammed noun is completely independent of the noun representation, so implementing this
+    /// single method on a particular noun type will result in a free cue implementation.
+    ///
+    /// head: reference-counted head noun
+    /// tail: reference-counted head noun
+    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> C;
 }

@@ -1,11 +1,11 @@
 use crate::{
-    cue::{Cue, CueResult},
+    cue::Cue,
     jam::Jam,
     types::{atom::Atom, cell::Cell},
     Cell as _Cell, Noun as _Noun,
 };
-use bitstream_io::{BitRead, BitWrite};
-use std::{collections::HashMap, rc::Rc};
+use bitstream_io::BitWrite;
+use std::rc::Rc;
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
@@ -14,21 +14,8 @@ pub enum Noun {
 }
 
 impl Cue<Atom, Cell> for Noun {
-    fn decode_cell(
-        src: &mut impl BitRead,
-        cache: &mut HashMap<u64, Rc<Self>>,
-        mut pos: u64,
-    ) -> CueResult<Rc<Self>> {
-        let (head, head_bits) = Self::decode(src, cache, pos)?;
-        cache.insert(pos, head.clone());
-
-        pos += u64::from(head_bits);
-
-        let (tail, tail_bits) = Self::decode(src, cache, pos)?;
-        cache.insert(pos, tail.clone());
-
-        let cell = Rc::new(Self::Cell(Cell::new(head, tail)));
-        Ok((cell, head_bits + tail_bits))
+    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> Cell {
+        Cell::new(head, tail)
     }
 }
 
