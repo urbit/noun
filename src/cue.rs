@@ -1,6 +1,11 @@
 use crate::{Atom, Cell, Noun};
 use bitstream_io::BitRead;
-use std::{collections::HashMap, fmt::Debug, mem::{drop, size_of}, rc::Rc};
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    mem::{drop, size_of},
+    rc::Rc,
+};
 
 /// (<some type>, bits read)
 pub type CueResult<T> = Result<(T, u32), ()>;
@@ -35,18 +40,8 @@ where
                 match src.read_bit() {
                     // Back reference tag = 0b11.
                     Ok(true) => {
-                        let (idx, bits_read) = Self::decode_atom(src, None, pos)?;
-                        let (first, rest) = idx.as_atom()?.as_bytes().split_at(size_of::<u64>());
-                        if rest.len() > 0 {
-                            todo!("idx is larger than 8 bytes")
-                        }
-                        // XXX: watch out for endianness bug.
-                        let idx = u64::from_le_bytes(first.try_into().unwrap());
-                        if let Some(noun) = cache.get(&idx) {
-                            Ok((noun.clone(), TAG_LEN + bits_read))
-                        } else {
-                            Err(())
-                        }
+                        let (noun, bits_read) = Self::decode_backref(src, cache, pos)?;
+                        Ok((noun, TAG_LEN + bits_read))
                     }
                     // Cell tag = 0b01.
                     Ok(false) => {
@@ -122,6 +117,30 @@ where
         }
 
         Ok((atom, bits_read))
+    }
+
+    /// Decode a backreference, returning (noun, bits read).
+    ///
+    /// src: bitstream.
+    /// cache: mapping from bitstream index to encoded noun starting at that index.
+    /// pos: bitstream index that the encoded backreference starts at.
+    fn decode_backref(
+        src: &mut impl BitRead,
+        cache: &mut HashMap<u64, Rc<Self>>,
+        pos: u64,
+    ) -> CueResult<Rc<Self>> {
+        let (idx, bits_read) = Self::decode_atom(src, None, pos)?;
+        let (first, rest) = idx.as_atom()?.as_bytes().split_at(size_of::<u64>());
+        if rest.len() > 0 {
+            todo!("idx is larger than 8 bytes")
+        }
+        // XXX: watch out for endianness bug.
+        let idx = u64::from_le_bytes(first.try_into().unwrap());
+        if let Some(noun) = cache.get(&idx) {
+            Ok((noun.clone(), bits_read))
+        } else {
+            Err(())
+        }
     }
 
     /// Decode a cell, returning (cell, bits read). A default implementation because a cell is a
