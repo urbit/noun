@@ -29,6 +29,97 @@ where
     ///
     /// Note that the tag for an atom is only a single bit whereas the tags for a cell and a
     /// backreference are both two bits.
+    ///
+    /// # Examples
+    ///
+    /// The examples that follow require the use of any concrete atom, cell, and noun types that
+    /// implement the `noun::Atom`, `noun::Cell`, and `noun::Noun` traits, respectively.
+    ///
+    ///
+    /// `2` deserializes to `0`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// let jammed_noun = Atom::from(0b10u8);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let atom = noun.into_atom().expect("into atom");
+    /// assert_eq!(atom, Atom::from(0u8));
+    /// ```
+    ///
+    /// `12` deserializes to `1`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// let jammed_noun = Atom::from(0b1100u8);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let atom = noun.into_atom().expect("into atom");
+    /// assert_eq!(atom, Atom::from(1u8));
+    /// ```
+    ///
+    /// `72` deserializes to `2`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// let jammed_noun = Atom::from(0b1001000u8);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let atom = noun.into_atom().expect("into atom");
+    /// assert_eq!(atom, Atom::from(2u8));
+    /// ```
+    ///
+    /// `2480` deserializes to `19`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// let jammed_noun = Atom::from(0b100110110000u16);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let atom = noun.into_atom().expect("into atom");
+    /// assert_eq!(atom, Atom::from(19u8));
+    /// ```
+    ///
+    /// `817` deserializes to `[1 1]`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{
+    ///     serdes::Cue,
+    ///     types::{atom::Atom, cell::Cell, noun::Noun},
+    ///     Atom as _, Cell as _, Noun as _,
+    /// };
+    /// let jammed_noun = Atom::from(0b1100110001u16);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let cell = noun.into_cell().expect("into cell");
+    /// let (head, tail) = cell.into_parts();
+    /// let head = head.as_atom().expect("as atom");
+    /// let tail = tail.as_atom().expect("as atom");
+    /// let one = Atom::from(1u8);
+    /// assert_eq!(head, &one);
+    /// assert_eq!(tail, &one);
+    /// ```
+    ///
+    /// `39689` deserializes into `[0 19]`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{
+    ///     serdes::Cue,
+    ///     types::{atom::Atom, cell::Cell, noun::Noun},
+    ///     Atom as _, Cell as _, Noun as _,
+    /// };
+    /// let jammed_noun = Atom::from(0b1001101100001001u16);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let cell = noun.into_cell().expect("into cell");
+    /// let (head, tail) = cell.into_parts();
+    /// let head = head.as_atom().expect("as atom");
+    /// let tail = tail.as_atom().expect("as atom");
+    /// let zero = Atom::from(0u8);
+    /// let nineteen = Atom::from(19u8);
+    /// assert_eq!(head, &zero);
+    /// assert_eq!(tail, &nineteen);
+    /// ```
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();
         let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
@@ -53,11 +144,13 @@ where
                 match src.read_bit() {
                     // Back reference tag = 0b11.
                     Ok(true) => {
+                        let pos = u64::from(TAG_LEN) + pos;
                         let (noun, bits_read) = Self::decode_backref(src, cache, pos)?;
                         Ok((noun, TAG_LEN + bits_read))
                     }
                     // Cell tag = 0b01.
                     Ok(false) => {
+                        let pos = u64::from(TAG_LEN) + pos;
                         let (cell, bits_read) = Self::decode_cell(src, cache, pos)?;
                         Ok((cell, TAG_LEN + bits_read))
                     }
@@ -67,6 +160,7 @@ where
             // Atom tag = 0b0.
             Ok(false) => {
                 const TAG_LEN: u32 = 1;
+                let pos = u64::from(TAG_LEN) + pos;
                 let (atom, bits_read) = Self::decode_atom(src, Some(cache), pos)?;
                 Ok((atom, TAG_LEN + bits_read))
             }
@@ -79,17 +173,21 @@ where
     /// Decode the length of an atom or backreference.
     #[doc(hidden)]
     fn decode_len(src: &mut impl BitRead) -> CueResult<u64> {
-        let len_of_len = src.read_unary0().expect("count high bits");
+        let len_of_len = src.read_unary1().expect("count high bits");
         // Length must be 63 bits or less.
         if len_of_len >= u64::BITS {
             todo!("too large")
         }
-
-        let len: u64 = src.read(len_of_len).expect("get length");
-        // Most significant bit of the length is always one and always omitted, so add it back now.
-        let len = (1 << len_of_len) | len;
-
-        let bits_read = 2 * len_of_len + 1;
+        let (len, bits_read) = if len_of_len == 0 {
+            (0, 1)
+        } else {
+            // The most significant bit of the length is implicit because it's always 1.
+            let len_bits = len_of_len - 1;
+            let len: u64 = src.read(len_bits).expect("get length");
+            let len = (1 << len_bits) | len;
+            let bits_read = len_of_len + 1 + len_bits;
+            (len, bits_read)
+        };
         Ok((len, bits_read))
     }
 
@@ -104,27 +202,30 @@ where
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
-
-        let mut val = {
-            // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
-            // worth it to omit a branch.
-            let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
-            let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
-            Vec::with_capacity(byte_len)
-        };
-        while bit_len > u64::from(u8::BITS) {
-            let byte: u8 = src.read(u8::BITS).expect("read chunk");
-            bits_read += u8::BITS;
+        let atom = if bit_len == 0 {
+            Rc::new(A::from(0u8).into_noun().unwrap())
+        } else {
+            let mut val = {
+                // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
+                // worth it to omit a branch.
+                let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
+                let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
+                Vec::with_capacity(byte_len)
+            };
+            while bit_len > u64::from(u8::BITS) {
+                let byte: u8 = src.read(u8::BITS).expect("read chunk");
+                bits_read += u8::BITS;
+                val.push(byte);
+                bit_len -= u64::from(u8::BITS);
+            }
+            // Consume remaining bits.
+            let bit_len = u32::try_from(bit_len).unwrap();
+            let byte: u8 = src.read(bit_len).expect("read chunk");
+            bits_read += bit_len;
             val.push(byte);
-            bit_len -= u64::from(u8::BITS);
-        }
-        // Consume remaining bits.
-        let bit_len = u32::try_from(bit_len).unwrap();
-        let byte: u8 = src.read(bit_len).expect("read chunk");
-        bits_read += bit_len;
-        val.push(byte);
+            Rc::new(A::from(val).into_noun().unwrap())
+        };
 
-        let atom = Rc::new(A::from(val).into_noun().unwrap());
         if let Some(cache) = cache {
             cache.insert(pos, atom.clone());
         }

@@ -5,7 +5,7 @@ pub mod noun;
 #[cfg(test)]
 mod tests {
     use super::{atom::*, cell::*, noun::*};
-    use crate::{serdes::Cue as _, Atom as _, Cell as _, Noun as _};
+    use crate::{Cell as _, Noun as _};
     use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
     use std::rc::Rc;
 
@@ -97,44 +97,6 @@ mod tests {
 
     #[test]
     fn noun_cue() {}
-
-    #[test]
-    fn noun_cue_atom() -> Result<(), ()> {
-        {
-            let vec: Vec<u8> = vec![0x7, 0x4];
-            let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
-
-            let (atom, bits_read) = Noun::decode_atom(&mut bitstream, None, 0)?;
-            let atom = Rc::try_unwrap(atom).expect("more than 1 reference");
-            assert_eq!(bits_read, 15);
-            match atom {
-                Noun::Atom(atom) => {
-                    let bytes = atom.as_bytes();
-                    assert_eq!(bytes[0], 0x8);
-                }
-                _ => return Err(()),
-            }
-        }
-
-        {
-            let vec: Vec<u8> = vec![0x17, 0x84];
-            let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
-
-            let (atom, bits_read) = Noun::decode_atom(&mut bitstream, None, 0)?;
-            let atom = Rc::try_unwrap(atom).expect("more than 1 reference");
-            assert_eq!(bits_read, 16);
-            match atom {
-                Noun::Atom(atom) => {
-                    let bytes = atom.as_bytes();
-                    assert_eq!(bytes[0], 0x8);
-                    assert_eq!(bytes[1], 0x1);
-                }
-                _ => return Err(()),
-            }
-        }
-
-        Ok(())
-    }
 
     #[test]
     fn noun_get() {
