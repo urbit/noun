@@ -8,14 +8,27 @@ use std::{
 };
 
 /// (<some type>, bits read)
+#[doc(hidden)]
 pub type CueResult<T> = Result<(T, u32), ()>;
 
+/// Deserialize a bitstream into a noun.
 pub trait Cue<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
     Self: Noun<A, C> + Debug + Sized,
 {
+    /// Decodes a bitstream into a noun.
+    ///
+    /// The bitstream is read from least significant bit to most significant bit and starts with a
+    /// tag identifying whether the object following the tag is an atom, a cell, or a backreference
+    /// to an object that was already decoded. The tag encodings are:
+    /// - `0b0`: atom,
+    /// - `0b01`: cell, and
+    /// - `0b11`: backreference.
+    ///
+    /// Note that the tag for an atom is only a single bit whereas the tags for a cell and a
+    /// backreference are both two bits.
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();
         let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
@@ -28,7 +41,7 @@ where
         Ok(noun)
     }
 
-    /// Recursively decode a bitstream.
+    #[doc(hidden)]
     fn decode(
         src: &mut impl BitRead,
         cache: &mut HashMap<u64, Rc<Self>>,
@@ -63,7 +76,8 @@ where
         }
     }
 
-    /// Decode the length in bits of an atom, returning (len, bits read).
+    /// Decode the length of an atom or backreference.
+    #[doc(hidden)]
     fn decode_len(src: &mut impl BitRead) -> CueResult<u64> {
         let len_of_len = src.read_unary0().expect("count high bits");
         // Length must be 63 bits or less.
@@ -79,11 +93,10 @@ where
         Ok((len, bits_read))
     }
 
-    /// Decode an atom, returning (atom, bits read).
-    ///
-    /// src: bitstream.
-    /// cache: mapping from bitstream index to encoded noun starting at that index.
-    /// pos: bitstream index that the encoded atom starts at.
+    /// Decode an encoded atom from the bitstream. Note that the atom tag must already be consumed,
+    /// which means that the first bit read from `src` (located at index `pos`) is the first bit of
+    /// the encoded length.
+    #[doc(hidden)]
     fn decode_atom(
         src: &mut impl BitRead,
         cache: Option<&mut HashMap<u64, Rc<Self>>>,
@@ -119,11 +132,10 @@ where
         Ok((atom, bits_read))
     }
 
-    /// Decode a backreference, returning (noun, bits read).
-    ///
-    /// src: bitstream.
-    /// cache: mapping from bitstream index to encoded noun starting at that index.
-    /// pos: bitstream index that the encoded backreference starts at.
+    /// Decode an encoded backreference from the bitstream. Note that the backreference tag must
+    /// already be consumed, which means that the first bit read from `src` (located at index
+    /// `pos`) is the first bit of the encoded length.
+    #[doc(hidden)]
     fn decode_backref(
         src: &mut impl BitRead,
         cache: &mut HashMap<u64, Rc<Self>>,
@@ -143,11 +155,10 @@ where
         }
     }
 
-    /// Decode a cell, returning (cell, bits read).
-    ///
-    /// src: bitstream.
-    /// cache: mapping from bitstream index to encoded noun starting at that index.
-    /// head_start: bitstream index that the head of the encoded cell starts at.
+    /// Decode a cell from the bitstream. Note that the cell tag must already be consumed, which
+    /// means that the first bit read from `src` (located at index `pos`) is the first bit of the
+    /// head's tag.
+    #[doc(hidden)]
     fn decode_cell(
         src: &mut impl BitRead,
         cache: &mut HashMap<u64, Rc<Self>>,
@@ -165,17 +176,23 @@ where
         Ok((cell, head_bits + tail_bits))
     }
 
-    /// The construction of a cell cannot be generalized using the Cell trait for use in this
-    /// context because the Cell::Head and Cell::Tail traits are intentionally not bounded by the
-    /// Noun trait, which would be too onerous on implementers. Besides cell construction, cueing a
-    /// jammed noun is completely independent of the noun representation, so implementing this
-    /// single method on a particular noun type will result in a free cue implementation.
+    /// Construct a new cell.
     ///
-    /// head: reference-counted head noun
-    /// tail: reference-counted head noun
+    /// The construction of a cell cannot be generalized using the `Cell` trait for use in this
+    /// context because the `Cell::Head` and `Cell::Tail` traits are intentionally not bounded by
+    /// the `Noun` trait, which would be too onerous on implementers. Beside cell construction,
+    /// cueing (decoding) a jammed (encoded) noun is completely independent of the noun
+    /// representation, so deserializing a serialized noun is completely independent of the noun
+    /// representation, so implementing this single method on a particular noun type will result in
+    /// a free implementation of cue.
     fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> C;
 }
 
+/// (<some type>, bits read)
+#[doc(hidden)]
+pub type JamResult<T> = Result<(T, u32), ()>;
+
+/// Serialize a noun into a bitstream.
 pub trait Jam<A, C>
 where
     A: Atom<C, Self>,
