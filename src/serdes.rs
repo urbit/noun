@@ -1,5 +1,5 @@
 use crate::{Atom, Cell, Noun};
-use bitstream_io::BitRead;
+use bitstream_io::{BitRead, BitWrite};
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -174,4 +174,13 @@ where
     /// head: reference-counted head noun
     /// tail: reference-counted head noun
     fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> C;
+}
+
+pub trait Jam<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: Noun<A, C> + Sized,
+{
+    fn jam(self, sink: &mut impl BitWrite) -> Result<(), ()>;
 }

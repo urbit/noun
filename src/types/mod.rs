@@ -5,7 +5,7 @@ pub mod noun;
 #[cfg(test)]
 mod tests {
     use super::{atom::*, cell::*, noun::*};
-    use crate::{cue::Cue as _, Atom as _, Cell as _, Noun as _};
+    use crate::{serdes::Cue as _, Atom as _, Cell as _, Noun as _};
     use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
     use std::rc::Rc;
 

@@ -1,6 +1,5 @@
 use crate::{
-    cue::Cue,
-    jam::Jam,
+    serdes::{Cue, Jam},
     types::{atom::Atom, cell::Cell},
     Cell as _Cell, Noun as _Noun,
 };
