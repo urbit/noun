@@ -32,62 +32,63 @@ where
     ///
     /// # Examples
     ///
-    /// The examples that follow require the use of any concrete atom, cell, and noun types that
-    /// implement the `noun::Atom`, `noun::Cell`, and `noun::Noun` traits, respectively.
-    ///
+    /// In the examples that follow, `Atom` and `Noun` are concrete types that implement the
+    /// `noun::Atom` and `noun::Noun` traits, respectively. Any types that correctly implement
+    /// these traits can be used. Also note that the `BitReader` and `LittleEndian` structs from
+    /// the [`bitstream-io`](https://docs.rs/bitstream-io) are used.
     ///
     /// `2` deserializes to `0`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b10u8);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.into_atom().expect("into atom");
-    /// assert_eq!(atom, Atom::from(0u8));
+    /// let atom = noun.as_atom().expect("as atom");
+    /// assert_eq!(atom, &Atom::from(0u8));
     /// ```
     ///
     /// `12` deserializes to `1`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b1100u8);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.into_atom().expect("into atom");
-    /// assert_eq!(atom, Atom::from(1u8));
+    /// let atom = noun.as_atom().expect("as atom");
+    /// assert_eq!(atom, &Atom::from(1u8));
     /// ```
     ///
     /// `72` deserializes to `2`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b1001000u8);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.into_atom().expect("into atom");
-    /// assert_eq!(atom, Atom::from(2u8));
+    /// let atom = noun.as_atom().expect("as atom");
+    /// assert_eq!(atom, &Atom::from(2u8));
     /// ```
     ///
     /// `2480` deserializes to `19`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b100110110000u16);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.into_atom().expect("into atom");
-    /// assert_eq!(atom, Atom::from(19u8));
+    /// let atom = noun.as_atom().expect("as atom");
+    /// assert_eq!(atom, &Atom::from(19u8));
     /// ```
     ///
     /// `817` deserializes to `[1 1]`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{
-    ///     serdes::Cue,
-    ///     types::{atom::Atom, cell::Cell, noun::Noun},
-    ///     Atom as _, Cell as _, Noun as _,
-    /// };
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{
+    /// #     serdes::Cue,
+    /// #     types::{atom::Atom, noun::Noun},
+    /// #     Atom as _, Cell as _, Noun as _,
+    /// # };
     /// let jammed_noun = Atom::from(0b1100110001u16);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
@@ -104,12 +105,12 @@ where
     ///
     /// `39689` deserializes into `[0 19]`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{
-    ///     serdes::Cue,
-    ///     types::{atom::Atom, cell::Cell, noun::Noun},
-    ///     Atom as _, Cell as _, Noun as _,
-    /// };
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{
+    /// #     serdes::Cue,
+    /// #     types::{atom::Atom, noun::Noun},
+    /// #     Atom as _, Cell as _, Noun as _,
+    /// # };
     /// let jammed_noun = Atom::from(0b1001101100001001u16);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
@@ -127,12 +128,12 @@ where
     ///
     /// `635080761093` deserializes into `[[107 110] [107 110]]`:
     /// ```
-    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
-    /// use noun::{
-    ///     serdes::Cue,
-    ///     types::{atom::Atom, cell::Cell, noun::Noun},
-    ///     Atom as _, Cell as _, Noun as _,
-    /// };
+    /// # use bitstream_io::{BitReader, LittleEndian};
+    /// # use noun::{
+    /// #     serdes::Cue,
+    /// #     types::{atom::Atom, noun::Noun},
+    /// #     Atom as _, Cell as _, Noun as _,
+    /// # };
     /// let jammed_noun = Atom::from(0b1001001111011101110000110101111100000101u64);
     /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
     /// let noun = Noun::cue(bitstream).expect("cue");
