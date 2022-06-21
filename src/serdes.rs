@@ -93,11 +93,13 @@ where
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
     /// let (head, tail) = cell.into_parts();
+    ///
     /// let head = head.as_atom().expect("as atom");
     /// let tail = tail.as_atom().expect("as atom");
-    /// let one = Atom::from(1u8);
-    /// assert_eq!(head, &one);
-    /// assert_eq!(tail, &one);
+    ///
+    /// let _1 = Atom::from(1u8);
+    /// assert_eq!(head, &_1);
+    /// assert_eq!(tail, &_1);
     /// ```
     ///
     /// `39689` deserializes into `[0 19]`:
@@ -113,12 +115,41 @@ where
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
     /// let (head, tail) = cell.into_parts();
+    ///
     /// let head = head.as_atom().expect("as atom");
     /// let tail = tail.as_atom().expect("as atom");
-    /// let zero = Atom::from(0u8);
-    /// let nineteen = Atom::from(19u8);
-    /// assert_eq!(head, &zero);
-    /// assert_eq!(tail, &nineteen);
+    ///
+    /// let _0 = Atom::from(0u8);
+    /// let _19 = Atom::from(19u8);
+    /// assert_eq!(head, &_0);
+    /// assert_eq!(tail, &_19);
+    /// ```
+    ///
+    /// `635080761093` deserializes into `[[107 110] [107 110]]`:
+    /// ```
+    /// use bitstream_io::{BitRead, BitReader, LittleEndian};
+    /// use noun::{
+    ///     serdes::Cue,
+    ///     types::{atom::Atom, cell::Cell, noun::Noun},
+    ///     Atom as _, Cell as _, Noun as _,
+    /// };
+    /// let jammed_noun = Atom::from(0b1001001111011101110000110101111100000101u64);
+    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let noun = Noun::cue(bitstream).expect("cue");
+    /// let cell = noun.into_cell().expect("into cell");
+    /// let (head, tail) = cell.into_parts();
+    ///
+    /// let head = head.as_cell().expect("as cell");
+    /// let head_head = head.head().as_atom().expect("as atom");
+    /// let head_tail = head.tail().as_atom().expect("as atom");
+    ///
+    /// let tail = tail.as_cell().expect("as cell");
+    /// let tail_head = tail.head().as_atom().expect("as atom");
+    /// let tail_tail = tail.tail().as_atom().expect("as atom");
+    ///
+    /// let _107 = Atom::from(107u8);
+    /// let _110 = Atom::from(110u8);
+    /// assert_eq!(head_head, &_107);
     /// ```
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();
@@ -243,12 +274,19 @@ where
         pos: u64,
     ) -> CueResult<Rc<Self>> {
         let (idx, bits_read) = Self::decode_atom(src, None, pos)?;
-        let (first, rest) = idx.as_atom()?.as_bytes().split_at(size_of::<u64>());
-        if rest.len() > 0 {
-            todo!("idx is larger than 8 bytes")
-        }
-        // XXX: watch out for endianness bug.
-        let idx = u64::from_le_bytes(first.try_into().unwrap());
+        // Convert index from atom to u64.
+        let idx = {
+            let bytes = idx.as_atom()?.as_bytes();
+            if bytes.len() > size_of::<u64>() {
+                todo!("idx is larger than 8 bytes")
+            }
+            let mut padded_bytes: [u8; size_of::<u64>()] = [0; size_of::<u64>()];
+            for i in 0..bytes.len() {
+                padded_bytes[i] = bytes[i];
+            }
+            // XXX: watch out for endianness bug.
+            u64::from_le_bytes(padded_bytes)
+        };
         if let Some(noun) = cache.get(&idx) {
             Ok((noun.clone(), bits_read))
         } else {
