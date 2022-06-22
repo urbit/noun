@@ -1,7 +1,7 @@
 pub mod serdes;
 pub mod types;
 
-use std::{default::Default, hash::Hash, ops::Add};
+use std::{default::Default, hash::Hash, ops::Add, str};
 
 pub trait Atom<C, N>
 where
@@ -27,6 +27,10 @@ where
         + Sized,
 {
     fn as_bytes(&self) -> &[u8];
+
+    fn as_str(&self) -> Result<&str, ()> {
+        Ok(str::from_utf8(self.as_bytes()).map_err(|_| ())?)
+    }
 }
 
 pub trait Cell<A, N>
