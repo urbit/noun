@@ -2,7 +2,7 @@ use crate::{
     types::{cell::Cell, noun::Noun},
     Atom as _Atom, IntoNoun,
 };
-use std::{default::Default, hash::Hash, ops::Add};
+use std::{default::Default, hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
@@ -123,8 +123,48 @@ impl From<Vec<u8>> for Atom {
     }
 }
 
+impl From<&str> for Atom {
+    fn from(val: &str) -> Self {
+        Self(val.as_bytes().to_vec())
+    }
+}
+
 impl IntoNoun<Self, Cell, Noun> for Atom {
     fn into_noun(self) -> Result<Noun, ()> {
         Ok(Noun::Atom(self))
+    }
+}
+
+impl PartialEq<str> for Atom {
+    fn eq(&self, other: &str) -> bool {
+        if let Ok(string) = str::from_utf8(self.as_bytes()) {
+            string == other
+        } else {
+            false
+        }
+    }
+}
+
+impl PartialEq<&str> for Atom {
+    fn eq(&self, other: &&str) -> bool {
+        if let Ok(string) = str::from_utf8(self.as_bytes()) {
+            string == *other
+        } else {
+            false
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn partialeq() {
+        {
+            let vec = vec![b'h', b'e', b'l', b'l', b'o'];
+            let atom = Atom::from(vec);
+            assert_eq!(atom, "hello");
+        }
     }
 }
