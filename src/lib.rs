@@ -84,6 +84,8 @@ where
     N: Noun<A, C>,
     Self: Sized,
 {
+    fn from_noun_ref(noun: &N) -> Result<Self, ()>;
+
     fn from_noun(noun: N) -> Result<Self, ()>;
 }
 
@@ -95,5 +97,7 @@ where
     N: Noun<A, C>,
     Self: Sized,
 {
+    fn as_noun(&self) -> Result<N, ()>;
+
     fn into_noun(self) -> Result<N, ()>;
 }

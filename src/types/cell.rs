@@ -41,6 +41,10 @@ impl Hash for Cell {
 }
 
 impl IntoNoun<Atom, Self, Noun> for Cell {
+    fn as_noun(&self) -> Result<Noun, ()> {
+        Err(())
+    }
+
     fn into_noun(self) -> Result<Noun, ()> {
         Ok(Noun::Cell(self))
     }

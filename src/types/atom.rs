@@ -130,6 +130,10 @@ impl From<&str> for Atom {
 }
 
 impl IntoNoun<Self, Cell, Noun> for Atom {
+    fn as_noun(&self) -> Result<Noun, ()> {
+        Err(())
+    }
+
     fn into_noun(self) -> Result<Noun, ()> {
         Ok(Noun::Atom(self))
     }
