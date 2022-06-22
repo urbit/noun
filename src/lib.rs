@@ -44,6 +44,10 @@ where
 
     fn tail(&self) -> &Self::Tail;
 
+    fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
+        (self.head(), self.tail())
+    }
+
     fn into_parts(self) -> (Self::Head, Self::Tail);
 }
 
