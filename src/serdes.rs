@@ -232,26 +232,22 @@ where
         let atom = if bit_len == 0 {
             Rc::new(A::from_u8(0).into_noun())
         } else {
-            let mut val = {
-                // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
-                // worth it to omit a branch.
-                let byte_len = (bit_len / u64::from(u8::BITS)) + 1;
-                let byte_len = usize::try_from(byte_len).expect("u64 doesn't fit in usize");
-                Vec::with_capacity(byte_len)
-            };
-            while bit_len > u64::from(u8::BITS) {
-                let byte: u8 = src.read(u8::BITS).expect("read chunk");
-                bits_read += u8::BITS;
-                val.push(byte);
-                bit_len -= u64::from(u8::BITS);
+            let full_byte_cnt =
+                usize::try_from(bit_len / u64::from(u8::BITS)).expect("doesn't fit in usize");
+
+            let mut vec = Vec::with_capacity(full_byte_cnt + 1);
+
+            src.read_bytes(&mut vec[..full_byte_cnt])
+                .expect("read full bytes");
+
+            let bits_left = u32::try_from(bit_len % u64::from(u8::BITS)).unwrap();
+            if bits_left > 0 {
+                let last_byte = src.read(bits_left).expect("read chunk");
+                vec.push(last_byte);
             }
-            // Consume remaining bits.
-            let bit_len = u32::try_from(bit_len).unwrap();
-            let byte: u8 = src.read(bit_len).expect("read chunk");
-            bits_read += bit_len;
-            val.push(byte);
-            Rc::new(A::from(val).into_noun())
+            Rc::new(A::from(vec).into_noun())
         };
+        bits_read += u32::try_from(bit_len).expect("doesn't fit in u32");
 
         if let Some(cache) = cache {
             cache.insert(pos, atom.clone());
