@@ -42,7 +42,7 @@ where
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b10u8);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
     /// assert_eq!(atom, &Atom::from(0u8));
@@ -53,7 +53,7 @@ where
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b1100u8);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
     /// assert_eq!(atom, &Atom::from(1u8));
@@ -64,7 +64,7 @@ where
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b1001000u8);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
     /// assert_eq!(atom, &Atom::from(2u8));
@@ -75,7 +75,7 @@ where
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from(0b100110110000u16);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
     /// assert_eq!(atom, &Atom::from(19u8));
@@ -90,7 +90,7 @@ where
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
     /// let jammed_noun = Atom::from(0b1100110001u16);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
     /// let (head, tail) = cell.into_parts();
@@ -112,7 +112,7 @@ where
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
     /// let jammed_noun = Atom::from(0b1001101100001001u16);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
     /// let (head, tail) = cell.into_parts();
@@ -135,7 +135,7 @@ where
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
     /// let jammed_noun = Atom::from(0b1001001111011101110000110101111100000101u64);
-    /// let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(jammed_noun.as_bytes());
+    /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
     /// let (head, tail) = cell.into_parts();
@@ -151,6 +151,9 @@ where
     /// let _107 = Atom::from(107u8);
     /// let _110 = Atom::from(110u8);
     /// assert_eq!(head_head, &_107);
+    /// assert_eq!(head_tail, &_110);
+    /// assert_eq!(tail_head, &_107);
+    /// assert_eq!(tail_tail, &_110);
     /// ```
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();

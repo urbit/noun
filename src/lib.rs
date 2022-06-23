@@ -1,6 +1,7 @@
 pub mod serdes;
 pub mod types;
 
+use bitstream_io::{BitReader, LittleEndian};
 use std::{default::Default, hash::Hash, ops::Add, str};
 
 macro_rules! to_uint {
@@ -42,6 +43,10 @@ where
         + Sized,
 {
     fn as_bytes(&self) -> &[u8];
+
+    fn as_bits(&self) -> BitReader<&[u8], LittleEndian> {
+        BitReader::new(self.as_bytes())
+    }
 
     fn as_u8(&self) -> Result<u8, ()> {
         to_uint!(self, u8)
