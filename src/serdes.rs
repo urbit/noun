@@ -32,121 +32,6 @@ where
     ///
     /// # Examples
     ///
-    /// In the examples that follow, `Atom` and `Noun` are concrete types that implement the
-    /// `noun::Atom` and `noun::Noun` traits, respectively. Any types that correctly implement
-    /// these traits can be used.
-    ///
-    /// `2` deserializes to `0`:
-    /// ```
-    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from_u8(0b10);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from_u8(0));
-    /// ```
-    ///
-    /// `12` deserializes to `1`:
-    /// ```
-    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from_u8(0b1100);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from_u8(1));
-    /// ```
-    ///
-    /// `72` deserializes to `2`:
-    /// ```
-    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from_u8(0b1001000);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from_u8(2));
-    /// ```
-    ///
-    /// `2480` deserializes to `19`:
-    /// ```
-    /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from_u16(0b100110110000);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from_u8(19));
-    /// ```
-    ///
-    /// `817` deserializes to `[1 1]`:
-    /// ```
-    /// # use noun::{
-    /// #     serdes::Cue,
-    /// #     types::{atom::Atom, noun::Noun},
-    /// #     Atom as _, Cell as _, Noun as _,
-    /// # };
-    /// let jammed_noun = Atom::from_u16(0b1100110001);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let cell = noun.into_cell().expect("into cell");
-    /// let (head, tail) = cell.into_parts();
-    ///
-    /// let head = head.as_atom().expect("as atom");
-    /// let tail = tail.as_atom().expect("as atom");
-    ///
-    /// let _1 = Atom::from_u8(1);
-    /// assert_eq!(head, &_1);
-    /// assert_eq!(tail, &_1);
-    /// ```
-    ///
-    /// `39689` deserializes into `[0 19]`:
-    /// ```
-    /// # use noun::{
-    /// #     serdes::Cue,
-    /// #     types::{atom::Atom, noun::Noun},
-    /// #     Atom as _, Cell as _, Noun as _,
-    /// # };
-    /// let jammed_noun = Atom::from_u16(0b1001101100001001);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let cell = noun.into_cell().expect("into cell");
-    /// let (head, tail) = cell.into_parts();
-    ///
-    /// let head = head.as_atom().expect("as atom");
-    /// let tail = tail.as_atom().expect("as atom");
-    ///
-    /// let _0 = Atom::from_u8(0);
-    /// let _19 = Atom::from_u8(19);
-    /// assert_eq!(head, &_0);
-    /// assert_eq!(tail, &_19);
-    /// ```
-    ///
-    /// `635080761093` deserializes into `[[107 110] [107 110]]`:
-    /// ```
-    /// # use noun::{
-    /// #     serdes::Cue,
-    /// #     types::{atom::Atom, noun::Noun},
-    /// #     Atom as _, Cell as _, Noun as _,
-    /// # };
-    /// let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
-    /// let mut bitstream = jammed_noun.as_bits();
-    /// let noun = Noun::cue(bitstream).expect("cue");
-    /// let cell = noun.into_cell().expect("into cell");
-    /// let (head, tail) = cell.into_parts();
-    ///
-    /// let head = head.as_cell().expect("as cell");
-    /// let head_head = head.head().as_atom().expect("as atom");
-    /// let head_tail = head.tail().as_atom().expect("as atom");
-    ///
-    /// let tail = tail.as_cell().expect("as cell");
-    /// let tail_head = tail.head().as_atom().expect("as atom");
-    /// let tail_tail = tail.tail().as_atom().expect("as atom");
-    ///
-    /// let _107 = Atom::from_u8(107);
-    /// let _110 = Atom::from_u8(110);
-    /// assert_eq!(head_head, &_107);
-    /// assert_eq!(head_tail, &_110);
-    /// assert_eq!(tail_head, &_107);
-    /// assert_eq!(tail_tail, &_110);
-    /// ```
     fn cue(mut src: impl BitRead) -> Result<Self, ()> {
         let mut cache = HashMap::new();
         let (noun, _) = Self::decode(&mut src, &mut cache, 0)?;
@@ -443,6 +328,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        types::{atom::Atom, noun::Noun},
+        Atom as _, Noun as _,
+    };
     use bitstream_io::{BigEndian, BitRead, BitReader, BitWrite, BitWriter, LittleEndian};
     use std::io::Error;
 
@@ -578,5 +467,133 @@ mod tests {
         }
 
         Ok(())
+    }
+
+    #[test]
+    fn cue() {
+        // 2 deserializes to 0.
+        {
+            let jammed_noun = Atom::from_u8(0b10);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let atom = noun.as_atom().expect("as atom");
+            assert_eq!(atom, &Atom::from_u8(0));
+        }
+
+        // 12 deserializes to 1.
+        {
+            let jammed_noun = Atom::from_u8(0b1100);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let atom = noun.as_atom().expect("as atom");
+            assert_eq!(atom, &Atom::from_u8(1));
+        }
+
+        // 72 deserializes to 2.
+        {
+            let jammed_noun = Atom::from_u8(0b1001000);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let atom = noun.as_atom().expect("as atom");
+            assert_eq!(atom, &Atom::from_u8(2));
+        }
+
+        // 2480 deserializes to 19.
+        {
+            let jammed_noun = Atom::from_u16(0b100110110000);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let atom = noun.as_atom().expect("as atom");
+            assert_eq!(atom, &Atom::from_u8(19));
+        }
+
+        // 817 deserializes to [1 1].
+        {
+            let jammed_noun = Atom::from_u16(0b1100110001);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let cell = noun.into_cell().expect("into cell");
+            let (head, tail) = cell.into_parts();
+
+            let head = head.as_atom().expect("as atom");
+            let tail = tail.as_atom().expect("as atom");
+
+            let _1 = Atom::from_u8(1);
+            assert_eq!(head, &_1);
+            assert_eq!(tail, &_1);
+        }
+
+        // 39689 deserializes into [0 19].
+        {
+            let jammed_noun = Atom::from_u16(0b1001101100001001);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let cell = noun.into_cell().expect("into cell");
+            let (head, tail) = cell.into_parts();
+
+            let head = head.as_atom().expect("as atom");
+            let tail = tail.as_atom().expect("as atom");
+
+            let _0 = Atom::from_u8(0);
+            let _19 = Atom::from_u8(19);
+            assert_eq!(head, &_0);
+            assert_eq!(tail, &_19);
+        }
+
+        // 4952983169 deserializes into [10.000 10.000].
+        {
+            let jammed_noun = Atom::from_u64(0b100100111001110001000011010000001);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let cell = noun.into_cell().expect("into cell");
+            let (head, tail) = cell.into_parts();
+
+            let head = head.as_atom().expect("as atom");
+            let tail = tail.as_atom().expect("as atom");
+
+            let _10_000 = Atom::from_u16(10_000);
+            assert_eq!(head, &_10_000);
+            assert_eq!(tail, &_10_000);
+        }
+
+        // 1301217674263809 serializes to [999.999.999 999.999.999].
+        {
+            let jammed_noun = Atom::from_u64(0b100100111110111001101011001001111111111110100000001);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let cell = noun.into_cell().expect("into cell");
+            let (head, tail) = cell.into_parts();
+
+            let head = head.as_atom().expect("as atom");
+            let tail = tail.as_atom().expect("as atom");
+
+            let _999_999_999 = Atom::from_u32(999_999_999);
+            assert_eq!(head, &_999_999_999);
+            assert_eq!(tail, &_999_999_999);
+        }
+
+        // 635080761093 deserializes into [[107 110] [107 110]].
+        {
+            let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
+            let bitstream = jammed_noun.as_bits();
+            let noun = Noun::cue(bitstream).expect("cue");
+            let cell = noun.into_cell().expect("into cell");
+            let (head, tail) = cell.into_parts();
+
+            let head = head.as_cell().expect("as cell");
+            let head_head = head.head().as_atom().expect("as atom");
+            let head_tail = head.tail().as_atom().expect("as atom");
+
+            let tail = tail.as_cell().expect("as cell");
+            let tail_head = tail.head().as_atom().expect("as atom");
+            let tail_tail = tail.tail().as_atom().expect("as atom");
+
+            let _107 = Atom::from_u8(107);
+            let _110 = Atom::from_u8(110);
+            assert_eq!(head_head, &_107);
+            assert_eq!(head_tail, &_110);
+            assert_eq!(tail_head, &_107);
+            assert_eq!(tail_tail, &_110);
+        }
     }
 }
