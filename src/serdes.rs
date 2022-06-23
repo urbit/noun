@@ -113,7 +113,7 @@ where
         pos: u64,
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
-        let (bit_len, mut bits_read) = Self::decode_len(src)?;
+        let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
         let atom = if bit_len == 0 {
             Rc::new(A::from_u8(0).into_noun())
         } else {
