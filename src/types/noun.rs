@@ -3,7 +3,6 @@ use crate::{
     types::{atom::Atom, cell::Cell},
     Cell as _Cell, Noun as _Noun,
 };
-use bitstream_io::BitWrite;
 use std::rc::Rc;
 
 #[derive(Eq, Clone, Debug, Hash)]
@@ -18,11 +17,7 @@ impl Cue<Atom, Cell> for Noun {
     }
 }
 
-impl Jam<Atom, Cell> for Noun {
-    fn jam(self, _sink: &mut impl BitWrite) -> Result<(), ()> {
-        todo!()
-    }
-}
+impl Jam<Atom, Cell> for Noun {}
 
 impl _Noun<Atom, Cell> for Noun {
     fn get(&self, idx: usize) -> Option<&Self> {

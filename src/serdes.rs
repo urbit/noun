@@ -208,7 +208,7 @@ where
     /// Decode the length of an atom or backreference.
     #[doc(hidden)]
     fn decode_len(src: &mut impl BitRead) -> CueResult<u64> {
-        let len_of_len = src.read_unary1().expect("count high bits");
+        let len_of_len = src.read_unary1().expect("read bit length of length");
         // Length must be 63 bits or less.
         if len_of_len >= u64::BITS {
             todo!("too large")
@@ -218,7 +218,7 @@ where
         } else {
             // The most significant bit of the length is implicit because it's always 1.
             let len_bits = len_of_len - 1;
-            let len: u64 = src.read(len_bits).expect("get length");
+            let len: u64 = src.read(len_bits).expect("read length");
             let len = (1 << len_bits) | len;
             let bits_read = len_of_len + 1 + len_bits;
             (len, bits_read)
@@ -331,7 +331,7 @@ where
     fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> C;
 }
 
-/// (<some type>, bits read)
+/// (<some type>, bits written)
 #[doc(hidden)]
 pub type JamResult<T> = Result<(T, u32), ()>;
 
@@ -342,5 +342,47 @@ where
     C: Cell<A, Self>,
     Self: Noun<A, C> + Sized,
 {
-    fn jam(self, sink: &mut impl BitWrite) -> Result<(), ()>;
+    fn jam(self, dst: &mut impl BitWrite) -> Result<(), ()> {
+        let mut cache = HashMap::new();
+        _ = Self::encode(&self, dst, &mut cache, 0)?;
+        Ok(())
+    }
+
+    #[doc(hidden)]
+    fn encode(
+        noun: &Self,
+        dst: &mut impl BitWrite,
+        cache: &mut HashMap<&Self, u64>,
+        _pos: u64
+    ) -> JamResult<()> {
+        if let Some(idx) = cache.get(noun) {
+            const TAG_LEN: u32 = 2;
+            const BACKREF_TAG: u8 = 0b11;
+            match dst.write(TAG_LEN, BACKREF_TAG) {
+                Ok(_) => {
+                    todo!("encode len and write idx")
+                }
+                Err(_) => todo!("IO error"),
+            }
+        } else if let Ok(atom) = noun.as_atom() {
+            todo!()
+        } else if let Ok(cell) = noun.as_cell() {
+            todo!()
+        } else {
+            Err(())
+        }
+    }
+
+    /// Encode the length of an atom or backreference.
+    #[doc(hidden)]
+    fn encode_len(len: u64, dst: &mut impl BitWrite) -> JamResult<()> {
+        let len_of_len = u64::BITS - len.leading_zeros();
+        dst.write_unary1(len_of_len).expect("write bit length of length");
+        // The most significant high bit of the length should not be
+        // encoded because it's of course always high.
+        let len_bits = len_of_len - 1;
+        dst.write(len_bits, len).expect("write length");
+        let bits_written = len_of_len + 1 + len_bits;
+        Ok(((), bits_written))
+    }
 }

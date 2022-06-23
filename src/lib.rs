@@ -129,7 +129,7 @@ pub trait Noun<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
-    Self: Hash + Sized,
+    Self: Eq + Hash + Sized,
 {
     fn get(&self, idx: usize) -> Option<&Self>;
 
