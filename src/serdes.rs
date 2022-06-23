@@ -398,8 +398,7 @@ where
 
         if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
             dst.write_bytes(full_bytes).expect("write full bytes");
-            dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte)
-                .expect("write last byte");
+            dst.write(u8::BITS, *last_byte).expect("write last byte");
         }
         bits_written += u32::try_from(bit_len).expect("value doesn't fit in u32");
 
