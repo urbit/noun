@@ -75,7 +75,7 @@ impl Default for Atom {
     }
 }
 
-macro_rules! from_unsigned {
+macro_rules! from_uint {
     ($val:expr) => {
         Atom(Vec::from($val.to_le_bytes()))
     };
@@ -83,37 +83,37 @@ macro_rules! from_unsigned {
 
 impl From<u8> for Atom {
     fn from(val: u8) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
 impl From<u16> for Atom {
     fn from(val: u16) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
 impl From<u32> for Atom {
     fn from(val: u32) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
 impl From<u64> for Atom {
     fn from(val: u64) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
 impl From<u128> for Atom {
     fn from(val: u128) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
 impl From<usize> for Atom {
     fn from(val: usize) -> Self {
-        from_unsigned!(val)
+        from_uint!(val)
     }
 }
 
@@ -162,6 +162,47 @@ impl PartialEq<&str> for Atom {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn from_uint() -> Result<(), ()> {
+        {
+            let val = u8::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_u8()?, val);
+        }
+
+        {
+            let val = u16::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_u16()?, val);
+        }
+
+        {
+            let val = u32::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_u32()?, val);
+        }
+
+        {
+            let val = u64::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_u64()?, val);
+        }
+
+        {
+            let val = u128::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_u128()?, val);
+        }
+
+        {
+            let val = usize::MAX;
+            let atom = Atom::from(val);
+            assert_eq!(atom.as_usize()?, val);
+        }
+
+        Ok(())
+    }
 
     #[test]
     fn partialeq() {
