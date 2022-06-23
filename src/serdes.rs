@@ -332,13 +332,13 @@ mod tests {
     use std::io::Error;
 
     #[test]
-    fn cue() {
+    fn cue() -> Result<(), ()> {
         // 2 deserializes to 0.
         {
             let jammed_noun = Atom::from_u8(0b10);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let atom = noun.as_atom().expect("as atom");
+            let noun = Noun::cue(bitstream)?;
+            let atom = noun.as_atom()?;
             assert_eq!(atom, &Atom::from_u8(0));
         }
 
@@ -346,8 +346,8 @@ mod tests {
         {
             let jammed_noun = Atom::from_u8(0b1100);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let atom = noun.as_atom().expect("as atom");
+            let noun = Noun::cue(bitstream)?;
+            let atom = noun.as_atom()?;
             assert_eq!(atom, &Atom::from_u8(1));
         }
 
@@ -355,8 +355,8 @@ mod tests {
         {
             let jammed_noun = Atom::from_u8(0b1001000);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let atom = noun.as_atom().expect("as atom");
+            let noun = Noun::cue(bitstream)?;
+            let atom = noun.as_atom()?;
             assert_eq!(atom, &Atom::from_u8(2));
         }
 
@@ -364,8 +364,8 @@ mod tests {
         {
             let jammed_noun = Atom::from_u16(0b100110110000);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let atom = noun.as_atom().expect("as atom");
+            let noun = Noun::cue(bitstream)?;
+            let atom = noun.as_atom()?;
             assert_eq!(atom, &Atom::from_u8(19));
         }
 
@@ -373,12 +373,12 @@ mod tests {
         {
             let jammed_noun = Atom::from_u16(0b1100110001);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let cell = noun.into_cell().expect("into cell");
-            let (head, tail) = cell.into_parts();
+            let noun = Noun::cue(bitstream)?;
+            let cell = noun.as_cell()?;
+            let (head, tail) = cell.as_parts();
 
-            let head = head.as_atom().expect("as atom");
-            let tail = tail.as_atom().expect("as atom");
+            let head = head.as_atom()?;
+            let tail = tail.as_atom()?;
 
             let _1 = Atom::from_u8(1);
             assert_eq!(head, &_1);
@@ -389,12 +389,12 @@ mod tests {
         {
             let jammed_noun = Atom::from_u16(0b1001101100001001);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let cell = noun.into_cell().expect("into cell");
-            let (head, tail) = cell.into_parts();
+            let noun = Noun::cue(bitstream)?;
+            let cell = noun.as_cell()?;
+            let (head, tail) = cell.as_parts();
 
-            let head = head.as_atom().expect("as atom");
-            let tail = tail.as_atom().expect("as atom");
+            let head = head.as_atom()?;
+            let tail = tail.as_atom()?;
 
             let _0 = Atom::from_u8(0);
             let _19 = Atom::from_u8(19);
@@ -406,12 +406,12 @@ mod tests {
         {
             let jammed_noun = Atom::from_u64(0b100100111001110001000011010000001);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let cell = noun.into_cell().expect("into cell");
-            let (head, tail) = cell.into_parts();
+            let noun = Noun::cue(bitstream)?;
+            let cell = noun.as_cell()?;
+            let (head, tail) = cell.as_parts();
 
-            let head = head.as_atom().expect("as atom");
-            let tail = tail.as_atom().expect("as atom");
+            let head = head.as_atom()?;
+            let tail = tail.as_atom()?;
 
             let _10_000 = Atom::from_u16(10_000);
             assert_eq!(head, &_10_000);
@@ -422,12 +422,12 @@ mod tests {
         {
             let jammed_noun = Atom::from_u64(0b100100111110111001101011001001111111111110100000001);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let cell = noun.into_cell().expect("into cell");
-            let (head, tail) = cell.into_parts();
+            let noun = Noun::cue(bitstream)?;
+            let cell = noun.as_cell()?;
+            let (head, tail) = cell.as_parts();
 
-            let head = head.as_atom().expect("as atom");
-            let tail = tail.as_atom().expect("as atom");
+            let head = head.as_atom()?;
+            let tail = tail.as_atom()?;
 
             let _999_999_999 = Atom::from_u32(999_999_999);
             assert_eq!(head, &_999_999_999);
@@ -438,17 +438,17 @@ mod tests {
         {
             let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
             let bitstream = jammed_noun.as_bits();
-            let noun = Noun::cue(bitstream).expect("cue");
-            let cell = noun.into_cell().expect("into cell");
-            let (head, tail) = cell.into_parts();
+            let noun = Noun::cue(bitstream)?;
+            let cell = noun.as_cell()?;
+            let (head, tail) = cell.as_parts();
 
-            let head = head.as_cell().expect("as cell");
-            let head_head = head.head().as_atom().expect("as atom");
-            let head_tail = head.tail().as_atom().expect("as atom");
+            let head = head.as_cell()?;
+            let head_head = head.head().as_atom()?;
+            let head_tail = head.tail().as_atom()?;
 
-            let tail = tail.as_cell().expect("as cell");
-            let tail_head = tail.head().as_atom().expect("as atom");
-            let tail_tail = tail.tail().as_atom().expect("as atom");
+            let tail = tail.as_cell()?;
+            let tail_head = tail.head().as_atom()?;
+            let tail_tail = tail.tail().as_atom()?;
 
             let _107 = Atom::from_u8(107);
             let _110 = Atom::from_u8(110);
@@ -457,5 +457,7 @@ mod tests {
             assert_eq!(tail_head, &_107);
             assert_eq!(tail_tail, &_110);
         }
+
+        Ok(())
     }
 }
