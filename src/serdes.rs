@@ -415,10 +415,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
+    use bitstream_io::{BigEndian, BitRead, BitReader, BitWrite, BitWriter, LittleEndian};
+    use std::io::Error;
 
     #[test]
-    fn bitstream() -> Result<(), std::io::Error> {
+    fn bitstream_read() -> Result<(), Error> {
         // Read a byte at a time.
         {
             // LSB first.
@@ -497,6 +498,36 @@ mod tests {
 
                 let len: u32 = bitstream.read_unary0()?;
                 assert_eq!(len, 4);
+            }
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn bitstream_write() -> Result<(), Error> {
+        // Write a byte at a time.
+        {
+            // LSB first.
+            {
+                let mut bitstream: BitWriter<_, LittleEndian> = BitWriter::new(Vec::new());
+
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                for byte in &vec[..] {
+                    bitstream.write(u8::BITS, *byte)?;
+                }
+                assert_eq!(bitstream.into_writer(), vec);
+            }
+
+            // MSB first.
+            {
+                let mut bitstream: BitWriter<_, BigEndian> = BitWriter::new(Vec::new());
+
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                for byte in &vec[..] {
+                    bitstream.write(u8::BITS, *byte)?;
+                }
+                assert_eq!(bitstream.into_writer(), vec);
             }
         }
 
