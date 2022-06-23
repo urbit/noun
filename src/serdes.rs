@@ -397,9 +397,7 @@ where
         let (_, mut bits_written) = Self::encode_len(bit_len, dst)?;
 
         if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
-            for byte in full_bytes {
-                dst.write(u8::BITS, *byte).expect("write full byte");
-            }
+            dst.write_bytes(full_bytes).expect("write full bytes");
             dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte)
                 .expect("write last byte");
         }
