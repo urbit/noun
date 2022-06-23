@@ -61,8 +61,8 @@ where
                     }
                     // Cell tag = 0b01.
                     Ok(false) => {
-                        let pos = u64::from(TAG_LEN) + pos;
-                        let (cell, bits_read) = Self::decode_cell(src, cache, pos)?;
+                        let (cell, bits_read) = Self::decode_cell(src, cache, pos + u64::from(TAG_LEN))?;
+                        cache.insert(pos, cell.clone());
                         Ok((cell, TAG_LEN + bits_read))
                     }
                     Err(_) => todo!("IO error"),
@@ -71,7 +71,6 @@ where
             // Atom tag = 0b0.
             Ok(false) => {
                 const TAG_LEN: u32 = 1;
-                let pos = u64::from(TAG_LEN) + pos;
                 let (atom, bits_read) = Self::decode_atom(src, Some(cache), Some(pos))?;
                 Ok((atom, TAG_LEN + bits_read))
             }
@@ -102,9 +101,7 @@ where
         Ok((len, bits_read))
     }
 
-    /// Decode an encoded atom from the bitstream. Note that the atom tag must already be consumed,
-    /// which means that the first bit read from `src` (located at index `pos`) is the first bit of
-    /// the encoded length.
+    /// Decode an encoded atom from the bitstream. Note that the atom tag must already be consumed.
     #[doc(hidden)]
     fn decode_atom(
         src: &mut impl BitRead,
@@ -145,8 +142,7 @@ where
     }
 
     /// Decode an encoded backreference from the bitstream. Note that the backreference tag must
-    /// already be consumed, which means that the first bit read from `src` (located at index
-    /// `pos`) is the first bit of the encoded length.
+    /// already be consumed.
     #[doc(hidden)]
     fn decode_backref(
         src: &mut impl BitRead,
@@ -173,9 +169,7 @@ where
         }
     }
 
-    /// Decode a cell from the bitstream. Note that the cell tag must already be consumed, which
-    /// means that the first bit read from `src` (located at index `pos`) is the first bit of the
-    /// head's tag.
+    /// Decode a cell from the bitstream. Note that the cell tag must already be consumed. which
     #[doc(hidden)]
     fn decode_cell(
         src: &mut impl BitRead,
