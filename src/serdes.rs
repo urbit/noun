@@ -34,8 +34,7 @@ where
     ///
     /// In the examples that follow, `Atom` and `Noun` are concrete types that implement the
     /// `noun::Atom` and `noun::Noun` traits, respectively. Any types that correctly implement
-    /// these traits can be used. Also note that the `BitReader` and `LittleEndian` structs from
-    /// the [`bitstream-io`](https://docs.rs/bitstream-io) are used.
+    /// these traits can be used.
     ///
     /// `2` deserializes to `0`:
     /// ```
@@ -335,6 +334,19 @@ where
     C: Cell<A, Self>,
     Self: Noun<A, C> + Sized,
 {
+    ///
+    /// # Examples
+    ///
+    /// `0` serializes to `2`:
+    /// ```
+    /// # use bitstream_io::{BitWriter, LittleEndian};
+    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
+    /// let noun = Atom::from_u8(0).into_noun();
+    /// let mut bitstream: BitWriter<Vec<u8>, LittleEndian> = BitWriter::new(Vec::new());
+    /// noun.jam(&mut bitstream).expect("jam");
+    /// let jammed_noun = Atom::from(bitstream.into_writer());
+    /// assert_eq!(jammed_noun, Atom::from_u8(2));
+    /// ```
     fn jam(self, dst: &mut impl BitWrite) -> Result<(), ()> {
         let mut cache = HashMap::new();
         _ = Self::encode(&self, dst, &mut cache, 0)?;
@@ -342,23 +354,17 @@ where
     }
 
     #[doc(hidden)]
-    fn encode(
-        noun: &Self,
+    fn encode<'a>(
+        noun: &'a Self,
         dst: &mut impl BitWrite,
-        cache: &mut HashMap<&Self, u64>,
-        _pos: u64
+        cache: &mut HashMap<&'a Self, u64>,
+        pos: u64,
     ) -> JamResult<()> {
         if let Some(idx) = cache.get(noun) {
-            const TAG_LEN: u32 = 2;
-            const BACKREF_TAG: u8 = 0b11;
-            match dst.write(TAG_LEN, BACKREF_TAG) {
-                Ok(_) => {
-                    todo!("encode len and write idx")
-                }
-                Err(_) => todo!("IO error"),
-            }
+            todo!("backreference")
         } else if let Ok(atom) = noun.as_atom() {
-            todo!()
+            cache.insert(noun, pos);
+            Self::encode_atom(atom, dst)
         } else if let Ok(cell) = noun.as_cell() {
             todo!()
         } else {
@@ -370,7 +376,8 @@ where
     #[doc(hidden)]
     fn encode_len(len: u64, dst: &mut impl BitWrite) -> JamResult<()> {
         let len_of_len = u64::BITS - len.leading_zeros();
-        dst.write_unary1(len_of_len).expect("write bit length of length");
+        dst.write_unary1(len_of_len)
+            .expect("write bit length of length");
         let bits_written = if len_of_len == 0 {
             1
         } else {
@@ -382,6 +389,26 @@ where
             bits_written
         };
         Ok(((), bits_written))
+    }
+
+    #[doc(hidden)]
+    fn encode_atom(atom: &A, dst: &mut impl BitWrite) -> JamResult<()> {
+        const TAG_LEN: u32 = 1;
+        const TAG: u8 = 0b0;
+        dst.write(TAG_LEN, TAG).expect("write tag");
+        let bit_len = atom.bit_len() as u64;
+        let (_, mut bits_written) = Self::encode_len(bit_len, dst)?;
+
+        if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
+            for byte in full_bytes {
+                dst.write(u8::BITS, *byte).expect("write full byte");
+            }
+            dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte)
+                .expect("write last byte");
+        }
+        bits_written += u32::try_from(bit_len).expect("value doesn't fit in u32");
+
+        Ok(((), TAG_LEN + bits_written))
     }
 }
 
@@ -475,5 +502,4 @@ mod tests {
 
         Ok(())
     }
-
 }
