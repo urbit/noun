@@ -377,9 +377,10 @@ where
         let bits_written = if len_of_len == 0 {
             1
         } else {
+            let len_bits = len_of_len - 1;
             // The most significant high bit of the length should not be
             // encoded because it's of course always high.
-            let len_bits = len_of_len - 1;
+            let len = !(1 << len_bits) & len;
             dst.write(len_bits, len).expect("write length");
             let bits_written = len_of_len + 1 + len_bits;
             bits_written
