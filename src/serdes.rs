@@ -56,8 +56,7 @@ where
                 match src.read_bit() {
                     // Back reference tag = 0b11.
                     Ok(true) => {
-                        let pos = u64::from(TAG_LEN) + pos;
-                        let (noun, bits_read) = Self::decode_backref(src, cache, pos)?;
+                        let (noun, bits_read) = Self::decode_backref(src, cache)?;
                         Ok((noun, TAG_LEN + bits_read))
                     }
                     // Cell tag = 0b01.
@@ -73,7 +72,7 @@ where
             Ok(false) => {
                 const TAG_LEN: u32 = 1;
                 let pos = u64::from(TAG_LEN) + pos;
-                let (atom, bits_read) = Self::decode_atom(src, Some(cache), pos)?;
+                let (atom, bits_read) = Self::decode_atom(src, Some(cache), Some(pos))?;
                 Ok((atom, TAG_LEN + bits_read))
             }
             Err(_) => {
@@ -110,7 +109,7 @@ where
     fn decode_atom(
         src: &mut impl BitRead,
         cache: Option<&mut HashMap<u64, Rc<Self>>>,
-        pos: u64,
+        pos: Option<u64>,
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
@@ -138,7 +137,7 @@ where
             Rc::new(A::from(val).into_noun())
         };
 
-        if let Some(cache) = cache {
+        if let (Some(cache), Some(pos)) = (cache, pos) {
             cache.insert(pos, atom.clone());
         }
 
@@ -152,9 +151,8 @@ where
     fn decode_backref(
         src: &mut impl BitRead,
         cache: &mut HashMap<u64, Rc<Self>>,
-        pos: u64,
     ) -> CueResult<Rc<Self>> {
-        let (idx, bits_read) = Self::decode_atom(src, None, pos)?;
+        let (idx, bits_read) = Self::decode_atom(src, None, None)?;
         // Convert index from atom to u64.
         let idx = {
             let bytes = idx.as_atom()?.as_bytes();
