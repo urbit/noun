@@ -1,5 +1,5 @@
 use crate::{Atom, Cell, Noun};
-use bitstream_io::{BitRead, BitWrite};
+use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -228,7 +228,7 @@ where
         pos: u64,
     ) -> CueResult<Rc<Self>> {
         // Decode the atom length.
-        let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
+        let (bit_len, mut bits_read) = Self::decode_len(src)?;
         let atom = if bit_len == 0 {
             Rc::new(A::from_u8(0).into_noun())
         } else {
@@ -335,18 +335,52 @@ where
     ///
     /// `0` serializes to `2`:
     /// ```
-    /// # use bitstream_io::{BitWriter, LittleEndian};
     /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
     /// let noun = Atom::from_u8(0).into_noun();
-    /// let mut bitstream: BitWriter<Vec<u8>, LittleEndian> = BitWriter::new(Vec::new());
-    /// noun.jam(&mut bitstream).expect("jam");
-    /// let jammed_noun = Atom::from(bitstream.into_writer());
-    /// assert_eq!(jammed_noun, Atom::from_u8(2));
+    /// let jammed_noun = noun.jam().expect("jam");
+    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(2));
     /// ```
-    fn jam(self, dst: &mut impl BitWrite) -> Result<(), ()> {
+    ///
+    /// `1` serializes to `12`:
+    /// ```
+    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
+    /// let noun = Atom::from_u8(1).into_noun();
+    /// let jammed_noun = noun.jam().expect("jam");
+    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(12));
+    /// ```
+    ///
+    /// `2` serializes to `72`:
+    /// ```
+    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
+    /// let noun = Atom::from_u8(2).into_noun();
+    /// let jammed_noun = noun.jam().expect("jam");
+    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(72));
+    /// ```
+    ///
+    /// `19` serializes to `2480`:
+    /// ```
+    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
+    /// let noun = Atom::from_u8(19).into_noun();
+    /// let jammed_noun = noun.jam().expect("jam");
+    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u16(2480));
+    /// ```
+    fn jam(self) -> Result<Vec<u8>, ()> {
+        let mut dst = BitWriter::endian(Vec::new(), LittleEndian);
         let mut cache = HashMap::new();
-        _ = Self::encode(&self, dst, &mut cache, 0)?;
-        Ok(())
+        let _ = Self::encode(&self, &mut dst, &mut cache, 0)?;
+        // Bits belonging to the last partial byte are discarded when BitWriter::into_writer() is
+        // invoked, so we have to byte align.
+        if !dst.byte_aligned() {
+            if let Err(_) = dst.byte_align() {
+                return Err(());
+            }
+        }
+        let mut vec = dst.into_writer();
+        // BitWriter::byte_align() pads with an unnecessary extra 0 in certain circumstances.
+        if let Some(0) = vec.last() {
+            vec.pop();
+        }
+        Ok(vec)
     }
 
     #[doc(hidden)]
@@ -400,7 +434,7 @@ where
             dst.write_bytes(full_bytes).expect("write full bytes");
             dst.write(u8::BITS, *last_byte).expect("write last byte");
         }
-        bits_written += u32::try_from(bit_len).expect("value doesn't fit in u32");
+        bits_written += u32::try_from(bit_len).expect("doesn't fit in u32");
 
         Ok(((), TAG_LEN + bits_written))
     }
