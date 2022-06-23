@@ -64,6 +64,46 @@ where
         uint_to_atom!(uint, Self)
     }
 
+    /// Get the length in bytes of an atom. This is equivalent to `self.as_bytes().len()`.
+    fn byte_len(&self) -> usize {
+        self.as_bytes().len()
+    }
+
+    /// Get the length in bits of an atom.
+    ///
+    /// # Examples
+    ///
+    /// `7` has a bit length of `3`:
+    /// ```
+    /// # use noun::{types::atom::Atom, Atom as _};
+    /// let atom = Atom::from_u8(7);
+    /// assert_eq!(atom.bit_len(), 3);
+    /// ```
+    ///
+    /// `139` has a bit length of `8`:
+    /// ```
+    /// # use noun::{types::atom::Atom, Atom as _};
+    /// let atom = Atom::from_u8(139);
+    /// assert_eq!(atom.bit_len(), 8);
+    /// ```
+    ///
+    /// `256` has a bit length of `9`:
+    /// ```
+    /// # use noun::{types::atom::Atom, Atom as _};
+    /// let atom = Atom::from_u16(256);
+    /// assert_eq!(atom.bit_len(), 9);
+    /// ```
+    fn bit_len(&self) -> usize {
+        let bytes = self.as_bytes();
+        if let Some(last_byte) = bytes.last() {
+            let byte_len = u32::try_from(bytes.len()).unwrap();
+            let bit_len = u8::BITS * (byte_len - 1) + (u8::BITS - last_byte.leading_zeros());
+            usize::try_from(bit_len).unwrap()
+        } else {
+            0
+        }
+    }
+
     fn as_bytes(&self) -> &[u8];
 
     fn as_bits(&self) -> BitReader<&[u8], LittleEndian> {
