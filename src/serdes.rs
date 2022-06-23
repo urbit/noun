@@ -39,7 +39,6 @@ where
     ///
     /// `2` deserializes to `0`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from_u8(0b10);
     /// let mut bitstream = jammed_noun.as_bits();
@@ -50,7 +49,6 @@ where
     ///
     /// `12` deserializes to `1`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from_u8(0b1100);
     /// let mut bitstream = jammed_noun.as_bits();
@@ -61,7 +59,6 @@ where
     ///
     /// `72` deserializes to `2`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from_u8(0b1001000);
     /// let mut bitstream = jammed_noun.as_bits();
@@ -72,7 +69,6 @@ where
     ///
     /// `2480` deserializes to `19`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
     /// let jammed_noun = Atom::from_u16(0b100110110000);
     /// let mut bitstream = jammed_noun.as_bits();
@@ -83,7 +79,6 @@ where
     ///
     /// `817` deserializes to `[1 1]`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{
     /// #     serdes::Cue,
     /// #     types::{atom::Atom, noun::Noun},
@@ -105,7 +100,6 @@ where
     ///
     /// `39689` deserializes into `[0 19]`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{
     /// #     serdes::Cue,
     /// #     types::{atom::Atom, noun::Noun},
@@ -128,7 +122,6 @@ where
     ///
     /// `635080761093` deserializes into `[[107 110] [107 110]]`:
     /// ```
-    /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{
     /// #     serdes::Cue,
     /// #     types::{atom::Atom, noun::Noun},
@@ -378,11 +371,109 @@ where
     fn encode_len(len: u64, dst: &mut impl BitWrite) -> JamResult<()> {
         let len_of_len = u64::BITS - len.leading_zeros();
         dst.write_unary1(len_of_len).expect("write bit length of length");
-        // The most significant high bit of the length should not be
-        // encoded because it's of course always high.
-        let len_bits = len_of_len - 1;
-        dst.write(len_bits, len).expect("write length");
-        let bits_written = len_of_len + 1 + len_bits;
+        let bits_written = if len_of_len == 0 {
+            1
+        } else {
+            // The most significant high bit of the length should not be
+            // encoded because it's of course always high.
+            let len_bits = len_of_len - 1;
+            dst.write(len_bits, len).expect("write length");
+            let bits_written = len_of_len + 1 + len_bits;
+            bits_written
+        };
         Ok(((), bits_written))
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bitstream_io::{BigEndian, BitRead, BitReader, LittleEndian};
+
+    #[test]
+    fn bitstream() -> Result<(), std::io::Error> {
+        // Read a byte at a time.
+        {
+            // LSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[0]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[1]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[2]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[3]);
+            }
+
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[0]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[1]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[2]);
+
+                let val: u8 = bitstream.read(u8::BITS)?;
+                assert_eq!(val, vec[3]);
+            }
+        }
+
+        // Read a word at a time.
+        {
+            // LSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+
+                let val: u32 = bitstream.read(u32::BITS)?;
+                assert_eq!(val, 0xc0b0a00);
+            }
+
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let val: u32 = bitstream.read(u32::BITS)?;
+                assert_eq!(val, 0xa0b0c);
+            }
+        }
+
+        // Count bits.
+        {
+            // LSB first.
+            {
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xf];
+                let mut bitstream: BitReader<&[_], LittleEndian> = BitReader::new(&vec[..]);
+
+                let len: u32 = bitstream.read_unary1()?;
+                assert_eq!(len, 9);
+            }
+
+            // MSB first.
+            {
+                let vec: Vec<u8> = vec![0xf0, 0xa, 0xb, 0x0];
+                let mut bitstream: BitReader<&[_], BigEndian> = BitReader::new(&vec[..]);
+
+                let len: u32 = bitstream.read_unary0()?;
+                assert_eq!(len, 4);
+            }
+        }
+
+        Ok(())
+    }
+
 }
