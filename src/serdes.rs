@@ -500,6 +500,10 @@ mod tests {
         Ok(())
     }
 
+    fn write_u8(bitstream: &mut impl BitWrite, val: u8) -> Result<(), Error> {
+        bitstream.write(u8::BITS, val)
+    }
+
     #[test]
     fn bitstream_write() -> Result<(), Error> {
         // Write a byte at a time.
@@ -523,6 +527,20 @@ mod tests {
                 for byte in &vec[..] {
                     bitstream.write(u8::BITS, *byte)?;
                 }
+                assert_eq!(bitstream.into_writer(), vec);
+            }
+        }
+
+        // Write via a function.
+        {
+            {
+                let mut bitstream: BitWriter<_, LittleEndian> = BitWriter::new(Vec::new());
+
+                let vec: Vec<u8> = vec![0x0, 0xa, 0xb, 0xc];
+                write_u8(&mut bitstream, vec[0])?;
+                write_u8(&mut bitstream, vec[1])?;
+                write_u8(&mut bitstream, vec[2])?;
+                write_u8(&mut bitstream, vec[3])?;
                 assert_eq!(bitstream.into_writer(), vec);
             }
         }
