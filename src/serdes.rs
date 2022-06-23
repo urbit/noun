@@ -213,38 +213,6 @@ where
 {
     ///
     /// # Examples
-    ///
-    /// `0` serializes to `2`:
-    /// ```
-    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
-    /// let noun = Atom::from_u8(0).into_noun();
-    /// let jammed_noun = noun.jam().expect("jam");
-    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(2));
-    /// ```
-    ///
-    /// `1` serializes to `12`:
-    /// ```
-    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
-    /// let noun = Atom::from_u8(1).into_noun();
-    /// let jammed_noun = noun.jam().expect("jam");
-    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(12));
-    /// ```
-    ///
-    /// `2` serializes to `72`:
-    /// ```
-    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
-    /// let noun = Atom::from_u8(2).into_noun();
-    /// let jammed_noun = noun.jam().expect("jam");
-    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u8(72));
-    /// ```
-    ///
-    /// `19` serializes to `2480`:
-    /// ```
-    /// # use noun::{serdes::Jam, types::{atom::Atom}, Atom as _};
-    /// let noun = Atom::from_u8(19).into_noun();
-    /// let jammed_noun = noun.jam().expect("jam");
-    /// assert_eq!(Atom::from(jammed_noun), Atom::from_u16(2480));
-    /// ```
     fn jam(self) -> Result<Vec<u8>, ()> {
         let mut dst = BitWriter::endian(Vec::new(), LittleEndian);
         let mut cache = HashMap::new();
@@ -385,7 +353,7 @@ mod tests {
             assert_eq!(tail, &_1);
         }
 
-        // 39689 deserializes into [0 19].
+        // 39.689 deserializes into [0 19].
         {
             let jammed_noun = Atom::from_u16(0b1001101100001001);
             let bitstream = jammed_noun.as_bits();
@@ -402,7 +370,7 @@ mod tests {
             assert_eq!(tail, &_19);
         }
 
-        // 4952983169 deserializes into [10.000 10.000].
+        // 4.952.983.169 deserializes into [10.000 10.000].
         {
             let jammed_noun = Atom::from_u64(0b100100111001110001000011010000001);
             let bitstream = jammed_noun.as_bits();
@@ -418,7 +386,7 @@ mod tests {
             assert_eq!(tail, &_10_000);
         }
 
-        // 1301217674263809 serializes to [999.999.999 999.999.999].
+        // 1.301.217.674.263.809 serializes to [999.999.999 999.999.999].
         {
             let jammed_noun = Atom::from_u64(0b100100111110111001101011001001111111111110100000001);
             let bitstream = jammed_noun.as_bits();
@@ -434,7 +402,7 @@ mod tests {
             assert_eq!(tail, &_999_999_999);
         }
 
-        // 635080761093 deserializes into [[107 110] [107 110]].
+        // 635.080.761.093 deserializes into [[107 110] [107 110]].
         {
             let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
             let bitstream = jammed_noun.as_bits();
@@ -456,6 +424,48 @@ mod tests {
             assert_eq!(head_tail, &_110);
             assert_eq!(tail_head, &_107);
             assert_eq!(tail_tail, &_110);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn jam() -> Result<(), ()> {
+        /*
+        // 0 serializes to 2.
+        {
+            let noun = Atom::from_u8(0).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u8(2));
+        }
+
+        // 1 serializes to 12.
+        {
+            let noun = Atom::from_u8(1).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u8(12));
+        }
+
+        // 2 serializes to 72.
+        {
+            let noun = Atom::from_u8(2).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u8(72));
+        }
+
+        // 19 serializes to 2480.
+        {
+            let noun = Atom::from_u8(19).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u16(2480));
+        }
+        */
+
+        // 581.949.002 serializes to 1.191.831.557.952.
+        {
+            let noun = Atom::from_u32(581_949_002).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u64(1_191_831_557_952));
         }
 
         Ok(())
