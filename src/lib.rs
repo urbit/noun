@@ -4,7 +4,7 @@ pub mod types;
 use bitstream_io::{BitReader, LittleEndian};
 use std::{default::Default, hash::Hash, ops::Add, str};
 
-macro_rules! to_uint {
+macro_rules! atom_to_uint {
     ($atom:expr, $uint:ty) => {{
         let atom = $atom.as_bytes();
         const N: usize = std::mem::size_of::<$uint>();
@@ -49,27 +49,27 @@ where
     }
 
     fn as_u8(&self) -> Result<u8, ()> {
-        to_uint!(self, u8)
+        atom_to_uint!(self, u8)
     }
 
     fn as_u16(&self) -> Result<u16, ()> {
-        to_uint!(self, u16)
+        atom_to_uint!(self, u16)
     }
 
     fn as_u32(&self) -> Result<u32, ()> {
-        to_uint!(self, u32)
+        atom_to_uint!(self, u32)
     }
 
     fn as_u64(&self) -> Result<u64, ()> {
-        to_uint!(self, u64)
+        atom_to_uint!(self, u64)
     }
 
     fn as_u128(&self) -> Result<u128, ()> {
-        to_uint!(self, u128)
+        atom_to_uint!(self, u128)
     }
 
     fn as_usize(&self) -> Result<usize, ()> {
-        to_uint!(self, usize)
+        atom_to_uint!(self, usize)
     }
 
     fn as_str(&self) -> Result<&str, ()> {
