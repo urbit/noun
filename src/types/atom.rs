@@ -67,6 +67,10 @@ impl _Atom<Cell, Noun> for Atom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
+
+    fn into_noun(self) -> Noun {
+        Noun::Atom(self)
+    }
 }
 
 impl Default for Atom {

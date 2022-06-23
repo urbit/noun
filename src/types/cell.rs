@@ -32,6 +32,10 @@ impl _Cell<Atom, Noun> for Cell {
     fn into_parts(self) -> (Self::Head, Self::Tail) {
         (self.head, self.tail)
     }
+
+    fn into_noun(self) -> Noun {
+        Noun::Cell(self)
+    }
 }
 
 impl Hash for Cell {

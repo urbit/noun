@@ -39,11 +39,8 @@ where
         + Default
         + Eq
         + From<Vec<u8>>
-        + IntoNoun<Self, C, N>
         + Sized,
 {
-    fn as_bytes(&self) -> &[u8];
-
     fn from_u8(uint: u8) -> Self {
         uint_to_atom!(uint, Self)
     }
@@ -67,6 +64,8 @@ where
     fn from_usize(uint: usize) -> Self {
         uint_to_atom!(uint, Self)
     }
+
+    fn as_bytes(&self) -> &[u8];
 
     fn as_bits(&self) -> BitReader<&[u8], LittleEndian> {
         BitReader::new(self.as_bytes())
@@ -99,13 +98,15 @@ where
     fn as_str(&self) -> Result<&str, ()> {
         Ok(str::from_utf8(self.as_bytes()).map_err(|_| ())?)
     }
+
+    fn into_noun(self) -> N;
 }
 
 pub trait Cell<A, N>
 where
     A: Atom<Self, N>,
     N: Noun<A, Self>,
-    Self: IntoNoun<A, Self, N> + Sized,
+    Self: Sized,
 {
     type Head;
     type Tail;
@@ -121,6 +122,8 @@ where
     }
 
     fn into_parts(self) -> (Self::Head, Self::Tail);
+
+    fn into_noun(self) -> N;
 }
 
 pub trait Noun<A, C>

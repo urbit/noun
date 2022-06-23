@@ -238,7 +238,7 @@ where
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
         let atom = if bit_len == 0 {
-            Rc::new(A::from_u8(0).into_noun().unwrap())
+            Rc::new(A::from_u8(0).into_noun())
         } else {
             let mut val = {
                 // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
@@ -258,7 +258,7 @@ where
             let byte: u8 = src.read(bit_len).expect("read chunk");
             bits_read += bit_len;
             val.push(byte);
-            Rc::new(A::from(val).into_noun().unwrap())
+            Rc::new(A::from(val).into_noun())
         };
 
         if let Some(cache) = cache {
@@ -315,7 +315,7 @@ where
         let (tail, tail_bits) = Self::decode(src, cache, pos)?;
         cache.insert(pos, tail.clone());
 
-        let cell = Rc::new(Self::new_cell(head, tail).into_noun().unwrap());
+        let cell = Rc::new(Self::new_cell(head, tail).into_noun());
         Ok((cell, head_bits + tail_bits))
     }
 
