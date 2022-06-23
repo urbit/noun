@@ -2,7 +2,7 @@ use crate::{
     types::{cell::Cell, noun::Noun},
     Atom as _Atom, IntoNoun,
 };
-use std::{default::Default, hash::Hash, ops::Add, str};
+use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom(Vec<u8>);
@@ -70,12 +70,6 @@ impl _Atom<Cell, Noun> for Atom {
 
     fn into_noun(self) -> Noun {
         Noun::Atom(self)
-    }
-}
-
-impl Default for Atom {
-    fn default() -> Self {
-        Self(vec![0])
     }
 }
 

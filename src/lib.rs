@@ -2,7 +2,7 @@ pub mod serdes;
 pub mod types;
 
 use bitstream_io::{BitReader, LittleEndian};
-use std::{default::Default, hash::Hash, ops::Add, str};
+use std::{hash::Hash, ops::Add, str};
 
 macro_rules! uint_to_atom {
     ($uint:expr, $atom:ty) => {{
@@ -36,7 +36,6 @@ where
         + Add<u64>
         + Add<u128>
         + Add<usize>
-        + Default
         + Eq
         + From<Vec<u8>>
         + Sized,
