@@ -4,6 +4,12 @@ pub mod types;
 use bitstream_io::{BitReader, LittleEndian};
 use std::{default::Default, hash::Hash, ops::Add, str};
 
+macro_rules! uint_to_atom {
+    ($uint:expr, $atom:ty) => {{
+        <$atom>::from(Vec::from($uint.to_le_bytes()))
+    }};
+}
+
 macro_rules! atom_to_uint {
     ($atom:expr, $uint:ty) => {{
         let atom = $atom.as_bytes();
@@ -32,17 +38,35 @@ where
         + Add<usize>
         + Default
         + Eq
-        + From<u8>
-        + From<u16>
-        + From<u32>
-        + From<u64>
-        + From<u128>
-        + From<usize>
         + From<Vec<u8>>
         + IntoNoun<Self, C, N>
         + Sized,
 {
     fn as_bytes(&self) -> &[u8];
+
+    fn from_u8(uint: u8) -> Self {
+        uint_to_atom!(uint, Self)
+    }
+
+    fn from_u16(uint: u16) -> Self {
+        uint_to_atom!(uint, Self)
+    }
+
+    fn from_u32(uint: u32) -> Self {
+        uint_to_atom!(uint, Self)
+    }
+
+    fn from_u64(uint: u64) -> Self {
+        uint_to_atom!(uint, Self)
+    }
+
+    fn from_u128(uint: u128) -> Self {
+        uint_to_atom!(uint, Self)
+    }
+
+    fn from_usize(uint: usize) -> Self {
+        uint_to_atom!(uint, Self)
+    }
 
     fn as_bits(&self) -> BitReader<&[u8], LittleEndian> {
         BitReader::new(self.as_bytes())

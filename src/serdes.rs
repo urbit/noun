@@ -41,44 +41,44 @@ where
     /// ```
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from(0b10u8);
+    /// let jammed_noun = Atom::from_u8(0b10);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from(0u8));
+    /// assert_eq!(atom, &Atom::from_u8(0));
     /// ```
     ///
     /// `12` deserializes to `1`:
     /// ```
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from(0b1100u8);
+    /// let jammed_noun = Atom::from_u8(0b1100);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from(1u8));
+    /// assert_eq!(atom, &Atom::from_u8(1));
     /// ```
     ///
     /// `72` deserializes to `2`:
     /// ```
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from(0b1001000u8);
+    /// let jammed_noun = Atom::from_u8(0b1001000);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from(2u8));
+    /// assert_eq!(atom, &Atom::from_u8(2));
     /// ```
     ///
     /// `2480` deserializes to `19`:
     /// ```
     /// # use bitstream_io::{BitReader, LittleEndian};
     /// # use noun::{serdes::Cue, types::{atom::Atom, noun::Noun}, Atom as _, Noun as _};
-    /// let jammed_noun = Atom::from(0b100110110000u16);
+    /// let jammed_noun = Atom::from_u16(0b100110110000);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let atom = noun.as_atom().expect("as atom");
-    /// assert_eq!(atom, &Atom::from(19u8));
+    /// assert_eq!(atom, &Atom::from_u8(19));
     /// ```
     ///
     /// `817` deserializes to `[1 1]`:
@@ -89,7 +89,7 @@ where
     /// #     types::{atom::Atom, noun::Noun},
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
-    /// let jammed_noun = Atom::from(0b1100110001u16);
+    /// let jammed_noun = Atom::from_u16(0b1100110001);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
@@ -98,7 +98,7 @@ where
     /// let head = head.as_atom().expect("as atom");
     /// let tail = tail.as_atom().expect("as atom");
     ///
-    /// let _1 = Atom::from(1u8);
+    /// let _1 = Atom::from_u8(1);
     /// assert_eq!(head, &_1);
     /// assert_eq!(tail, &_1);
     /// ```
@@ -111,7 +111,7 @@ where
     /// #     types::{atom::Atom, noun::Noun},
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
-    /// let jammed_noun = Atom::from(0b1001101100001001u16);
+    /// let jammed_noun = Atom::from_u16(0b1001101100001001);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
@@ -120,8 +120,8 @@ where
     /// let head = head.as_atom().expect("as atom");
     /// let tail = tail.as_atom().expect("as atom");
     ///
-    /// let _0 = Atom::from(0u8);
-    /// let _19 = Atom::from(19u8);
+    /// let _0 = Atom::from_u8(0);
+    /// let _19 = Atom::from_u8(19);
     /// assert_eq!(head, &_0);
     /// assert_eq!(tail, &_19);
     /// ```
@@ -134,7 +134,7 @@ where
     /// #     types::{atom::Atom, noun::Noun},
     /// #     Atom as _, Cell as _, Noun as _,
     /// # };
-    /// let jammed_noun = Atom::from(0b1001001111011101110000110101111100000101u64);
+    /// let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
     /// let mut bitstream = jammed_noun.as_bits();
     /// let noun = Noun::cue(bitstream).expect("cue");
     /// let cell = noun.into_cell().expect("into cell");
@@ -148,8 +148,8 @@ where
     /// let tail_head = tail.head().as_atom().expect("as atom");
     /// let tail_tail = tail.tail().as_atom().expect("as atom");
     ///
-    /// let _107 = Atom::from(107u8);
-    /// let _110 = Atom::from(110u8);
+    /// let _107 = Atom::from_u8(107);
+    /// let _110 = Atom::from_u8(110);
     /// assert_eq!(head_head, &_107);
     /// assert_eq!(head_tail, &_110);
     /// assert_eq!(tail_head, &_107);
@@ -238,7 +238,7 @@ where
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
         let atom = if bit_len == 0 {
-            Rc::new(A::from(0u8).into_noun().unwrap())
+            Rc::new(A::from_u8(0).into_noun().unwrap())
         } else {
             let mut val = {
                 // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's

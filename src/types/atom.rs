@@ -75,48 +75,6 @@ impl Default for Atom {
     }
 }
 
-macro_rules! from_uint {
-    ($val:expr) => {
-        Atom(Vec::from($val.to_le_bytes()))
-    };
-}
-
-impl From<u8> for Atom {
-    fn from(val: u8) -> Self {
-        from_uint!(val)
-    }
-}
-
-impl From<u16> for Atom {
-    fn from(val: u16) -> Self {
-        from_uint!(val)
-    }
-}
-
-impl From<u32> for Atom {
-    fn from(val: u32) -> Self {
-        from_uint!(val)
-    }
-}
-
-impl From<u64> for Atom {
-    fn from(val: u64) -> Self {
-        from_uint!(val)
-    }
-}
-
-impl From<u128> for Atom {
-    fn from(val: u128) -> Self {
-        from_uint!(val)
-    }
-}
-
-impl From<usize> for Atom {
-    fn from(val: usize) -> Self {
-        from_uint!(val)
-    }
-}
-
 impl From<Vec<u8>> for Atom {
     fn from(val: Vec<u8>) -> Self {
         Self(val)
@@ -167,37 +125,37 @@ mod tests {
     fn from_uint() -> Result<(), ()> {
         {
             let val = u8::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_u8(val);
             assert_eq!(atom.as_u8()?, val);
         }
 
         {
             let val = u16::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_u16(val);
             assert_eq!(atom.as_u16()?, val);
         }
 
         {
             let val = u32::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_u32(val);
             assert_eq!(atom.as_u32()?, val);
         }
 
         {
             let val = u64::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_u64(val);
             assert_eq!(atom.as_u64()?, val);
         }
 
         {
             let val = u128::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_u128(val);
             assert_eq!(atom.as_u128()?, val);
         }
 
         {
             let val = usize::MAX;
-            let atom = Atom::from(val);
+            let atom = Atom::from_usize(val);
             assert_eq!(atom.as_usize()?, val);
         }
 
