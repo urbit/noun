@@ -1,6 +1,7 @@
 use crate::{
+    atom::Atom as _Atom,
     types::{cell::Cell, noun::Noun},
-    Atom as _Atom, IntoNoun,
+    IntoNoun,
 };
 use std::{hash::Hash, ops::Add, str};
 

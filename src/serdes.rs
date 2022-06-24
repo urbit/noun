@@ -352,8 +352,9 @@ impl Tag {
 mod tests {
     use super::*;
     use crate::{
+        atom::Atom as _,
         types::{atom::Atom, cell::Cell, noun::Noun},
-        Atom as _, Cell as _, Noun as _,
+        Cell as _, Noun as _,
     };
 
     #[test]
