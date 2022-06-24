@@ -8,7 +8,6 @@ use std::{
     rc::Rc,
 };
 
-
 /// (<some type>, bits read)
 #[doc(hidden)]
 pub type CueResult<T> = Result<(T, u32), ()>;
@@ -283,11 +282,32 @@ where
 
         if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
             dst.write_bytes(full_bytes).expect("write full bytes");
-            dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte).expect("write last byte");
+            dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte)
+                .expect("write last byte");
         }
         bits_written += u32::try_from(bit_len).expect("doesn't fit in u32");
 
         Ok(((), bits_written))
+    }
+
+    #[doc(hidden)]
+    fn encode_backref(idx: u64, noun: &Self, dst: &mut impl BitWrite) -> JamResult<()> {
+        if let Ok(atom) = noun.as_atom() {
+            let idx_bit_len = u64::BITS - idx.leading_zeros();
+            let atom_bit_len = u32::try_from(atom.bit_len()).expect("doesn't fit in u32");
+            // Backreferences to atoms are only encoded if they're shorter than the atom it would
+            // reference.
+            if atom_bit_len <= idx_bit_len {
+                let tag_len = Tag::write(dst, Tag::Atom).expect("write tag");
+                let (_, bits_written) = Self::encode_atom(&atom, dst)?;
+                return Ok(((), tag_len + bits_written));
+            }
+        }
+
+        let tag_len = Tag::write(dst, Tag::BackRef).expect("write tag");
+        let idx = A::from_u64(idx);
+        let (_, bits_written) = Self::encode_atom(&idx, dst)?;
+        Ok(((), tag_len + bits_written))
     }
 
     #[doc(hidden)]
@@ -512,7 +532,6 @@ mod tests {
             assert_eq!(Atom::from(jammed_noun), Atom::from_u16(39_689));
         }
 
-        /*
         // [1 1] serializes to 817.
         {
             let head = Rc::new(Atom::from_u8(1).into_noun());
@@ -521,7 +540,27 @@ mod tests {
             let jammed_noun = noun.jam()?;
             assert_eq!(Atom::from(jammed_noun), Atom::from_u16(817));
         }
-        */
+
+        // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
+        {
+            let _222 = Atom::from_u8(222).into_noun();
+            let _444 = Atom::from_u16(444).into_noun();
+            let _888 = Atom::from_u16(888).into_noun();
+            let head = Rc::new(
+                Cell::new(
+                    Rc::new(_222),
+                    Rc::new(Cell::new(Rc::new(_444), Rc::new(_888)).into_noun()),
+                )
+                .into_noun(),
+            );
+            let tail = head.clone();
+            let noun = Cell::new(head, tail).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(
+                Atom::from(jammed_noun),
+                Atom::from_u128(170_479_614_045_978_345_989)
+            );
+        }
 
         Ok(())
     }

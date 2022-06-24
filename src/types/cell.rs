@@ -2,10 +2,7 @@ use crate::{
     types::{atom::Atom, noun::Noun},
     Cell as _Cell, IntoNoun,
 };
-use std::{
-    hash::{Hash, Hasher},
-    rc::Rc,
-};
+use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
 pub struct Cell {
