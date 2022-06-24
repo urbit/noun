@@ -209,7 +209,9 @@ where
 {
     fn from_noun_ref(noun: &N) -> Result<Self, ()>;
 
-    fn from_noun(noun: N) -> Result<Self, ()>;
+    fn from_noun(noun: N) -> Result<Self, ()> {
+        Self::from_noun_ref(&noun)
+    }
 }
 
 /// Convert the implementing type into a noun.
