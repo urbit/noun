@@ -224,5 +224,7 @@ where
 {
     fn as_noun(&self) -> Result<N, ()>;
 
-    fn into_noun(self) -> Result<N, ()>;
+    fn into_noun(self) -> Result<N, ()> {
+        Self::as_noun(&self)
+    }
 }
