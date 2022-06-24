@@ -1,7 +1,4 @@
-use crate::{
-    types::{atom::Atom, noun::Noun},
-    Cell as _Cell, IntoNoun,
-};
+use crate::{atom::types::Atom, cell::Cell as _Cell, noun::types::Noun};
 use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
@@ -40,16 +37,6 @@ impl _Cell<Atom, Noun> for Cell {
 
     fn into_noun(self) -> Noun {
         Noun::Cell(self)
-    }
-}
-
-impl IntoNoun<Atom, Self, Noun> for Cell {
-    fn as_noun(&self) -> Result<Noun, ()> {
-        Err(())
-    }
-
-    fn into_noun(self) -> Result<Noun, ()> {
-        Ok(Noun::Cell(self))
     }
 }
 

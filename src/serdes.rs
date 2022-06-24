@@ -1,4 +1,4 @@
-use crate::{Atom, Cell, Noun};
+use crate::{atom::Atom, cell::Cell, noun::Noun};
 use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};
 use std::{
     collections::HashMap,
@@ -352,9 +352,9 @@ impl Tag {
 mod tests {
     use super::*;
     use crate::{
-        atom::Atom as _,
-        types::{atom::Atom, cell::Cell, noun::Noun},
-        Cell as _, Noun as _,
+        atom::{types::Atom, Atom as _},
+        cell::{types::Cell, Cell as _},
+        noun::{types::Noun, Noun as _},
     };
 
     #[test]

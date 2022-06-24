@@ -1,4 +1,6 @@
-use crate::{cell::Cell, Noun};
+pub mod types;
+
+use crate::{cell::Cell, noun::Noun};
 use bitstream_io::{BitReader, LittleEndian};
 use std::{ops::Add, str};
 

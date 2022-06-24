@@ -1,4 +1,6 @@
-use crate::{atom::Atom, Noun};
+pub mod types;
+
+use crate::{atom::Atom, noun::Noun};
 
 pub trait Cell<A, N>
 where

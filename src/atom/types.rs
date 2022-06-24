@@ -1,8 +1,4 @@
-use crate::{
-    atom::Atom as _Atom,
-    types::{cell::Cell, noun::Noun},
-    IntoNoun,
-};
+use crate::{atom::Atom as _Atom, cell::types::Cell, noun::types::Noun};
 use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -83,16 +79,6 @@ impl From<Vec<u8>> for Atom {
 impl From<&str> for Atom {
     fn from(val: &str) -> Self {
         Self(val.as_bytes().to_vec())
-    }
-}
-
-impl IntoNoun<Self, Cell, Noun> for Atom {
-    fn as_noun(&self) -> Result<Noun, ()> {
-        Err(())
-    }
-
-    fn into_noun(self) -> Result<Noun, ()> {
-        Ok(Noun::Atom(self))
     }
 }
 
