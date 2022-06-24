@@ -3,6 +3,7 @@
 pub mod types;
 
 use crate::{atom::Atom, noun::Noun};
+use std::rc::Rc;
 
 /// Interface to the cell data structure.
 pub trait Cell<A, N>
@@ -15,6 +16,8 @@ where
     type Tail;
 
     fn from_parts(head: Self::Head, tail: Self::Tail) -> Self;
+
+    fn from_pair(head: Rc<N>, tail: Rc<N>) -> Self;
 
     fn head(&self) -> &Self::Head;
 

@@ -14,11 +14,7 @@ pub enum Noun {
     Cell(Cell),
 }
 
-impl Cue<Atom, Cell> for Noun {
-    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> Cell {
-        Cell::from_parts(head, tail)
-    }
-}
+impl Cue<Atom, Cell> for Noun {}
 
 impl Jam<'_, Atom, Cell> for Noun {}
 

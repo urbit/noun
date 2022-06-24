@@ -17,6 +17,10 @@ impl _Cell<Atom, Noun> for Cell {
         Self { head, tail }
     }
 
+    fn from_pair(head: Rc<Noun>, tail: Rc<Noun>) -> Self {
+        Self::from_parts(head, tail)
+    }
+
     fn head(&self) -> &Self::Head {
         &self.head
     }

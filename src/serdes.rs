@@ -188,20 +188,9 @@ where
         let (tail, tail_bits) = Self::decode(src, cache, pos)?;
         cache.insert(pos, tail.clone());
 
-        let cell = Rc::new(Self::new_cell(head, tail).into_noun());
+        let cell = Rc::new(C::from_pair(head, tail).into_noun());
         Ok((cell, head_bits + tail_bits))
     }
-
-    /// Construct a new cell.
-    ///
-    /// The construction of a cell cannot be generalized using the `Cell` trait for use in this
-    /// context because the `Cell::Head` and `Cell::Tail` traits are intentionally not bounded by
-    /// the `Noun` trait, which would be too onerous on implementers. Beside cell construction,
-    /// cueing (decoding) a jammed (encoded) noun is completely independent of the noun
-    /// representation, so deserializing a serialized noun is completely independent of the noun
-    /// representation, so implementing this single method on a particular noun type will result in
-    /// a free implementation of cue.
-    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> C;
 }
 
 /// (<some type>, bits written)
