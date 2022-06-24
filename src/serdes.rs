@@ -239,13 +239,20 @@ where
         pos: u64,
     ) -> JamResult<()> {
         if let Some(idx) = cache.get(noun) {
-            todo!("backreference")
+            todo!()
         } else if let Ok(atom) = noun.as_atom() {
             cache.insert(noun, pos);
-            Self::encode_atom(atom, dst)
+            const TAG_LEN: u32 = 1;
+            const TAG: u8 = 0b0;
+            dst.write(TAG_LEN, TAG).expect("write tag");
+            let (_, bits_written) = Self::encode_atom(atom, dst)?;
+            Ok(((), TAG_LEN + bits_written))
         } else if let Ok(cell) = noun.as_cell() {
             cache.insert(noun, pos);
-            Self::encode_cell(cell, dst, cache, pos)
+            const TAG_LEN: u32 = 2;
+            const TAG: u8 = 0b01;
+            dst.write(TAG_LEN, TAG).expect("write tag");
+            Self::encode_cell(cell, dst, cache, pos + u64::from(TAG_LEN))
         } else {
             Err(())
         }
@@ -273,12 +280,8 @@ where
 
     #[doc(hidden)]
     fn encode_atom(atom: &A, dst: &mut impl BitWrite) -> JamResult<()> {
-        const TAG_LEN: u32 = 1;
-        const TAG: u8 = 0b0;
-        dst.write(TAG_LEN, TAG).expect("write tag");
         let bit_len = atom.bit_len() as u64;
         let (_, mut bits_written) = Self::encode_len(bit_len, dst)?;
-        bits_written += TAG_LEN;
 
         if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
             dst.write_bytes(full_bytes).expect("write full bytes");
@@ -296,19 +299,14 @@ where
         cache: &'b mut HashMap<&'a Self, u64>,
         pos: u64,
     ) -> JamResult<()> {
-        const TAG_LEN: u32 = 2;
-        const TAG: u8 = 0b01;
-        dst.write(TAG_LEN, TAG).expect("write tag");
-
         let head = cell.head_as_noun();
-        let head_pos = pos + u64::from(TAG_LEN);
-        let (_, head_bits_written) = Self::encode(head, dst, cache, head_pos)?;
+        let (_, head_bits_written) = Self::encode(head, dst, cache, pos)?;
 
         let tail = cell.tail_as_noun();
-        let tail_pos = head_pos + u64::from(head_bits_written);
-        let (_, tail_bits_written) = Self::encode(tail, dst, cache, tail_pos)?;
+        let pos = pos + u64::from(head_bits_written);
+        let (_, tail_bits_written) = Self::encode(tail, dst, cache, pos)?;
 
-        let bits_written = TAG_LEN + head_bits_written + tail_bits_written;
+        let bits_written = head_bits_written + tail_bits_written;
         Ok(((), bits_written))
     }
 }
