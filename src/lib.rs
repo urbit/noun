@@ -12,3 +12,21 @@ pub mod ops;
 pub mod serdes;
 
 pub use crate::noun::*;
+
+#[macro_export]
+macro_rules! create_test {
+    ($success:expr, $return:ty, $($test:block)+) => {
+        fn run_test<A, C, N>() -> $return
+        where
+            A: crate::atom::Atom<C, N>,
+            C: crate::cell::Cell<A, N>,
+            N: crate::noun::Noun<A, C>,
+        {
+            $(
+                $test
+            )*
+
+            $success
+        }
+    };
+}

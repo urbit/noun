@@ -2,7 +2,7 @@
 
 use crate::{
     atom::types::Atom,
-    cell::{types::Cell, Cell as _},
+    cell::{types::Cell, Cell as _Cell},
     noun::Noun as _Noun,
     serdes::{Cue, Jam},
 };
@@ -76,46 +76,35 @@ impl PartialEq for Noun {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::create_test;
+    use std::rc::Rc;
 
     #[test]
     fn noun_get() {
-        /*
-        /// Create a new Noun::Atom from a list of numbers.
-        macro_rules! na {
-            ($elem:expr , $n:expr) => {
-                let vec = vec![$elem; $n];
-                Noun::Atom(Atom::from(vec))
-            };
-            ($($x:expr),+ $(,)?) => {
-                {
-                    let mut vec = Vec::new();
-                    $(
-                        vec.push($x);
+        create_test!(
+            (),
+            (),
+            // [[4 5] [6 14 15]]
+            {
+                let _4 = Rc::new(A::from_u8(4).into_noun());
+                let _5 = Rc::new(A::from_u8(5).into_noun());
+                let _6 = Rc::new(A::from_u8(6).into_noun());
+                let _14 = Rc::new(A::from_u8(14).into_noun());
+                let _15 = Rc::new(A::from_u8(15).into_noun());
 
-                     )*
-                        Noun::Atom(Atom::from(vec))
-                }
-            };
-        }
+                let tt = Rc::new(C::from_pair(_14, _15).into_noun());
+                let t = Rc::new(C::from_pair(_6, tt.clone()).into_noun());
+                let h = Rc::new(C::from_pair(_4, _5).into_noun());
+                let noun = C::from_pair(h.clone(), t.clone()).into_noun();
 
-        /// Create a new cell from a pair of Option<Box<<>>.
-        macro_rules! nc {
-            ($head:expr, $tail:expr) => {
-                Noun::Cell(Cell::from_parts($head, $tail))
-            };
-        }
+                assert_eq!(noun.get(1), Some(&noun));
+                assert_eq!(noun.get(2), Some(&*h));
+                assert_eq!(noun.get(3), Some(&*t));
+                assert_eq!(noun.get(7), Some(&*tt));
+                assert_eq!(noun.get(12), None);
+            }
+        );
 
-        // [[4 5] [6 14 15]]
-        let tt = nc!(Rc::new(na![14]), Rc::new(na![15]));
-        let t = nc!(Rc::new(na![6]), Rc::new(tt.clone()));
-        let h = nc!(Rc::new(na![4]), Rc::new(na![5]));
-        let n = nc!(Rc::new(h.clone()), Rc::new(t.clone()));
-
-        assert_eq!(n.get(1), Some(&n));
-        assert_eq!(n.get(2), Some(&h));
-        assert_eq!(n.get(3), Some(&t));
-        assert_eq!(n.get(7), Some(&tt));
-        assert_eq!(n.get(12), None);
-        */
+        run_test::<Atom, Cell, Noun>();
     }
 }

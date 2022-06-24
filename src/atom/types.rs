@@ -107,54 +107,60 @@ impl PartialEq<&str> for Atom {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::create_test;
 
     #[test]
     fn from_uint() -> Result<(), ()> {
-        {
-            let val = u8::MAX;
-            let atom = Atom::from_u8(val);
-            assert_eq!(atom.as_u8()?, val);
-        }
+        create_test!(Ok(()), Result<(), ()>,
+            {
+                let val = u8::MAX;
+                let atom = A::from_u8(val);
+                assert_eq!(atom.as_u8()?, val);
+            }
 
-        {
-            let val = u16::MAX;
-            let atom = Atom::from_u16(val);
-            assert_eq!(atom.as_u16()?, val);
-        }
+            {
+                let val = u16::MAX;
+                let atom = A::from_u16(val);
+                assert_eq!(atom.as_u16()?, val);
+            }
 
-        {
-            let val = u32::MAX;
-            let atom = Atom::from_u32(val);
-            assert_eq!(atom.as_u32()?, val);
-        }
+            {
+                let val = u32::MAX;
+                let atom = A::from_u32(val);
+                assert_eq!(atom.as_u32()?, val);
+            }
 
-        {
-            let val = u64::MAX;
-            let atom = Atom::from_u64(val);
-            assert_eq!(atom.as_u64()?, val);
-        }
+            {
+                let val = u64::MAX;
+                let atom = A::from_u64(val);
+                assert_eq!(atom.as_u64()?, val);
+            }
 
-        {
-            let val = u128::MAX;
-            let atom = Atom::from_u128(val);
-            assert_eq!(atom.as_u128()?, val);
-        }
+            {
+                let val = u128::MAX;
+                let atom = A::from_u128(val);
+                assert_eq!(atom.as_u128()?, val);
+            }
 
-        {
-            let val = usize::MAX;
-            let atom = Atom::from_usize(val);
-            assert_eq!(atom.as_usize()?, val);
-        }
+            {
+                let val = usize::MAX;
+                let atom = A::from_usize(val);
+                assert_eq!(atom.as_usize()?, val);
+            }
+        );
 
+        run_test::<Atom, Cell, Noun>()?;
         Ok(())
     }
 
     #[test]
     fn partialeq() {
-        {
+        create_test!((), (), {
             let vec = vec![b'h', b'e', b'l', b'l', b'o'];
-            let atom = Atom::from(vec);
+            let atom = A::from(vec);
             assert_eq!(atom, "hello");
-        }
+        });
+
+        run_test::<Atom, Cell, Noun>();
     }
 }
