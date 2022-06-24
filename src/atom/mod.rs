@@ -6,7 +6,7 @@ pub mod types;
 
 use crate::{cell::Cell, noun::Noun};
 use bitstream_io::{BitReader, LittleEndian};
-use std::{ops::Add, str};
+use std::{fmt::Debug, ops::Add, str};
 
 macro_rules! uint_to_atom {
     ($uint:expr, $atom:ty) => {{
@@ -46,6 +46,7 @@ where
         + Add<u64>
         + Add<u128>
         + Add<usize>
+        + Debug
         + Eq
         + From<Vec<u8>>
         + Sized,

@@ -5,14 +5,14 @@
 pub mod types;
 
 use crate::{atom::Atom, cell::Cell};
-use std::hash::Hash;
+use std::{fmt::Debug, hash::Hash};
 
 /// Interface to the noun data structure.
 pub trait Noun<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
-    Self: Eq + Hash + Sized,
+    Self: Debug + Eq + Hash + Sized,
 {
     fn get(&self, idx: usize) -> Option<&Self>;
 

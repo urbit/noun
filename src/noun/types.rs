@@ -6,7 +6,6 @@ use crate::{
     noun::Noun as _Noun,
     serdes::{Cue, Jam},
 };
-use std::rc::Rc;
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {

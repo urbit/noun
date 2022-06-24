@@ -3,14 +3,14 @@
 pub mod types;
 
 use crate::{atom::Atom, noun::Noun};
-use std::rc::Rc;
+use std::{fmt::Debug, rc::Rc};
 
 /// Interface to the cell data structure.
 pub trait Cell<A, N>
 where
     A: Atom<Self, N>,
     N: Noun<A, Self>,
-    Self: Sized,
+    Self: Debug + Eq + Sized,
 {
     type Head;
     type Tail;
