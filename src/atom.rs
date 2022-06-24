@@ -1,4 +1,4 @@
-use crate::{Cell, Noun};
+use crate::{cell::Cell, Noun};
 use bitstream_io::{BitReader, LittleEndian};
 use std::{ops::Add, str};
 
