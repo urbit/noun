@@ -14,7 +14,7 @@ where
     type Head;
     type Tail;
 
-    fn new(head: Self::Head, tail: Self::Tail) -> Self;
+    fn from_parts(head: Self::Head, tail: Self::Tail) -> Self;
 
     fn head(&self) -> &Self::Head;
 

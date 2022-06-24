@@ -16,7 +16,7 @@ pub enum Noun {
 
 impl Cue<Atom, Cell> for Noun {
     fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> Cell {
-        Cell::new(head, tail)
+        Cell::from_parts(head, tail)
     }
 }
 
@@ -106,7 +106,7 @@ mod tests {
         /// Create a new cell from a pair of Option<Box<<>>.
         macro_rules! nc {
             ($head:expr, $tail:expr) => {
-                Noun::Cell(Cell::new($head, $tail))
+                Noun::Cell(Cell::from_parts($head, $tail))
             };
         }
 

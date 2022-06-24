@@ -13,7 +13,7 @@ impl _Cell<Atom, Noun> for Cell {
     type Head = Rc<Noun>;
     type Tail = Self::Head;
 
-    fn new(head: Self::Head, tail: Self::Tail) -> Self {
+    fn from_parts(head: Self::Head, tail: Self::Tail) -> Self {
         Self { head, tail }
     }
 

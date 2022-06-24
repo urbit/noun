@@ -530,7 +530,7 @@ mod tests {
         {
             let head = Rc::new(Atom::from_u8(0).into_noun());
             let tail = Rc::new(Atom::from_u8(19).into_noun());
-            let noun = Cell::new(head, tail).into_noun();
+            let noun = Cell::from_parts(head, tail).into_noun();
             let jammed_noun = noun.jam()?;
             assert_eq!(Atom::from(jammed_noun), Atom::from_u16(39_689));
         }
@@ -539,7 +539,7 @@ mod tests {
         {
             let head = Rc::new(Atom::from_u8(1).into_noun());
             let tail = head.clone();
-            let noun = Cell::new(head, tail).into_noun();
+            let noun = Cell::from_parts(head, tail).into_noun();
             let jammed_noun = noun.jam()?;
             assert_eq!(Atom::from(jammed_noun), Atom::from_u16(817));
         }
@@ -550,14 +550,14 @@ mod tests {
             let _444 = Atom::from_u16(444).into_noun();
             let _888 = Atom::from_u16(888).into_noun();
             let head = Rc::new(
-                Cell::new(
+                Cell::from_parts(
                     Rc::new(_222),
-                    Rc::new(Cell::new(Rc::new(_444), Rc::new(_888)).into_noun()),
+                    Rc::new(Cell::from_parts(Rc::new(_444), Rc::new(_888)).into_noun()),
                 )
                 .into_noun(),
             );
             let tail = head.clone();
-            let noun = Cell::new(head, tail).into_noun();
+            let noun = Cell::from_parts(head, tail).into_noun();
             let jammed_noun = noun.jam()?;
             assert_eq!(
                 Atom::from(jammed_noun),
