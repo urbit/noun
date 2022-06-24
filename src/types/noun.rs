@@ -17,7 +17,7 @@ impl Cue<Atom, Cell> for Noun {
     }
 }
 
-impl Jam<Atom, Cell> for Noun {}
+impl Jam<'_, Atom, Cell> for Noun {}
 
 impl _Noun<Atom, Cell> for Noun {
     fn get(&self, idx: usize) -> Option<&Self> {

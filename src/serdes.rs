@@ -61,7 +61,8 @@ where
                     }
                     // Cell tag = 0b01.
                     Ok(false) => {
-                        let (cell, bits_read) = Self::decode_cell(src, cache, pos + u64::from(TAG_LEN))?;
+                        let (cell, bits_read) =
+                            Self::decode_cell(src, cache, pos + u64::from(TAG_LEN))?;
                         cache.insert(pos, cell.clone());
                         Ok((cell, TAG_LEN + bits_read))
                     }
@@ -205,18 +206,16 @@ where
 pub type JamResult<T> = Result<(T, u32), ()>;
 
 /// Serialize a noun into a bitstream.
-pub trait Jam<A, C>
+pub trait Jam<'a, A, C>
 where
     A: Atom<C, Self>,
-    C: Cell<A, Self>,
-    Self: Noun<A, C> + Sized,
+    C: 'a + Cell<A, Self>,
+    Self: 'a + Noun<A, C> + Sized,
 {
-    ///
-    /// # Examples
-    fn jam(self) -> Result<Vec<u8>, ()> {
+    fn jam(&'a self) -> Result<Vec<u8>, ()> {
         let mut dst = BitWriter::endian(Vec::new(), LittleEndian);
         let mut cache = HashMap::new();
-        let _ = Self::encode(&self, &mut dst, &mut cache, 0)?;
+        let _ = Self::encode(self, &mut dst, &mut cache, 0)?;
         // Bits belonging to the last partial byte are discarded when BitWriter::into_writer() is
         // invoked, so we have to byte align.
         if !dst.byte_aligned() {
@@ -233,10 +232,10 @@ where
     }
 
     #[doc(hidden)]
-    fn encode<'a>(
+    fn encode<'b>(
         noun: &'a Self,
         dst: &mut impl BitWrite,
-        cache: &mut HashMap<&'a Self, u64>,
+        cache: &'b mut HashMap<&'a Self, u64>,
         pos: u64,
     ) -> JamResult<()> {
         if let Some(idx) = cache.get(noun) {
@@ -245,7 +244,8 @@ where
             cache.insert(noun, pos);
             Self::encode_atom(atom, dst)
         } else if let Ok(cell) = noun.as_cell() {
-            todo!()
+            cache.insert(noun, pos);
+            Self::encode_cell(cell, dst, cache, pos)
         } else {
             Err(())
         }
@@ -278,14 +278,38 @@ where
         dst.write(TAG_LEN, TAG).expect("write tag");
         let bit_len = atom.bit_len() as u64;
         let (_, mut bits_written) = Self::encode_len(bit_len, dst)?;
+        bits_written += TAG_LEN;
 
         if let Some((last_byte, full_bytes)) = atom.as_bytes().split_last() {
             dst.write_bytes(full_bytes).expect("write full bytes");
-            dst.write(u8::BITS, *last_byte).expect("write last byte");
+            dst.write(u8::BITS - last_byte.leading_zeros(), *last_byte).expect("write last byte");
         }
         bits_written += u32::try_from(bit_len).expect("doesn't fit in u32");
 
-        Ok(((), TAG_LEN + bits_written))
+        Ok(((), bits_written))
+    }
+
+    #[doc(hidden)]
+    fn encode_cell<'b>(
+        cell: &'a C,
+        dst: &mut impl BitWrite,
+        cache: &'b mut HashMap<&'a Self, u64>,
+        pos: u64,
+    ) -> JamResult<()> {
+        const TAG_LEN: u32 = 2;
+        const TAG: u8 = 0b01;
+        dst.write(TAG_LEN, TAG).expect("write tag");
+
+        let head = cell.head_as_noun();
+        let head_pos = pos + u64::from(TAG_LEN);
+        let (_, head_bits_written) = Self::encode(head, dst, cache, head_pos)?;
+
+        let tail = cell.tail_as_noun();
+        let tail_pos = head_pos + u64::from(head_bits_written);
+        let (_, tail_bits_written) = Self::encode(tail, dst, cache, tail_pos)?;
+
+        let bits_written = TAG_LEN + head_bits_written + tail_bits_written;
+        Ok(((), bits_written))
     }
 }
 
@@ -293,8 +317,8 @@ where
 mod tests {
     use super::*;
     use crate::{
-        types::{atom::Atom, noun::Noun},
-        Atom as _, Noun as _,
+        types::{atom::Atom, cell::Cell, noun::Noun},
+        Atom as _, Cell as _, Noun as _,
     };
 
     #[test]
@@ -463,6 +487,26 @@ mod tests {
             let jammed_noun = noun.jam()?;
             assert_eq!(Atom::from(jammed_noun), Atom::from_u64(1_191_831_557_952));
         }
+
+        // [0 19] serializes into 39.689.
+        {
+            let head = Rc::new(Atom::from_u8(0).into_noun());
+            let tail = Rc::new(Atom::from_u8(19).into_noun());
+            let noun = Cell::new(head, tail).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u16(39_689));
+        }
+
+        /*
+        // [1 1] serializes to 817.
+        {
+            let head = Rc::new(Atom::from_u8(1).into_noun());
+            let tail = head.clone();
+            let noun = Cell::new(head, tail).into_noun();
+            let jammed_noun = noun.jam()?;
+            assert_eq!(Atom::from(jammed_noun), Atom::from_u16(817));
+        }
+        */
 
         Ok(())
     }
