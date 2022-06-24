@@ -1,3 +1,5 @@
+//! Assorted [`Noun`] implementations.
+
 use crate::{
     atom::types::Atom,
     cell::{types::Cell, Cell as _},

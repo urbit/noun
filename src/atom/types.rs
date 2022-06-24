@@ -1,3 +1,5 @@
+//! Assorted [`Atom`] implementations.
+
 use crate::{atom::Atom as _Atom, cell::types::Cell, noun::types::Noun};
 use std::{hash::Hash, ops::Add, str};
 

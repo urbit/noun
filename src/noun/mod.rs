@@ -1,8 +1,13 @@
+//! A [noun] is a finite size binary tree with atoms as leaves.
+//!
+//! [noun]: https://urbit.org/docs/glossary/noun
+
 pub mod types;
 
 use crate::{atom::Atom, cell::Cell};
 use std::hash::Hash;
 
+/// Interface to the noun data structure.
 pub trait Noun<A, C>
 where
     A: Atom<C, Self>,

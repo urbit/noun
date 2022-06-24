@@ -1,7 +1,10 @@
+//! A cell is an ordered pair of nouns.
+
 pub mod types;
 
 use crate::{atom::Atom, noun::Noun};
 
+/// Interface to the cell data structure.
 pub trait Cell<A, N>
 where
     A: Atom<Self, N>,

@@ -1,3 +1,5 @@
+//! Serialization and deserialization.
+
 use crate::{atom::Atom, cell::Cell, noun::Noun};
 use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};
 use std::{

@@ -1,3 +1,7 @@
+//! An [atom] is an arbitrarily large unsigned integer.
+//!
+//! [atom]: https://urbit.org/docs/glossary/atom
+
 pub mod types;
 
 use crate::{cell::Cell, noun::Noun};
@@ -30,6 +34,7 @@ macro_rules! atom_to_uint {
     }};
 }
 
+/// Interface to the atom data structure.
 pub trait Atom<C, N>
 where
     C: Cell<Self, N>,

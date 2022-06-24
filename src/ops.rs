@@ -1,3 +1,5 @@
+//! Operators.
+
 /// Unifying equality.
 pub trait UnifyEq<C>
 where
