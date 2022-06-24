@@ -7,7 +7,7 @@ use std::{
     rc::Rc,
 };
 
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Hash, Debug, Eq)]
 pub struct Cell {
     head: Rc<Noun>,
     tail: Rc<Noun>,
@@ -43,12 +43,6 @@ impl _Cell<Atom, Noun> for Cell {
 
     fn into_noun(self) -> Noun {
         Noun::Cell(self)
-    }
-}
-
-impl Hash for Cell {
-    fn hash<H: Hasher>(&self, _state: &mut H) {
-        todo!()
     }
 }
 
