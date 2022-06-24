@@ -6,7 +6,12 @@ use std::{hash::Hash, ops::Add, str};
 
 macro_rules! uint_to_atom {
     ($uint:expr, $atom:ty) => {{
-        <$atom>::from(Vec::from($uint.to_le_bytes()))
+        let mut vec = Vec::from($uint.to_le_bytes());
+        if let Some(idx) = vec.iter().rposition(|x| *x != 0) {
+            let len = idx + 1;
+            vec.truncate(len);
+        }
+        <$atom>::from(vec)
     }};
 }
 
