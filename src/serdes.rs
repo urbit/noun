@@ -3,9 +3,11 @@ use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};
 use std::{
     collections::HashMap,
     fmt::Debug,
+    io::Error,
     mem::{drop, size_of},
     rc::Rc,
 };
+
 
 /// (<some type>, bits read)
 #[doc(hidden)]
@@ -239,20 +241,16 @@ where
         pos: u64,
     ) -> JamResult<()> {
         if let Some(idx) = cache.get(noun) {
-            todo!()
+            Self::encode_backref(idx.clone(), noun, dst)
         } else if let Ok(atom) = noun.as_atom() {
             cache.insert(noun, pos);
-            const TAG_LEN: u32 = 1;
-            const TAG: u8 = 0b0;
-            dst.write(TAG_LEN, TAG).expect("write tag");
+            let tag_len = Tag::write(dst, Tag::Atom).expect("write tag");
             let (_, bits_written) = Self::encode_atom(atom, dst)?;
-            Ok(((), TAG_LEN + bits_written))
+            Ok(((), tag_len + bits_written))
         } else if let Ok(cell) = noun.as_cell() {
             cache.insert(noun, pos);
-            const TAG_LEN: u32 = 2;
-            const TAG: u8 = 0b01;
-            dst.write(TAG_LEN, TAG).expect("write tag");
-            Self::encode_cell(cell, dst, cache, pos + u64::from(TAG_LEN))
+            let tag_len = Tag::write(dst, Tag::Cell).expect("write tag");
+            Self::encode_cell(cell, dst, cache, pos + u64::from(tag_len))
         } else {
             Err(())
         }
@@ -308,6 +306,25 @@ where
 
         let bits_written = head_bits_written + tail_bits_written;
         Ok(((), bits_written))
+    }
+}
+
+#[repr(u8)]
+enum Tag {
+    Atom = 0b0,
+    Cell = 0b01,
+    BackRef = 0b11,
+}
+
+impl Tag {
+    fn write(dst: &mut impl BitWrite, tag: Self) -> Result<u32, Error> {
+        let tag_len = match tag {
+            Tag::Atom => 1,
+            Tag::Cell => 2,
+            Tag::BackRef => 2,
+        };
+        dst.write(tag_len, tag as u8)?;
+        Ok(tag_len)
     }
 }
 
