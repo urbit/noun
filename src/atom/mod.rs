@@ -83,25 +83,16 @@ where
     ///
     /// # Examples
     ///
-    /// `7` has a bit length of `3`:
     /// ```
-    /// # use noun::{types::atom::Atom, atom::Atom as _};
-    /// let atom = Atom::from_u8(7);
-    /// assert_eq!(atom.bit_len(), 3);
-    /// ```
+    /// # use noun::atom::{types::Atom, Atom as _};
+    /// let _7 = Atom::from_u8(7);
+    /// assert_eq!(_7.bit_len(), 3);
     ///
-    /// `139` has a bit length of `8`:
-    /// ```
-    /// # use noun::{types::atom::Atom, atom::Atom as _};
-    /// let atom = Atom::from_u8(139);
-    /// assert_eq!(atom.bit_len(), 8);
-    /// ```
+    /// let _139 = Atom::from_u8(139);
+    /// assert_eq!(_139.bit_len(), 8);
     ///
-    /// `256` has a bit length of `9`:
-    /// ```
-    /// # use noun::{types::atom::Atom, atom::Atom as _};
-    /// let atom = Atom::from_u16(256);
-    /// assert_eq!(atom.bit_len(), 9);
+    /// let _256 = Atom::from_u16(256);
+    /// assert_eq!(_256.bit_len(), 9);
     /// ```
     fn bit_len(&self) -> usize {
         let bytes = self.as_bytes();
