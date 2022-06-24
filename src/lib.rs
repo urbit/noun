@@ -161,6 +161,10 @@ where
 
     fn tail(&self) -> &Self::Tail;
 
+    fn head_as_noun(&self) -> &N;
+
+    fn tail_as_noun(&self) -> &N;
+
     fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
         (self.head(), self.tail())
     }
