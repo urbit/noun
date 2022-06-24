@@ -296,8 +296,6 @@ mod tests {
         types::{atom::Atom, noun::Noun},
         Atom as _, Noun as _,
     };
-    use bitstream_io::{BigEndian, BitRead, BitReader, BitWrite, BitWriter, LittleEndian};
-    use std::io::Error;
 
     #[test]
     fn cue() -> Result<(), ()> {
@@ -431,7 +429,6 @@ mod tests {
 
     #[test]
     fn jam() -> Result<(), ()> {
-        /*
         // 0 serializes to 2.
         {
             let noun = Atom::from_u8(0).into_noun();
@@ -459,7 +456,6 @@ mod tests {
             let jammed_noun = noun.jam()?;
             assert_eq!(Atom::from(jammed_noun), Atom::from_u16(2480));
         }
-        */
 
         // 581.949.002 serializes to 1.191.831.557.952.
         {
