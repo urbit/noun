@@ -23,6 +23,32 @@ where
         (self.head(), self.tail())
     }
 
+    /// Unpack a cell of the form `[h t]`.
+    fn as_pair(&self) -> (&N, &N) {
+        (self.head_as_noun(), self.tail_as_noun())
+    }
+
+    /// Unpack a cell of the form `[h th tt]`.
+    fn as_triple(&self) -> Result<(&N, &N, &N), ()> {
+        let h = self.head_as_noun();
+        let (th, tt) = self.tail_as_noun().as_cell()?.as_pair();
+        Ok((h, th, tt))
+    }
+
+    /// Unpack a cell of the form `[h th tth ttt]`.
+    fn as_quad(&self) -> Result<(&N, &N, &N, &N), ()> {
+        let (h, th, tt) = self.as_triple()?;
+        let (tth, ttt) = tt.as_cell()?.as_pair();
+        Ok((h, th, tth, ttt))
+    }
+
+    /// Unpack a cell of the form `[h th tth ttth tttt]`.
+    fn as_quint(&self) -> Result<(&N, &N, &N, &N, &N), ()> {
+        let (h, th, tth, ttt) = self.as_quad()?;
+        let (ttth, tttt) = ttt.as_cell()?.as_pair();
+        Ok((h, th, tth, ttth, tttt))
+    }
+
     fn into_parts(self) -> (Self::Head, Self::Tail);
 
     fn into_noun(self) -> N;
