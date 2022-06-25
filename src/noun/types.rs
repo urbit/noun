@@ -76,15 +76,17 @@ impl PartialEq for Noun {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::create_test;
+    use crate::atom::Atom as _Atom;
     use std::rc::Rc;
 
     #[test]
     fn noun_get() {
-        create_test!(
-            (),
-            (),
-            // [[4 5] [6 14 15]]
+        fn run_test<A, C, N>()
+        where
+            A: _Atom<C, N>,
+            C: _Cell<A, N>,
+            N: _Noun<A, C>,
+        {
             {
                 let _4 = Rc::new(A::from_u8(4).into_noun());
                 let _5 = Rc::new(A::from_u8(5).into_noun());
@@ -103,7 +105,7 @@ mod tests {
                 assert_eq!(noun.get(7), Some(&*tt));
                 assert_eq!(noun.get(12), None);
             }
-        );
+        }
 
         run_test::<Atom, Cell, Noun>();
     }

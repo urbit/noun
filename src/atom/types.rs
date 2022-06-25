@@ -107,11 +107,16 @@ impl PartialEq<&str> for Atom {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::create_test;
+    use crate::{cell::Cell as _Cell, noun::Noun as _Noun};
 
     #[test]
     fn from_uint() -> Result<(), ()> {
-        create_test!(Ok(()), Result<(), ()>,
+        fn run_test<A, C, N>() -> Result<(), ()>
+        where
+            A: _Atom<C, N>,
+            C: _Cell<A, N>,
+            N: _Noun<A, C>,
+        {
             {
                 let val = u8::MAX;
                 let atom = A::from_u8(val);
@@ -147,7 +152,9 @@ mod tests {
                 let atom = A::from_usize(val);
                 assert_eq!(atom.as_usize()?, val);
             }
-        );
+
+            Ok(())
+        }
 
         run_test::<Atom, Cell, Noun>()?;
         Ok(())
@@ -155,11 +162,18 @@ mod tests {
 
     #[test]
     fn partialeq() {
-        create_test!((), (), {
-            let vec = vec![b'h', b'e', b'l', b'l', b'o'];
-            let atom = A::from(vec);
-            assert_eq!(atom, "hello");
-        });
+        fn run_test<A, C, N>()
+        where
+            A: _Atom<C, N>,
+            C: _Cell<A, N>,
+            N: _Noun<A, C>,
+        {
+            {
+                let vec = vec![b'h', b'e', b'l', b'l', b'o'];
+                let atom = A::from(vec);
+                assert_eq!(atom, "hello");
+            }
+        }
 
         run_test::<Atom, Cell, Noun>();
     }
