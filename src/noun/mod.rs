@@ -10,7 +10,7 @@ use std::{fmt::Debug, hash::Hash};
 /// Interface to the noun data structure.
 pub trait Noun<A, C>
 where
-    A: Atom<C, Self>,
+    A: Atom,
     C: Cell<A, Self>,
     Self: Debug + Eq + Hash + Sized,
 {
@@ -28,7 +28,7 @@ where
 /// Convert a noun into the implementing type.
 pub trait FromNoun<A, C, N>
 where
-    A: Atom<C, N>,
+    A: Atom,
     C: Cell<A, N>,
     N: Noun<A, C>,
     Self: Sized,
@@ -43,14 +43,22 @@ where
 /// Convert the implementing type into a noun.
 pub trait IntoNoun<A, C, N>
 where
-    A: Atom<C, N>,
+    A: Atom,
     C: Cell<A, N>,
     N: Noun<A, C>,
     Self: Sized,
 {
     fn as_noun(&self) -> Result<N, ()>;
 
+    fn as_noun_unchecked(&self) -> N {
+        self.as_noun().expect("as noun")
+    }
+
     fn into_noun(self) -> Result<N, ()> {
         Self::as_noun(&self)
+    }
+
+    fn into_noun_unchecked(self) -> N {
+        self.into_noun().expect("into noun")
     }
 }

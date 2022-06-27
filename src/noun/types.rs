@@ -10,7 +10,7 @@ use crate::{
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum EnumNoun<A, C>
 where
-    A: Atom<C, Self>,
+    A: Atom,
     C: Cell<A, Self>,
     Self: Noun<A, C>,
 {
@@ -81,23 +81,23 @@ impl PartialEq for EnumNoun<VecAtom, RcCell> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::atom::Atom;
+    use crate::{atom::Atom, IntoNoun};
     use std::rc::Rc;
 
     #[test]
     fn noun_get() {
         fn run_test<A, C, N>()
         where
-            A: Atom<C, N>,
+            A: Atom + IntoNoun<A, C, N>,
             C: Cell<A, N>,
             N: Noun<A, C>,
         {
             {
-                let _4 = Rc::new(A::from_u8(4).into_noun());
-                let _5 = Rc::new(A::from_u8(5).into_noun());
-                let _6 = Rc::new(A::from_u8(6).into_noun());
-                let _14 = Rc::new(A::from_u8(14).into_noun());
-                let _15 = Rc::new(A::from_u8(15).into_noun());
+                let _4 = Rc::new(A::from_u8(4).into_noun_unchecked());
+                let _5 = Rc::new(A::from_u8(5).into_noun_unchecked());
+                let _6 = Rc::new(A::from_u8(6).into_noun_unchecked());
+                let _14 = Rc::new(A::from_u8(14).into_noun_unchecked());
+                let _15 = Rc::new(A::from_u8(15).into_noun_unchecked());
 
                 let tt = Rc::new(C::from_pair(_14, _15).into_noun());
                 let t = Rc::new(C::from_pair(_6, tt.clone()).into_noun());

@@ -4,7 +4,6 @@
 
 pub mod types;
 
-use crate::{cell::Cell, noun::Noun};
 use bitstream_io::{BitReader, LittleEndian};
 use std::{fmt::Debug, ops::Add, str};
 
@@ -35,11 +34,7 @@ macro_rules! atom_to_uint {
 }
 
 /// Interface to the atom data structure.
-pub trait Atom<C, N>
-where
-    C: Cell<Self, N>,
-    N: Noun<Self, C>,
-    Self: Add<Self>
+pub trait Atom: Add<Self>
         + Add<u8>
         + Add<u16>
         + Add<u32>
@@ -50,7 +45,7 @@ where
         + Eq
         + From<Vec<u8>>
         + PartialEq<&'static str>
-        + Sized,
+        + Sized
 {
     fn from_u8(uint: u8) -> Self {
         uint_to_atom!(uint, Self)
@@ -140,6 +135,4 @@ where
     fn as_str(&self) -> Result<&str, ()> {
         Ok(str::from_utf8(self.as_bytes()).map_err(|_| ())?)
     }
-
-    fn into_noun(self) -> N;
 }

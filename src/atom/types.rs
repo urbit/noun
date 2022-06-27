@@ -1,6 +1,6 @@
 //! Assorted [`Atom`] implementations.
 
-use crate::{atom::Atom, cell::types::RcCell, noun::types::EnumNoun};
+use crate::{atom::Atom, cell::types::RcCell, noun::types::EnumNoun, IntoNoun};
 use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -62,13 +62,9 @@ impl Add<usize> for VecAtom {
     }
 }
 
-impl Atom<RcCell, EnumNoun<Self, RcCell>> for VecAtom {
+impl Atom for VecAtom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
-    }
-
-    fn into_noun(self) -> EnumNoun<Self, RcCell> {
-        EnumNoun::Atom(self)
     }
 }
 
@@ -81,6 +77,16 @@ impl From<Vec<u8>> for VecAtom {
 impl From<&str> for VecAtom {
     fn from(val: &str) -> Self {
         Self(val.as_bytes().to_vec())
+    }
+}
+
+impl IntoNoun<Self, RcCell, EnumNoun<Self, RcCell>> for VecAtom {
+    fn as_noun(&self) -> Result<EnumNoun<Self, RcCell>, ()> {
+        unimplemented!("An EnumNoun cannot be constructed from &VecAtom.");
+    }
+
+    fn into_noun(self) -> Result<EnumNoun<Self, RcCell>, ()> {
+        Ok(EnumNoun::Atom(self))
     }
 }
 
@@ -107,16 +113,10 @@ impl PartialEq<&str> for VecAtom {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{cell::Cell, noun::Noun};
 
     #[test]
     fn from_uint() -> Result<(), ()> {
-        fn run_test<A, C, N>() -> Result<(), ()>
-        where
-            A: Atom<C, N>,
-            C: Cell<A, N>,
-            N: Noun<A, C>,
-        {
+        fn run_test<A: Atom>() -> Result<(), ()> {
             {
                 let val = u8::MAX;
                 let atom = A::from_u8(val);
@@ -156,18 +156,13 @@ mod tests {
             Ok(())
         }
 
-        run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>()?;
+        run_test::<VecAtom>()?;
         Ok(())
     }
 
     #[test]
     fn partialeq() {
-        fn run_test<A, C, N>()
-        where
-            A: Atom<C, N>,
-            C: Cell<A, N>,
-            N: Noun<A, C>,
-        {
+        fn run_test<A: Atom>() {
             {
                 let vec = vec![b'h', b'e', b'l', b'l', b'o'];
                 let atom = A::from(vec);
@@ -175,6 +170,6 @@ mod tests {
             }
         }
 
-        run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>();
+        run_test::<VecAtom>();
     }
 }

@@ -1,6 +1,6 @@
 //! Serialization and deserialization.
 
-use crate::{atom::Atom, cell::Cell, noun::Noun};
+use crate::{atom::Atom, cell::Cell, noun::Noun, IntoNoun};
 use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};
 use std::{
     collections::HashMap,
@@ -17,7 +17,7 @@ pub type CueResult<T> = Result<(T, u32), ()>;
 /// Deserialize a bitstream into a noun.
 pub trait Cue<A, C>
 where
-    A: Atom<C, Self>,
+    A: Atom + IntoNoun<A, C, Self>,
     C: Cell<A, Self>,
     Self: Noun<A, C> + Debug + Sized,
 {
@@ -115,7 +115,7 @@ where
         // Decode the atom length.
         let (mut bit_len, mut bits_read) = Self::decode_len(src)?;
         let atom = if bit_len == 0 {
-            Rc::new(A::from_u8(0).into_noun())
+            Rc::new(A::from_u8(0).into_noun_unchecked())
         } else {
             let mut val = {
                 // This will allocate an extra byte when bit_len is a multiple of u8::BITS, but it's
@@ -135,7 +135,7 @@ where
             let byte: u8 = src.read(bit_len).expect("read chunk");
             bits_read += bit_len;
             val.push(byte);
-            Rc::new(A::from(val).into_noun())
+            Rc::new(A::from(val).into_noun_unchecked())
         };
 
         if let (Some(cache), Some(pos)) = (cache, pos) {
@@ -200,7 +200,7 @@ pub type JamResult<T> = Result<(T, u32), ()>;
 /// Serialize a noun into a bitstream.
 pub trait Jam<'a, A, C>
 where
-    A: Atom<C, Self>,
+    A: Atom,
     C: 'a + Cell<A, Self>,
     Self: 'a + Noun<A, C> + Sized,
 {
@@ -352,7 +352,7 @@ mod tests {
     fn cue_atom() -> Result<(), ()> {
         fn run_test<A, C, N>(jammed_noun: A, expected: A) -> Result<bool, ()>
         where
-            A: _Atom<C, N>,
+            A: Atom + IntoNoun<A, C, N>,
             C: Cell<A, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
@@ -396,7 +396,7 @@ mod tests {
     fn cue_cell() -> Result<(), ()> {
         fn run_test<A, C, N>(jammed_noun: A, cell: C) -> Result<bool, ()>
         where
-            A: _Atom<C, N>,
+            A: Atom + IntoNoun<A, C, N>,
             C: Cell<A, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
@@ -408,7 +408,7 @@ mod tests {
         // 817 deserializes to [1 1].
         {
             let jammed_noun = VecAtom::from_u16(0b1100110001);
-            let head = Rc::new(VecAtom::from_u8(1).into_noun());
+            let head = Rc::new(VecAtom::from_u8(1).into_noun_unchecked());
             let tail = head.clone();
             let cell = Cell::from_parts(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(jammed_noun, cell)?);
@@ -417,8 +417,8 @@ mod tests {
         // 39.689 deserializes into [0 19].
         {
             let jammed_noun = VecAtom::from_u16(0b1001101100001001);
-            let head = Rc::new(VecAtom::from_u8(0).into_noun());
-            let tail = Rc::new(VecAtom::from_u8(19).into_noun());
+            let head = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+            let tail = Rc::new(VecAtom::from_u8(19).into_noun_unchecked());
             let cell = Cell::from_parts(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(jammed_noun, cell)?);
         }
@@ -426,7 +426,7 @@ mod tests {
         // 4.952.983.169 deserializes into [10.000 10.000].
         {
             let jammed_noun = VecAtom::from_u64(0b100100111001110001000011010000001);
-            let head = Rc::new(VecAtom::from_u16(10_000).into_noun());
+            let head = Rc::new(VecAtom::from_u16(10_000).into_noun_unchecked());
             let tail = head.clone();
             let cell = Cell::from_parts(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(jammed_noun, cell)?);
@@ -436,7 +436,7 @@ mod tests {
         {
             let jammed_noun =
                 VecAtom::from_u64(0b100100111110111001101011001001111111111110100000001);
-            let head = Rc::new(VecAtom::from_u32(999_999_999).into_noun());
+            let head = Rc::new(VecAtom::from_u32(999_999_999).into_noun_unchecked());
             let tail = head.clone();
             let cell = Cell::from_parts(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(jammed_noun, cell)?);
@@ -445,8 +445,8 @@ mod tests {
         // 635.080.761.093 deserializes into [[107 110] [107 110]].
         {
             let jammed_noun = VecAtom::from_u64(0b1001001111011101110000110101111100000101);
-            let _107 = Rc::new(VecAtom::from_u32(107).into_noun());
-            let _110 = Rc::new(VecAtom::from_u32(110).into_noun());
+            let _107 = Rc::new(VecAtom::from_u32(107).into_noun_unchecked());
+            let _110 = Rc::new(VecAtom::from_u32(110).into_noun_unchecked());
             let head = Rc::new(RcCell::from_parts(_107.clone(), _110.clone()).into_noun());
             let tail = head.clone();
             let cell = Cell::from_parts(head, tail);
@@ -460,7 +460,7 @@ mod tests {
     fn jam_atom() -> Result<(), ()> {
         fn run_test<'a, A, C, N>(atom: &'a N, expected: A) -> Result<bool, ()>
         where
-            A: _Atom<C, N>,
+            A: Atom + IntoNoun<A, C, N>,
             C: 'a + Cell<A, N>,
             N: Jam<'a, A, C> + Noun<A, C>,
         {
@@ -470,35 +470,35 @@ mod tests {
 
         // 0 serializes to 2.
         {
-            let atom = VecAtom::from_u8(0).into_noun();
+            let atom = VecAtom::from_u8(0).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u8(2);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&atom, jammed_noun)?);
         }
 
         // 1 serializes to 12.
         {
-            let atom = VecAtom::from_u8(1).into_noun();
+            let atom = VecAtom::from_u8(1).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u8(12);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&atom, jammed_noun)?);
         }
 
         // 2 serializes to 72.
         {
-            let atom = VecAtom::from_u8(2).into_noun();
+            let atom = VecAtom::from_u8(2).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u8(72);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&atom, jammed_noun)?);
         }
 
         // 19 serializes to 2480.
         {
-            let atom = VecAtom::from_u8(19).into_noun();
+            let atom = VecAtom::from_u8(19).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u16(2480);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&atom, jammed_noun)?);
         }
 
         // 581.949.002 serializes to 1.191.831.557.952.
         {
-            let atom = VecAtom::from_u32(581_949_002).into_noun();
+            let atom = VecAtom::from_u32(581_949_002).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u64(1_191_831_557_952);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&atom, jammed_noun)?);
         }
@@ -510,7 +510,7 @@ mod tests {
     fn jam_cell() -> Result<(), ()> {
         fn run_test<'a, A, C, N>(cell: &'a N, expected: A) -> Result<bool, ()>
         where
-            A: _Atom<C, N>,
+            A: Atom + IntoNoun<A, C, N>,
             C: 'a + Cell<A, N>,
             N: Jam<'a, A, C> + Noun<A, C>,
         {
@@ -520,8 +520,8 @@ mod tests {
 
         // [0 19] serializes into 39.689.
         {
-            let head = Rc::new(VecAtom::from_u8(0).into_noun());
-            let tail = Rc::new(VecAtom::from_u8(19).into_noun());
+            let head = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+            let tail = Rc::new(VecAtom::from_u8(19).into_noun_unchecked());
             let cell = RcCell::from_parts(head, tail).into_noun();
             let jammed_noun = VecAtom::from_u16(39_689);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(&cell, jammed_noun)?);
@@ -529,7 +529,7 @@ mod tests {
 
         // [1 1] serializes to 817.
         {
-            let head = Rc::new(VecAtom::from_u8(1).into_noun());
+            let head = Rc::new(VecAtom::from_u8(1).into_noun_unchecked());
             let tail = head.clone();
             let cell = RcCell::from_parts(head, tail).into_noun();
             let jammed_noun = VecAtom::from_u16(817);
@@ -538,9 +538,9 @@ mod tests {
 
         // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
         {
-            let _222 = Rc::new(VecAtom::from_u8(222).into_noun());
-            let _444 = Rc::new(VecAtom::from_u16(444).into_noun());
-            let _888 = Rc::new(VecAtom::from_u16(888).into_noun());
+            let _222 = Rc::new(VecAtom::from_u8(222).into_noun_unchecked());
+            let _444 = Rc::new(VecAtom::from_u16(444).into_noun_unchecked());
+            let _888 = Rc::new(VecAtom::from_u16(888).into_noun_unchecked());
             let head = Rc::new(
                 RcCell::from_parts(_222, Rc::new(RcCell::from_parts(_444, _888).into_noun()))
                     .into_noun(),

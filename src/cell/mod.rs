@@ -8,7 +8,7 @@ use std::{fmt::Debug, rc::Rc};
 /// Interface to the cell data structure.
 pub trait Cell<A, N>
 where
-    A: Atom<Self, N>,
+    A: Atom,
     N: Noun<A, Self>,
     Self: Debug + Eq + Sized,
 {
