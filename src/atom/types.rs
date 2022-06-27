@@ -62,12 +62,12 @@ impl Add<usize> for VecAtom {
     }
 }
 
-impl Atom<RcCell, Noun> for VecAtom {
+impl Atom<RcCell, Noun<Self, RcCell>> for VecAtom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
-    fn into_noun(self) -> Noun {
+    fn into_noun(self) -> Noun<Self, RcCell> {
         Noun::Atom(self)
     }
 }

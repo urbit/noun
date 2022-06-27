@@ -5,19 +5,19 @@ use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
 pub struct RcCell {
-    head: Rc<Noun>,
-    tail: Rc<Noun>,
+    head: Rc<Noun<VecAtom, Self>>,
+    tail: Rc<Noun<VecAtom, Self>>,
 }
 
-impl Cell<VecAtom, Noun> for RcCell {
-    type Head = Rc<Noun>;
+impl Cell<VecAtom, Noun<VecAtom, Self>> for RcCell {
+    type Head = Rc<Noun<VecAtom, Self>>;
     type Tail = Self::Head;
 
     fn from_parts(head: Self::Head, tail: Self::Tail) -> Self {
         Self { head, tail }
     }
 
-    fn from_pair(head: Rc<Noun>, tail: Rc<Noun>) -> Self {
+    fn from_pair(head: Rc<Noun<VecAtom, Self>>, tail: Rc<Noun<VecAtom, Self>>) -> Self {
         Self::from_parts(head, tail)
     }
 
@@ -29,11 +29,11 @@ impl Cell<VecAtom, Noun> for RcCell {
         &self.tail
     }
 
-    fn head_as_noun(&self) -> &Noun {
+    fn head_as_noun(&self) -> &Noun<VecAtom, Self> {
         &*self.head
     }
 
-    fn tail_as_noun(&self) -> &Noun {
+    fn tail_as_noun(&self) -> &Noun<VecAtom, Self> {
         &*self.tail
     }
 
@@ -41,7 +41,7 @@ impl Cell<VecAtom, Noun> for RcCell {
         (self.head, self.tail)
     }
 
-    fn into_noun(self) -> Noun {
+    fn into_noun(self) -> Noun<VecAtom, Self> {
         Noun::Cell(self)
     }
 }

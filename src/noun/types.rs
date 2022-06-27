@@ -1,23 +1,28 @@
 //! Assorted [`Noun`] implementations.
 
 use crate::{
-    atom::types::VecAtom,
-    cell::{types::RcCell, Cell as _Cell},
+    atom::{types::VecAtom, Atom},
+    cell::{types::RcCell, Cell},
     noun::Noun as _Noun,
     serdes::{Cue, Jam},
 };
 
 #[derive(Eq, Clone, Debug, Hash)]
-pub enum Noun {
-    Atom(VecAtom),
-    Cell(RcCell),
+pub enum Noun<A, C>
+where
+    A: Atom<C, Self>,
+    C: Cell<A, Self>,
+    Self: _Noun<A, C>,
+{
+    Atom(A),
+    Cell(C),
 }
 
-impl Cue<VecAtom, RcCell> for Noun {}
+impl Cue<VecAtom, RcCell> for Noun<VecAtom, RcCell> {}
 
-impl Jam<'_, VecAtom, RcCell> for Noun {}
+impl Jam<'_, VecAtom, RcCell> for Noun<VecAtom, RcCell> {}
 
-impl _Noun<VecAtom, RcCell> for Noun {
+impl _Noun<VecAtom, RcCell> for Noun<VecAtom, RcCell> {
     fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {
@@ -61,7 +66,7 @@ impl _Noun<VecAtom, RcCell> for Noun {
     }
 }
 
-impl PartialEq for Noun {
+impl PartialEq for Noun<VecAtom, RcCell> {
     fn eq(&self, other: &Self) -> bool {
         if let (Self::Atom(this), Self::Atom(that)) = (self, other) {
             this == that
