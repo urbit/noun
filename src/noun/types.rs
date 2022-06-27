@@ -23,14 +23,14 @@ impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
 impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
 
 impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
-    fn get(&self, idx: usize) -> Option<&Self> {
+    fn get(&self, axis: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
-            match idx {
+            match axis {
                 0 | 1 => Some(self),
                 2 => Some(&*cell.head()),
                 3 => Some(&*cell.tail()),
-                n if n % 2 == 0 => (&*cell.head()).get(idx / 2),
-                _ => (&*cell.tail()).get(idx / 2),
+                n if n % 2 == 0 => (&*cell.head()).get(axis / 2),
+                _ => (&*cell.tail()).get(axis / 2),
             }
         } else {
             None
