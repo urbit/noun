@@ -14,54 +14,6 @@ impl Add for VecAtom {
     }
 }
 
-impl Add<u8> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: u8) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Add<u16> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: u16) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Add<u32> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: u32) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Add<u64> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: u64) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Add<u128> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: u128) -> Self::Output {
-        todo!()
-    }
-}
-
-impl Add<usize> for VecAtom {
-    type Output = Self;
-
-    fn add(self, _rhs: usize) -> Self::Output {
-        todo!()
-    }
-}
-
 impl Atom for VecAtom {
     fn as_bytes(&self) -> &[u8] {
         &self.0

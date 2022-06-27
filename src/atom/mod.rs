@@ -35,12 +35,6 @@ macro_rules! atom_to_uint {
 
 /// Interface to the atom data structure.
 pub trait Atom: Add<Self>
-        + Add<u8>
-        + Add<u16>
-        + Add<u32>
-        + Add<u64>
-        + Add<u128>
-        + Add<usize>
         + Debug
         + Eq
         + From<Vec<u8>>
