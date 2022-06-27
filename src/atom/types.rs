@@ -1,12 +1,12 @@
 //! Assorted [`Atom`] implementations.
 
-use crate::{atom::Atom as _Atom, cell::types::RcCell, noun::types::Noun};
+use crate::{atom::Atom, cell::types::RcCell, noun::types::Noun};
 use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Atom(Vec<u8>);
+pub struct VecAtom(Vec<u8>);
 
-impl Add for Atom {
+impl Add for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: Self) -> Self::Output {
@@ -14,7 +14,7 @@ impl Add for Atom {
     }
 }
 
-impl Add<u8> for Atom {
+impl Add<u8> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: u8) -> Self::Output {
@@ -22,7 +22,7 @@ impl Add<u8> for Atom {
     }
 }
 
-impl Add<u16> for Atom {
+impl Add<u16> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: u16) -> Self::Output {
@@ -30,7 +30,7 @@ impl Add<u16> for Atom {
     }
 }
 
-impl Add<u32> for Atom {
+impl Add<u32> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: u32) -> Self::Output {
@@ -38,7 +38,7 @@ impl Add<u32> for Atom {
     }
 }
 
-impl Add<u64> for Atom {
+impl Add<u64> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: u64) -> Self::Output {
@@ -46,7 +46,7 @@ impl Add<u64> for Atom {
     }
 }
 
-impl Add<u128> for Atom {
+impl Add<u128> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: u128) -> Self::Output {
@@ -54,7 +54,7 @@ impl Add<u128> for Atom {
     }
 }
 
-impl Add<usize> for Atom {
+impl Add<usize> for VecAtom {
     type Output = Self;
 
     fn add(self, _rhs: usize) -> Self::Output {
@@ -62,7 +62,7 @@ impl Add<usize> for Atom {
     }
 }
 
-impl _Atom<RcCell, Noun> for Atom {
+impl Atom<RcCell, Noun> for VecAtom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
@@ -72,19 +72,19 @@ impl _Atom<RcCell, Noun> for Atom {
     }
 }
 
-impl From<Vec<u8>> for Atom {
+impl From<Vec<u8>> for VecAtom {
     fn from(val: Vec<u8>) -> Self {
         Self(val)
     }
 }
 
-impl From<&str> for Atom {
+impl From<&str> for VecAtom {
     fn from(val: &str) -> Self {
         Self(val.as_bytes().to_vec())
     }
 }
 
-impl PartialEq<str> for Atom {
+impl PartialEq<str> for VecAtom {
     fn eq(&self, other: &str) -> bool {
         if let Ok(string) = str::from_utf8(self.as_bytes()) {
             string == other
@@ -94,7 +94,7 @@ impl PartialEq<str> for Atom {
     }
 }
 
-impl PartialEq<&str> for Atom {
+impl PartialEq<&str> for VecAtom {
     fn eq(&self, other: &&str) -> bool {
         if let Ok(string) = str::from_utf8(self.as_bytes()) {
             string == *other
@@ -113,7 +113,7 @@ mod tests {
     fn from_uint() -> Result<(), ()> {
         fn run_test<A, C, N>() -> Result<(), ()>
         where
-            A: _Atom<C, N>,
+            A: Atom<C, N>,
             C: _Cell<A, N>,
             N: _Noun<A, C>,
         {
@@ -156,7 +156,7 @@ mod tests {
             Ok(())
         }
 
-        run_test::<Atom, RcCell, Noun>()?;
+        run_test::<VecAtom, RcCell, Noun>()?;
         Ok(())
     }
 
@@ -164,7 +164,7 @@ mod tests {
     fn partialeq() {
         fn run_test<A, C, N>()
         where
-            A: _Atom<C, N>,
+            A: Atom<C, N>,
             C: _Cell<A, N>,
             N: _Noun<A, C>,
         {
@@ -175,6 +175,6 @@ mod tests {
             }
         }
 
-        run_test::<Atom, RcCell, Noun>();
+        run_test::<VecAtom, RcCell, Noun>();
     }
 }

@@ -1,7 +1,7 @@
 //! Assorted [`Noun`] implementations.
 
 use crate::{
-    atom::types::Atom,
+    atom::types::VecAtom,
     cell::{types::RcCell, Cell as _Cell},
     noun::Noun as _Noun,
     serdes::{Cue, Jam},
@@ -9,15 +9,15 @@ use crate::{
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
-    Atom(Atom),
+    Atom(VecAtom),
     Cell(RcCell),
 }
 
-impl Cue<Atom, RcCell> for Noun {}
+impl Cue<VecAtom, RcCell> for Noun {}
 
-impl Jam<'_, Atom, RcCell> for Noun {}
+impl Jam<'_, VecAtom, RcCell> for Noun {}
 
-impl _Noun<Atom, RcCell> for Noun {
+impl _Noun<VecAtom, RcCell> for Noun {
     fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {
@@ -32,7 +32,7 @@ impl _Noun<Atom, RcCell> for Noun {
         }
     }
 
-    fn as_atom(&self) -> Result<&Atom, ()> {
+    fn as_atom(&self) -> Result<&VecAtom, ()> {
         match self {
             Self::Atom(atom) => Ok(atom),
             _ => Err(()),
@@ -46,7 +46,7 @@ impl _Noun<Atom, RcCell> for Noun {
         }
     }
 
-    fn into_atom(self) -> Result<Atom, Self> {
+    fn into_atom(self) -> Result<VecAtom, Self> {
         match self {
             Self::Atom(atom) => Ok(atom),
             _ => Err(self),
@@ -107,6 +107,6 @@ mod tests {
             }
         }
 
-        run_test::<Atom, RcCell, Noun>();
+        run_test::<VecAtom, RcCell, Noun>();
     }
 }

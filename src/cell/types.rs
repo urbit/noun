@@ -1,6 +1,6 @@
 //! Assorted [`Cell`] implementations.
 
-use crate::{atom::types::Atom, cell::Cell, noun::types::Noun};
+use crate::{atom::types::VecAtom, cell::Cell, noun::types::Noun};
 use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
@@ -9,7 +9,7 @@ pub struct RcCell {
     tail: Rc<Noun>,
 }
 
-impl Cell<Atom, Noun> for RcCell {
+impl Cell<VecAtom, Noun> for RcCell {
     type Head = Rc<Noun>;
     type Tail = Self::Head;
 

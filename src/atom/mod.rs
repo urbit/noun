@@ -86,7 +86,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use noun::atom::{types::Atom, Atom as _};
+    /// # use noun::atom::{types::VecAtom as Atom, Atom as _};
     /// let _7 = Atom::from_u8(7);
     /// assert_eq!(_7.bit_len(), 3);
     ///
