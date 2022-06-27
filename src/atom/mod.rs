@@ -59,6 +59,11 @@ pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from a UTF-8 encoded string.
+    fn from_string(string: String) -> Self {
+        Self::from(string.into_bytes())
+    }
+
     /// Get the length in bytes of an atom. This is equivalent to `self.as_bytes().len()`.
     fn byte_len(&self) -> usize {
         self.as_bytes().len()
