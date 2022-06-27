@@ -344,238 +344,211 @@ mod tests {
     use super::*;
     use crate::{
         atom::{types::Atom, Atom as _Atom},
-        cell::{types::RcCell, Cell as _Cell},
+        cell::{types::RcCell, Cell},
         noun::{types::Noun, Noun as _Noun},
     };
 
     #[test]
-    fn cue() -> Result<(), ()> {
-        fn run_test<A, C, N>() -> Result<(), ()>
+    fn cue_atom() -> Result<(), ()> {
+        fn run_test<A, C, N>(jammed_noun: A, expected: A) -> Result<bool, ()>
         where
             A: _Atom<C, N>,
-            C: _Cell<A, N>,
+            C: Cell<A, N>,
             N: Cue<A, C> + _Noun<A, C>,
         {
-            // 2 deserializes to 0.
-            {
-                let jammed_noun = A::from_u8(0b10);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let atom = noun.as_atom()?;
-                assert_eq!(atom, &A::from_u8(0));
-            }
-
-            // 12 deserializes to 1.
-            {
-                let jammed_noun = A::from_u8(0b1100);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let atom = noun.as_atom()?;
-                assert_eq!(atom, &A::from_u8(1));
-            }
-
-            // 72 deserializes to 2.
-            {
-                let jammed_noun = A::from_u8(0b1001000);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let atom = noun.as_atom()?;
-                assert_eq!(atom, &A::from_u8(2));
-            }
-
-            // 2480 deserializes to 19.
-            {
-                let jammed_noun = A::from_u16(0b100110110000);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let atom = noun.as_atom()?;
-                assert_eq!(atom, &A::from_u8(19));
-            }
-
-            // 817 deserializes to [1 1].
-            {
-                let jammed_noun = A::from_u16(0b1100110001);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let cell = noun.as_cell()?;
-                let (head, tail) = cell.as_parts();
-
-                let head = head.as_atom()?;
-                let tail = tail.as_atom()?;
-
-                let _1 = A::from_u8(1);
-                assert_eq!(head, &_1);
-                assert_eq!(tail, &_1);
-            }
-
-            // 39.689 deserializes into [0 19].
-            {
-                let jammed_noun = A::from_u16(0b1001101100001001);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let cell = noun.as_cell()?;
-                let (head, tail) = cell.as_parts();
-
-                let head = head.as_atom()?;
-                let tail = tail.as_atom()?;
-
-                let _0 = A::from_u8(0);
-                let _19 = A::from_u8(19);
-                assert_eq!(head, &_0);
-                assert_eq!(tail, &_19);
-            }
-
-            // 4.952.983.169 deserializes into [10.000 10.000].
-            {
-                let jammed_noun = A::from_u64(0b100100111001110001000011010000001);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let cell = noun.as_cell()?;
-                let (head, tail) = cell.as_parts();
-
-                let head = head.as_atom()?;
-                let tail = tail.as_atom()?;
-
-                let _10_000 = A::from_u16(10_000);
-                assert_eq!(head, &_10_000);
-                assert_eq!(tail, &_10_000);
-            }
-
-            // 1.301.217.674.263.809 serializes to [999.999.999 999.999.999].
-            {
-                let jammed_noun =
-                    A::from_u64(0b100100111110111001101011001001111111111110100000001);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let cell = noun.as_cell()?;
-                let (head, tail) = cell.as_parts();
-
-                let head = head.as_atom()?;
-                let tail = tail.as_atom()?;
-
-                let _999_999_999 = A::from_u32(999_999_999);
-                assert_eq!(head, &_999_999_999);
-                assert_eq!(tail, &_999_999_999);
-            }
-
-            // 635.080.761.093 deserializes into [[107 110] [107 110]].
-            {
-                let jammed_noun = A::from_u64(0b1001001111011101110000110101111100000101);
-                let bitstream = jammed_noun.as_bits();
-                let noun = N::cue(bitstream)?;
-                let cell = noun.as_cell()?;
-                let (head, tail) = cell.as_parts();
-
-                let head = head.as_cell()?;
-                let head_head = head.head().as_atom()?;
-                let head_tail = head.tail().as_atom()?;
-
-                let tail = tail.as_cell()?;
-                let tail_head = tail.head().as_atom()?;
-                let tail_tail = tail.tail().as_atom()?;
-
-                let _107 = A::from_u8(107);
-                let _110 = A::from_u8(110);
-                assert_eq!(head_head, &_107);
-                assert_eq!(head_tail, &_110);
-                assert_eq!(tail_head, &_107);
-                assert_eq!(tail_tail, &_110);
-            }
-
-            Ok(())
+            let bitstream = jammed_noun.as_bits();
+            let cued_noun = N::cue(bitstream)?;
+            Ok(cued_noun.as_atom()? == &expected)
         }
 
-        run_test::<Atom, RcCell, Noun>()?;
+        // 2 deserializes to 0.
+        {
+            let jammed_noun = Atom::from_u8(0b10);
+            let atom = Atom::from_u8(0);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, atom)?);
+        }
+
+        // 12 deserializes to 1.
+        {
+            let jammed_noun = Atom::from_u8(0b1100);
+            let atom = Atom::from_u8(1);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, atom)?);
+        }
+
+        // 72 deserializes to 2.
+        {
+            let jammed_noun = Atom::from_u8(0b1001000);
+            let atom = Atom::from_u8(2);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, atom)?);
+        }
+
+        // 2480 deserializes to 19.
+        {
+            let jammed_noun = Atom::from_u16(0b100110110000);
+            let atom = Atom::from_u8(19);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, atom)?);
+        }
 
         Ok(())
     }
 
     #[test]
-    fn jam() -> Result<(), ()> {
-        fn run_test<'a, A, C, N>() -> Result<(), ()>
+    fn cue_cell() -> Result<(), ()> {
+        fn run_test<A, C, N>(jammed_noun: A, cell: C) -> Result<bool, ()>
         where
             A: _Atom<C, N>,
-            C: 'a + _Cell<A, N>,
-            N: Jam<'a, A, C> + _Noun<A, C>,
+            C: Cell<A, N>,
+            N: Cue<A, C> + _Noun<A, C>,
         {
-            // 0 serializes to 2.
-            {
-                let noun = A::from_u8(0).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u8(2));
-            }
-
-            // 1 serializes to 12.
-            {
-                let noun = A::from_u8(1).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u8(12));
-            }
-
-            // 2 serializes to 72.
-            {
-                let noun = A::from_u8(2).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u8(72));
-            }
-
-            // 19 serializes to 2480.
-            {
-                let noun = A::from_u8(19).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u16(2480));
-            }
-
-            // 581.949.002 serializes to 1.191.831.557.952.
-            {
-                let noun = A::from_u32(581_949_002).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u64(1_191_831_557_952));
-            }
-
-            // [0 19] serializes into 39.689.
-            {
-                let head = Rc::new(A::from_u8(0).into_noun());
-                let tail = Rc::new(A::from_u8(19).into_noun());
-                let noun = C::from_pair(head, tail).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u16(39_689));
-            }
-
-            // [1 1] serializes to 817.
-            {
-                let head = Rc::new(A::from_u8(1).into_noun());
-                let tail = head.clone();
-                let noun = C::from_pair(head, tail).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(A::from(jammed_noun), A::from_u16(817));
-            }
-
-            // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
-            {
-                let _222 = A::from_u8(222).into_noun();
-                let _444 = A::from_u16(444).into_noun();
-                let _888 = A::from_u16(888).into_noun();
-                let head = Rc::new(
-                    C::from_pair(
-                        Rc::new(_222),
-                        Rc::new(C::from_pair(Rc::new(_444), Rc::new(_888)).into_noun()),
-                    )
-                    .into_noun(),
-                );
-                let tail = head.clone();
-                let noun = C::from_pair(head, tail).into_noun();
-                let jammed_noun = noun.jam()?;
-                assert_eq!(
-                    A::from(jammed_noun),
-                    A::from_u128(170_479_614_045_978_345_989)
-                );
-            }
-
-            Ok(())
+            let bitstream = jammed_noun.as_bits();
+            let cued_noun = N::cue(bitstream)?;
+            Ok(cued_noun.as_cell()? == &cell)
         }
 
-        run_test::<Atom, RcCell, Noun>()?;
+        // 817 deserializes to [1 1].
+        {
+            let jammed_noun = Atom::from_u16(0b1100110001);
+            let head = Rc::new(Atom::from_u8(1).into_noun());
+            let tail = head.clone();
+            let cell = Cell::from_parts(head, tail);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, cell)?);
+        }
+
+        // 39.689 deserializes into [0 19].
+        {
+            let jammed_noun = Atom::from_u16(0b1001101100001001);
+            let head = Rc::new(Atom::from_u8(0).into_noun());
+            let tail = Rc::new(Atom::from_u8(19).into_noun());
+            let cell = Cell::from_parts(head, tail);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, cell)?);
+        }
+
+        // 4.952.983.169 deserializes into [10.000 10.000].
+        {
+            let jammed_noun = Atom::from_u64(0b100100111001110001000011010000001);
+            let head = Rc::new(Atom::from_u16(10_000).into_noun());
+            let tail = head.clone();
+            let cell = Cell::from_parts(head, tail);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, cell)?);
+        }
+
+        // 1.301.217.674.263.809 serializes to [999.999.999 999.999.999].
+        {
+            let jammed_noun = Atom::from_u64(0b100100111110111001101011001001111111111110100000001);
+            let head = Rc::new(Atom::from_u32(999_999_999).into_noun());
+            let tail = head.clone();
+            let cell = Cell::from_parts(head, tail);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, cell)?);
+        }
+
+        // 635.080.761.093 deserializes into [[107 110] [107 110]].
+        {
+            let jammed_noun = Atom::from_u64(0b1001001111011101110000110101111100000101);
+            let _107 = Rc::new(Atom::from_u32(107).into_noun());
+            let _110 = Rc::new(Atom::from_u32(110).into_noun());
+            let head = Rc::new(RcCell::from_parts(_107.clone(), _110.clone()).into_noun());
+            let tail = head.clone();
+            let cell = Cell::from_parts(head, tail);
+            assert!(run_test::<Atom, RcCell, Noun>(jammed_noun, cell)?);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn jam_atom() -> Result<(), ()> {
+        fn run_test<'a, A, C, N>(atom: &'a N, expected: A) -> Result<bool, ()>
+        where
+            A: _Atom<C, N>,
+            C: 'a + Cell<A, N>,
+            N: Jam<'a, A, C> + _Noun<A, C>,
+        {
+            let jammed_noun = A::from(atom.jam()?);
+            Ok(jammed_noun == expected)
+        }
+
+        // 0 serializes to 2.
+        {
+            let atom = Atom::from_u8(0).into_noun();
+            let jammed_noun = Atom::from_u8(2);
+            assert!(run_test::<Atom, RcCell, Noun>(&atom, jammed_noun)?);
+        }
+
+        // 1 serializes to 12.
+        {
+            let atom = Atom::from_u8(1).into_noun();
+            let jammed_noun = Atom::from_u8(12);
+            assert!(run_test::<Atom, RcCell, Noun>(&atom, jammed_noun)?);
+        }
+
+        // 2 serializes to 72.
+        {
+            let atom = Atom::from_u8(2).into_noun();
+            let jammed_noun = Atom::from_u8(72);
+            assert!(run_test::<Atom, RcCell, Noun>(&atom, jammed_noun)?);
+        }
+
+        // 19 serializes to 2480.
+        {
+            let atom = Atom::from_u8(19).into_noun();
+            let jammed_noun = Atom::from_u16(2480);
+            assert!(run_test::<Atom, RcCell, Noun>(&atom, jammed_noun)?);
+        }
+
+        // 581.949.002 serializes to 1.191.831.557.952.
+        {
+            let atom = Atom::from_u32(581_949_002).into_noun();
+            let jammed_noun = Atom::from_u64(1_191_831_557_952);
+            assert!(run_test::<Atom, RcCell, Noun>(&atom, jammed_noun)?);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn jam_cell() -> Result<(), ()> {
+        fn run_test<'a, A, C, N>(cell: &'a N, expected: A) -> Result<bool, ()>
+        where
+            A: _Atom<C, N>,
+            C: 'a + Cell<A, N>,
+            N: Jam<'a, A, C> + _Noun<A, C>,
+        {
+            let jammed_noun = A::from(cell.jam()?);
+            Ok(jammed_noun == expected)
+        }
+
+        // [0 19] serializes into 39.689.
+        {
+            let head = Rc::new(Atom::from_u8(0).into_noun());
+            let tail = Rc::new(Atom::from_u8(19).into_noun());
+            let cell = RcCell::from_parts(head, tail).into_noun();
+            let jammed_noun = Atom::from_u16(39_689);
+            assert!(run_test::<Atom, RcCell, Noun>(&cell, jammed_noun)?);
+        }
+
+        // [1 1] serializes to 817.
+        {
+            let head = Rc::new(Atom::from_u8(1).into_noun());
+            let tail = head.clone();
+            let cell = RcCell::from_parts(head, tail).into_noun();
+            let jammed_noun = Atom::from_u16(817);
+            assert!(run_test::<Atom, RcCell, Noun>(&cell, jammed_noun)?);
+        }
+
+        // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
+        {
+            let _222 = Rc::new(Atom::from_u8(222).into_noun());
+            let _444 = Rc::new(Atom::from_u16(444).into_noun());
+            let _888 = Rc::new(Atom::from_u16(888).into_noun());
+            let head = Rc::new(
+                RcCell::from_parts(_222, Rc::new(RcCell::from_parts(_444, _888).into_noun()))
+                    .into_noun(),
+            );
+            let tail = head.clone();
+            let cell = RcCell::from_parts(head, tail).into_noun();
+            let jammed_noun = Atom::from_u128(170_479_614_045_978_345_989);
+            assert!(run_test::<Atom, RcCell, Noun>(&cell, jammed_noun)?);
+        }
 
         Ok(())
     }
