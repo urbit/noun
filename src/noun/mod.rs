@@ -35,9 +35,7 @@ where
 {
     fn from_noun_ref(noun: &N) -> Result<Self, ()>;
 
-    fn from_noun(noun: N) -> Result<Self, ()> {
-        Self::from_noun_ref(&noun)
-    }
+    fn from_noun(noun: N) -> Result<Self, ()>;
 }
 
 /// Convert the implementing type into a noun.
@@ -50,15 +48,9 @@ where
 {
     fn as_noun(&self) -> Result<N, ()>;
 
-    fn as_noun_unchecked(&self) -> N {
-        self.as_noun().expect("as noun")
-    }
+    fn as_noun_unchecked(&self) -> N;
 
-    fn into_noun(self) -> Result<N, ()> {
-        Self::as_noun(&self)
-    }
+    fn into_noun(self) -> Result<N, ()>;
 
-    fn into_noun_unchecked(self) -> N {
-        self.into_noun().expect("into noun")
-    }
+    fn into_noun_unchecked(self) -> N;
 }

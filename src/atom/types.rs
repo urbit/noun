@@ -37,8 +37,16 @@ impl IntoNoun<Self, RcCell, EnumNoun<Self, RcCell>> for VecAtom {
         unimplemented!("An EnumNoun cannot be constructed from &VecAtom.");
     }
 
+    fn as_noun_unchecked(&self) -> EnumNoun<Self, RcCell> {
+        unimplemented!("An EnumNoun cannot be constructed from &VecAtom.");
+    }
+
     fn into_noun(self) -> Result<EnumNoun<Self, RcCell>, ()> {
-        Ok(EnumNoun::Atom(self))
+        Ok(self.into_noun_unchecked())
+    }
+
+    fn into_noun_unchecked(self) -> EnumNoun<Self, RcCell> {
+        EnumNoun::Atom(self)
     }
 }
 
