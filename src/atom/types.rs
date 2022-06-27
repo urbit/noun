@@ -1,6 +1,6 @@
 //! Assorted [`Atom`] implementations.
 
-use crate::{atom::Atom as _Atom, cell::types::Cell, noun::types::Noun};
+use crate::{atom::Atom as _Atom, cell::types::RcCell, noun::types::Noun};
 use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -62,7 +62,7 @@ impl Add<usize> for Atom {
     }
 }
 
-impl _Atom<Cell, Noun> for Atom {
+impl _Atom<RcCell, Noun> for Atom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
@@ -156,7 +156,7 @@ mod tests {
             Ok(())
         }
 
-        run_test::<Atom, Cell, Noun>()?;
+        run_test::<Atom, RcCell, Noun>()?;
         Ok(())
     }
 
@@ -175,6 +175,6 @@ mod tests {
             }
         }
 
-        run_test::<Atom, Cell, Noun>();
+        run_test::<Atom, RcCell, Noun>();
     }
 }

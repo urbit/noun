@@ -1,15 +1,15 @@
 //! Assorted [`Cell`] implementations.
 
-use crate::{atom::types::Atom, cell::Cell as _Cell, noun::types::Noun};
+use crate::{atom::types::Atom, cell::Cell, noun::types::Noun};
 use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
-pub struct Cell {
+pub struct RcCell {
     head: Rc<Noun>,
     tail: Rc<Noun>,
 }
 
-impl _Cell<Atom, Noun> for Cell {
+impl Cell<Atom, Noun> for RcCell {
     type Head = Rc<Noun>;
     type Tail = Self::Head;
 
@@ -46,7 +46,7 @@ impl _Cell<Atom, Noun> for Cell {
     }
 }
 
-impl PartialEq for Cell {
+impl PartialEq for RcCell {
     fn eq(&self, other: &Self) -> bool {
         self.head == other.head && self.tail == other.tail
     }

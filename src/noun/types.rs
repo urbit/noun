@@ -2,7 +2,7 @@
 
 use crate::{
     atom::types::Atom,
-    cell::{types::Cell, Cell as _Cell},
+    cell::{types::RcCell, Cell as _Cell},
     noun::Noun as _Noun,
     serdes::{Cue, Jam},
 };
@@ -10,14 +10,14 @@ use crate::{
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum Noun {
     Atom(Atom),
-    Cell(Cell),
+    Cell(RcCell),
 }
 
-impl Cue<Atom, Cell> for Noun {}
+impl Cue<Atom, RcCell> for Noun {}
 
-impl Jam<'_, Atom, Cell> for Noun {}
+impl Jam<'_, Atom, RcCell> for Noun {}
 
-impl _Noun<Atom, Cell> for Noun {
+impl _Noun<Atom, RcCell> for Noun {
     fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {
@@ -39,7 +39,7 @@ impl _Noun<Atom, Cell> for Noun {
         }
     }
 
-    fn as_cell(&self) -> Result<&Cell, ()> {
+    fn as_cell(&self) -> Result<&RcCell, ()> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(()),
@@ -53,7 +53,7 @@ impl _Noun<Atom, Cell> for Noun {
         }
     }
 
-    fn into_cell(self) -> Result<Cell, Self> {
+    fn into_cell(self) -> Result<RcCell, Self> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(self),
@@ -107,6 +107,6 @@ mod tests {
             }
         }
 
-        run_test::<Atom, Cell, Noun>();
+        run_test::<Atom, RcCell, Noun>();
     }
 }
