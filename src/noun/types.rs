@@ -3,26 +3,26 @@
 use crate::{
     atom::{types::VecAtom, Atom},
     cell::{types::RcCell, Cell},
-    noun::Noun as _Noun,
+    noun::Noun,
     serdes::{Cue, Jam},
 };
 
 #[derive(Eq, Clone, Debug, Hash)]
-pub enum Noun<A, C>
+pub enum EnumNoun<A, C>
 where
     A: Atom<C, Self>,
     C: Cell<A, Self>,
-    Self: _Noun<A, C>,
+    Self: Noun<A, C>,
 {
     Atom(A),
     Cell(C),
 }
 
-impl Cue<VecAtom, RcCell> for Noun<VecAtom, RcCell> {}
+impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
 
-impl Jam<'_, VecAtom, RcCell> for Noun<VecAtom, RcCell> {}
+impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
 
-impl _Noun<VecAtom, RcCell> for Noun<VecAtom, RcCell> {
+impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
     fn get(&self, idx: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match idx {
@@ -66,7 +66,7 @@ impl _Noun<VecAtom, RcCell> for Noun<VecAtom, RcCell> {
     }
 }
 
-impl PartialEq for Noun<VecAtom, RcCell> {
+impl PartialEq for EnumNoun<VecAtom, RcCell> {
     fn eq(&self, other: &Self) -> bool {
         if let (Self::Atom(this), Self::Atom(that)) = (self, other) {
             this == that
@@ -81,16 +81,16 @@ impl PartialEq for Noun<VecAtom, RcCell> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::atom::Atom as _Atom;
+    use crate::atom::Atom;
     use std::rc::Rc;
 
     #[test]
     fn noun_get() {
         fn run_test<A, C, N>()
         where
-            A: _Atom<C, N>,
-            C: _Cell<A, N>,
-            N: _Noun<A, C>,
+            A: Atom<C, N>,
+            C: Cell<A, N>,
+            N: Noun<A, C>,
         {
             {
                 let _4 = Rc::new(A::from_u8(4).into_noun());
@@ -112,6 +112,6 @@ mod tests {
             }
         }
 
-        run_test::<VecAtom, RcCell, Noun>();
+        run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>();
     }
 }

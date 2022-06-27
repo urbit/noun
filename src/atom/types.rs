@@ -1,6 +1,6 @@
 //! Assorted [`Atom`] implementations.
 
-use crate::{atom::Atom, cell::types::RcCell, noun::types::Noun};
+use crate::{atom::Atom, cell::types::RcCell, noun::types::EnumNoun};
 use std::{hash::Hash, ops::Add, str};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -62,13 +62,13 @@ impl Add<usize> for VecAtom {
     }
 }
 
-impl Atom<RcCell, Noun<Self, RcCell>> for VecAtom {
+impl Atom<RcCell, EnumNoun<Self, RcCell>> for VecAtom {
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
-    fn into_noun(self) -> Noun<Self, RcCell> {
-        Noun::Atom(self)
+    fn into_noun(self) -> EnumNoun<Self, RcCell> {
+        EnumNoun::Atom(self)
     }
 }
 
@@ -107,15 +107,15 @@ impl PartialEq<&str> for VecAtom {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{cell::Cell as _Cell, noun::Noun as _Noun};
+    use crate::{cell::Cell, noun::Noun};
 
     #[test]
     fn from_uint() -> Result<(), ()> {
         fn run_test<A, C, N>() -> Result<(), ()>
         where
             A: Atom<C, N>,
-            C: _Cell<A, N>,
-            N: _Noun<A, C>,
+            C: Cell<A, N>,
+            N: Noun<A, C>,
         {
             {
                 let val = u8::MAX;
@@ -156,7 +156,7 @@ mod tests {
             Ok(())
         }
 
-        run_test::<VecAtom, RcCell, Noun>()?;
+        run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>()?;
         Ok(())
     }
 
@@ -165,8 +165,8 @@ mod tests {
         fn run_test<A, C, N>()
         where
             A: Atom<C, N>,
-            C: _Cell<A, N>,
-            N: _Noun<A, C>,
+            C: Cell<A, N>,
+            N: Noun<A, C>,
         {
             {
                 let vec = vec![b'h', b'e', b'l', b'l', b'o'];
@@ -175,6 +175,6 @@ mod tests {
             }
         }
 
-        run_test::<VecAtom, RcCell, Noun>();
+        run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>();
     }
 }
