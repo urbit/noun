@@ -34,10 +34,11 @@ macro_rules! atom_to_uint {
 }
 
 /// Interface to the atom data structure.
-pub trait Atom: Add<Self>
+pub trait Atom: Add
         + Debug
         + Eq
         + From<Vec<u8>>
+        + PartialEq
         + Sized
 {
     fn from_u8(uint: u8) -> Self {
