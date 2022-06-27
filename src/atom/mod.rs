@@ -38,7 +38,6 @@ pub trait Atom: Add<Self>
         + Debug
         + Eq
         + From<Vec<u8>>
-        + PartialEq<&'static str>
         + Sized
 {
     fn from_u8(uint: u8) -> Self {

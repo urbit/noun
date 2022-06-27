@@ -42,16 +42,6 @@ impl IntoNoun<Self, RcCell, EnumNoun<Self, RcCell>> for VecAtom {
     }
 }
 
-impl PartialEq<str> for VecAtom {
-    fn eq(&self, other: &str) -> bool {
-        if let Ok(string) = str::from_utf8(self.as_bytes()) {
-            string == other
-        } else {
-            false
-        }
-    }
-}
-
 impl PartialEq<&str> for VecAtom {
     fn eq(&self, other: &&str) -> bool {
         if let Ok(string) = str::from_utf8(self.as_bytes()) {
@@ -68,7 +58,10 @@ mod tests {
 
     #[test]
     fn from_uint() -> Result<(), ()> {
-        fn run_test<A: Atom>() -> Result<(), ()> {
+        fn run_test<A>() -> Result<(), ()>
+        where
+            A: Atom,
+        {
             {
                 let val = u8::MAX;
                 let atom = A::from_u8(val);
@@ -114,7 +107,10 @@ mod tests {
 
     #[test]
     fn partialeq() {
-        fn run_test<A: Atom>() {
+        fn run_test<'a, A>()
+        where
+            A: Atom + PartialEq<&'a str>,
+        {
             {
                 let vec = vec![b'h', b'e', b'l', b'l', b'o'];
                 let atom = A::from(vec);
