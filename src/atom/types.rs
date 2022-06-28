@@ -51,10 +51,10 @@ impl IntoNoun<Self, RcCell, EnumNoun<Self, RcCell>> for VecAtom {
     }
 }
 
-impl PartialEq<&str> for VecAtom {
-    fn eq(&self, other: &&str) -> bool {
+impl PartialEq<str> for VecAtom {
+    fn eq(&self, other: &str) -> bool {
         if let Ok(string) = str::from_utf8(self.as_bytes()) {
-            string == *other
+            string == other
         } else {
             false
         }
