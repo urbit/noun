@@ -34,11 +34,11 @@ impl From<&str> for VecAtom {
 }
 
 impl IntoNoun<Self, RcCell, EnumNoun<Self, RcCell>> for VecAtom {
-    fn as_noun(&self) -> Result<EnumNoun<Self, RcCell>, ()> {
+    fn to_noun(&self) -> Result<EnumNoun<Self, RcCell>, ()> {
         unimplemented!("An EnumNoun cannot be constructed from &VecAtom.");
     }
 
-    fn as_noun_unchecked(&self) -> EnumNoun<Self, RcCell> {
+    fn to_noun_unchecked(&self) -> EnumNoun<Self, RcCell> {
         unimplemented!("An EnumNoun cannot be constructed from &VecAtom.");
     }
 

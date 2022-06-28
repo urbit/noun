@@ -43,11 +43,11 @@ impl Cell<VecAtom, EnumNoun<VecAtom, Self>> for RcCell {
 }
 
 impl IntoNoun<VecAtom, Self, EnumNoun<VecAtom, Self>> for RcCell {
-    fn as_noun(&self) -> Result<EnumNoun<VecAtom, Self>, ()> {
+    fn to_noun(&self) -> Result<EnumNoun<VecAtom, Self>, ()> {
         unimplemented!("An EnumNoun cannot be constructed from &RcCell.");
     }
 
-    fn as_noun_unchecked(&self) -> EnumNoun<VecAtom, Self> {
+    fn to_noun_unchecked(&self) -> EnumNoun<VecAtom, Self> {
         unimplemented!("An EnumNoun cannot be constructed from &RcCell.");
     }
 

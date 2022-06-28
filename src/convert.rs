@@ -27,10 +27,10 @@ where
 {
     /// Convert the implementing type into a noun, returning an error if the type cannot be
     /// converted.
-    fn as_noun(&self) -> Result<N, ()>;
+    fn to_noun(&self) -> Result<N, ()>;
 
     /// Convert the implementing type into a noun, panicking if the type cannot be converted.
-    fn as_noun_unchecked(&self) -> N;
+    fn to_noun_unchecked(&self) -> N;
 
     /// Convert the implementing type into a noun, consuming the noun, and returning an error if the type cannot be
     /// converted.
