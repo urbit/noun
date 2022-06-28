@@ -1,4 +1,4 @@
-//! An arbitrarily large unsigned integer.
+//! Arbitrarily large unsigned integer.
 //!
 //! [Atom]s represent arbitrary binary data and can be added and compared to one another.
 //!

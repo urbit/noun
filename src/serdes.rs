@@ -1,4 +1,4 @@
-//! Serialization and deserialization.
+//! Noun serialization and deserialization.
 
 use crate::{atom::Atom, cell::Cell, convert::IntoNoun, noun::Noun};
 use bitstream_io::{BitRead, BitWrite, BitWriter, LittleEndian};

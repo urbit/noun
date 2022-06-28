@@ -1,4 +1,4 @@
-//! Operators.
+//! Operators on noun types.
 
 /// Unifying equality.
 pub trait UnifyEq<C>

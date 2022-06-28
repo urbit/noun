@@ -1,4 +1,4 @@
-//! A [noun] is a finite size binary tree with atoms as leaves.
+//! Finite size binary tree with atoms as leaves.
 //!
 //! [noun]: https://urbit.org/docs/glossary/noun
 

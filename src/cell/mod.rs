@@ -1,4 +1,4 @@
-//! An ordered pair of nouns.
+//! Ordered pair of nouns.
 //!
 //! Cells have a head and a tail and can be compared to one another.
 
@@ -14,7 +14,10 @@ where
     N: Noun<A, Self>,
     Self: Debug + Eq + Sized,
 {
+    /// Head of the cell.
     type Head;
+
+    /// Tail of the cell.
     type Tail;
 
     /// Create a new cell from a head and a tail.
@@ -45,21 +48,21 @@ where
         (self.head_as_noun(), self.tail_as_noun())
     }
 
-    /// Converts a cell of the form `[h th tt]` into a 3-element tuple of nouns.
+    /// Converts a cell of the form `[a b c]` into a 3-element tuple of nouns.
     fn as_triple(&self) -> Result<(&N, &N, &N), ()> {
         let h = self.head_as_noun();
         let (th, tt) = self.tail_as_noun().as_cell()?.as_pair();
         Ok((h, th, tt))
     }
 
-    /// Converts a cell of the form `[h th tth ttt]` into a 4-element tuple of nouns.
+    /// Converts a cell of the form `[a b c d]` into a 4-element tuple of nouns.
     fn as_quad(&self) -> Result<(&N, &N, &N, &N), ()> {
         let (h, th, tt) = self.as_triple()?;
         let (tth, ttt) = tt.as_cell()?.as_pair();
         Ok((h, th, tth, ttt))
     }
 
-    /// Converts a cell of the form `[h th tth ttth tttt]` into a 5-element tuple of nouns.
+    /// Converts a cell of the form `[a b c d e]` into a 5-element tuple of nouns.
     fn as_quint(&self) -> Result<(&N, &N, &N, &N, &N), ()> {
         let (h, th, tth, ttt) = self.as_quad()?;
         let (ttth, tttt) = ttt.as_cell()?.as_pair();
