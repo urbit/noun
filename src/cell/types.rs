@@ -1,6 +1,6 @@
 //! Assorted [`Cell`] implementations.
 
-use crate::{atom::types::VecAtom, cell::Cell, noun::types::EnumNoun, IntoNoun};
+use crate::{atom::types::VecAtom, cell::Cell, convert::IntoNoun, noun::types::EnumNoun};
 use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]

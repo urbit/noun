@@ -81,7 +81,7 @@ impl PartialEq for EnumNoun<VecAtom, RcCell> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{atom::Atom, IntoNoun};
+    use crate::{atom::Atom, convert::IntoNoun};
     use std::rc::Rc;
 
     #[test]

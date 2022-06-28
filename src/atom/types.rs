@@ -1,6 +1,6 @@
 //! Assorted [`Atom`] implementations.
 
-use crate::{atom::Atom, cell::types::RcCell, noun::types::EnumNoun, IntoNoun};
+use crate::{atom::Atom, cell::types::RcCell, convert::IntoNoun, noun::types::EnumNoun};
 use std::{hash::Hash, ops::Add, str};
 
 /// Atom represented as a vector of bytes.
