@@ -61,6 +61,16 @@ impl PartialEq<str> for VecAtom {
     }
 }
 
+impl PartialEq<&str> for VecAtom {
+    fn eq(&self, other: &&str) -> bool {
+        if let Ok(string) = str::from_utf8(self.as_bytes()) {
+            string == *other
+        } else {
+            false
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
