@@ -153,6 +153,6 @@ pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
     /// Convert an atom into a string slice, returning an error if the atom is not composed of
     /// valid UTF-8 bytes.
     fn as_str(&self) -> Result<&str, ()> {
-        Ok(str::from_utf8(self.as_bytes()).map_err(|_| ())?)
+        str::from_utf8(self.as_bytes()).map_err(|_| ())
     }
 }

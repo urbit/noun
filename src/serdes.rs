@@ -160,9 +160,7 @@ where
                 todo!("idx is larger than 8 bytes")
             }
             let mut padded_bytes: [u8; size_of::<u64>()] = [0; size_of::<u64>()];
-            for i in 0..bytes.len() {
-                padded_bytes[i] = bytes[i];
-            }
+            padded_bytes[..bytes.len()].copy_from_slice(bytes);
             // XXX: watch out for endianness bug.
             u64::from_le_bytes(padded_bytes)
         };
@@ -210,10 +208,8 @@ where
         let _ = Self::encode(self, &mut dst, &mut cache, 0)?;
         // Bits belonging to the last partial byte are discarded when BitWriter::into_writer() is
         // invoked, so we have to byte align.
-        if !dst.byte_aligned() {
-            if let Err(_) = dst.byte_align() {
-                return Err(());
-            }
+        if !dst.byte_aligned() && dst.byte_align().is_err() {
+            return Err(());
         }
         let mut vec = dst.into_writer();
         // BitWriter::byte_align() pads with an unnecessary extra 0 in certain circumstances.
@@ -231,7 +227,7 @@ where
         pos: u64,
     ) -> JamResult<()> {
         if let Some(idx) = cache.get(noun) {
-            Self::encode_backref(idx.clone(), noun, dst)
+            Self::encode_backref(*idx, noun, dst)
         } else if let Ok(atom) = noun.as_atom() {
             cache.insert(noun, pos);
             let tag_len = Tag::write(dst, Tag::Atom).expect("write tag");
@@ -260,8 +256,7 @@ where
             // encoded because it's of course always high.
             let len = !(1 << len_bits) & len;
             dst.write(len_bits, len).expect("write length");
-            let bits_written = len_of_len + 1 + len_bits;
-            bits_written
+            len_of_len + 1 + len_bits
         };
         Ok(((), bits_written))
     }
@@ -290,7 +285,7 @@ where
             // reference.
             if atom_bit_len <= idx_bit_len {
                 let tag_len = Tag::write(dst, Tag::Atom).expect("write tag");
-                let (_, bits_written) = Self::encode_atom(&atom, dst)?;
+                let (_, bits_written) = Self::encode_atom(atom, dst)?;
                 return Ok(((), tag_len + bits_written));
             }
         }
