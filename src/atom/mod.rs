@@ -1,12 +1,15 @@
-//! An [atom] is an arbitrarily large unsigned integer.
+//! An arbitrarily large unsigned integer.
 //!
-//! [atom]: https://urbit.org/docs/glossary/atom
+//! [Atom]s represent arbitrary binary data and can be added and compared to one another.
+//!
+//! [Atom]: https://urbit.org/docs/glossary/atom
 
 pub mod types;
 
 use bitstream_io::{BitReader, LittleEndian};
 use std::{fmt::Debug, ops::Add, str};
 
+/// Convert an unsigned integer into an atom.
 macro_rules! uint_to_atom {
     ($uint:expr, $atom:ty) => {{
         let mut vec = Vec::from($uint.to_le_bytes());
@@ -18,6 +21,8 @@ macro_rules! uint_to_atom {
     }};
 }
 
+/// Convert an atom into an unsigned integer, returning an error if the byte width of the atom
+/// exceeds the byte width of the target unsigned integer type.
 macro_rules! atom_to_uint {
     ($atom:expr, $uint:ty) => {{
         let atom = $atom.as_bytes();
@@ -35,26 +40,32 @@ macro_rules! atom_to_uint {
 
 /// Interface to the atom data structure.
 pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
+    /// Create a new atom from an 8-bit unsigned integer.
     fn from_u8(uint: u8) -> Self {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from an 16-bit unsigned integer.
     fn from_u16(uint: u16) -> Self {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from an 32-bit unsigned integer.
     fn from_u32(uint: u32) -> Self {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from an 64-bit unsigned integer.
     fn from_u64(uint: u64) -> Self {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from a 128-bit unsigned integer.
     fn from_u128(uint: u128) -> Self {
         uint_to_atom!(uint, Self)
     }
 
+    /// Create a new atom from an pointer-sized unsigned integer.
     fn from_usize(uint: usize) -> Self {
         uint_to_atom!(uint, Self)
     }
@@ -95,36 +106,52 @@ pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
         }
     }
 
+    /// Convert an atom into a byte slice.
     fn as_bytes(&self) -> &[u8];
 
+    /// Convert an atom into a little-endian bitstream.
     fn as_bits(&self) -> BitReader<&[u8], LittleEndian> {
         BitReader::new(self.as_bytes())
     }
 
+    /// Convert an atom into an 8-bit unsigned integer, returning an error if the atom is greater
+    /// than `u8::MAX`.
     fn as_u8(&self) -> Result<u8, ()> {
         atom_to_uint!(self, u8)
     }
 
+    /// Convert an atom into an 16-bit unsigned integer, returning an error if the atom is greater
+    /// than `u16::MAX`.
     fn as_u16(&self) -> Result<u16, ()> {
         atom_to_uint!(self, u16)
     }
 
+    /// Convert an atom into an 32-bit unsigned integer, returning an error if the atom is greater
+    /// than `u32::MAX`.
     fn as_u32(&self) -> Result<u32, ()> {
         atom_to_uint!(self, u32)
     }
 
+    /// Convert an atom into an 64-bit unsigned integer, returning an error if the atom is greater
+    /// than `u64::MAX`.
     fn as_u64(&self) -> Result<u64, ()> {
         atom_to_uint!(self, u64)
     }
 
+    /// Convert an atom into an 64-bit unsigned integer, returning an error if the atom is greater
+    /// than `u128::MAX`.
     fn as_u128(&self) -> Result<u128, ()> {
         atom_to_uint!(self, u128)
     }
 
+    /// Convert an atom into an 64-bit unsigned integer, returning an error if the atom is greater
+    /// than `usize::MAX`.
     fn as_usize(&self) -> Result<usize, ()> {
         atom_to_uint!(self, usize)
     }
 
+    /// Convert an atom into a string slice, returning an error if the atom is not composed of
+    /// valid UTF-8 bytes.
     fn as_str(&self) -> Result<&str, ()> {
         Ok(str::from_utf8(self.as_bytes()).map_err(|_| ())?)
     }

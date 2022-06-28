@@ -3,6 +3,7 @@
 use crate::{atom::Atom, cell::types::RcCell, noun::types::EnumNoun, IntoNoun};
 use std::{hash::Hash, ops::Add, str};
 
+/// Atom represented as a vector of bytes.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct VecAtom(Vec<u8>);
 
