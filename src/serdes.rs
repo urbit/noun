@@ -18,7 +18,7 @@ pub type CueResult<T> = Result<(T, u32), ()>;
 pub trait Cue<A, C>
 where
     A: Atom + IntoNoun<A, C, Self>,
-    C: Cell<A, Self>,
+    C: Cell<A, Self> + IntoNoun<A, C, Self>,
     Self: Noun<A, C> + Debug + Sized,
 {
     /// Decodes a bitstream into a noun.
@@ -188,7 +188,7 @@ where
         let (tail, tail_bits) = Self::decode(src, cache, pos)?;
         cache.insert(pos, tail.clone());
 
-        let cell = Rc::new(C::from_pair(head, tail).into_noun());
+        let cell = Rc::new(C::from_pair(head, tail).into_noun_unchecked());
         Ok((cell, head_bits + tail_bits))
     }
 }
@@ -353,7 +353,7 @@ mod tests {
         fn run_test<A, C, N>(jammed_noun: A, expected: A) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: Cell<A, N>,
+            C: Cell<A, N> + IntoNoun<A, C, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
             let bitstream = jammed_noun.as_bits();
@@ -409,7 +409,7 @@ mod tests {
         fn run_test<A, C, N>(jammed_noun: A, cell: C) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: Cell<A, N>,
+            C: Cell<A, N> + IntoNoun<A, C, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
             let bitstream = jammed_noun.as_bits();
@@ -471,7 +471,8 @@ mod tests {
             let jammed_noun = VecAtom::from_u64(0b1001001111011101110000110101111100000101);
             let _107 = Rc::new(VecAtom::from_u32(107).into_noun_unchecked());
             let _110 = Rc::new(VecAtom::from_u32(110).into_noun_unchecked());
-            let head = Rc::new(RcCell::from_parts(_107.clone(), _110.clone()).into_noun());
+            let head =
+                Rc::new(RcCell::from_parts(_107.clone(), _110.clone()).into_noun_unchecked());
             let tail = head.clone();
             let cell = Cell::from_parts(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
@@ -564,7 +565,7 @@ mod tests {
         {
             let head = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
             let tail = Rc::new(VecAtom::from_u8(19).into_noun_unchecked());
-            let cell = RcCell::from_parts(head, tail).into_noun();
+            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u16(39_689);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,
@@ -576,7 +577,7 @@ mod tests {
         {
             let head = Rc::new(VecAtom::from_u8(1).into_noun_unchecked());
             let tail = head.clone();
-            let cell = RcCell::from_parts(head, tail).into_noun();
+            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u16(817);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,
@@ -590,11 +591,14 @@ mod tests {
             let _444 = Rc::new(VecAtom::from_u16(444).into_noun_unchecked());
             let _888 = Rc::new(VecAtom::from_u16(888).into_noun_unchecked());
             let head = Rc::new(
-                RcCell::from_parts(_222, Rc::new(RcCell::from_parts(_444, _888).into_noun()))
-                    .into_noun(),
+                RcCell::from_parts(
+                    _222,
+                    Rc::new(RcCell::from_parts(_444, _888).into_noun_unchecked()),
+                )
+                .into_noun_unchecked(),
             );
             let tail = head.clone();
-            let cell = RcCell::from_parts(head, tail).into_noun();
+            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u128(170_479_614_045_978_345_989);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,

@@ -58,6 +58,4 @@ where
     }
 
     fn into_parts(self) -> (Self::Head, Self::Tail);
-
-    fn into_noun(self) -> N;
 }

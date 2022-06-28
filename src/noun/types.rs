@@ -89,7 +89,7 @@ mod tests {
         fn run_test<A, C, N>()
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: Cell<A, N>,
+            C: Cell<A, N> + IntoNoun<A, C, N>,
             N: Noun<A, C>,
         {
             {
@@ -99,10 +99,10 @@ mod tests {
                 let _14 = Rc::new(A::from_u8(14).into_noun_unchecked());
                 let _15 = Rc::new(A::from_u8(15).into_noun_unchecked());
 
-                let tt = Rc::new(C::from_pair(_14, _15).into_noun());
-                let t = Rc::new(C::from_pair(_6, tt.clone()).into_noun());
-                let h = Rc::new(C::from_pair(_4, _5).into_noun());
-                let noun = C::from_pair(h.clone(), t.clone()).into_noun();
+                let tt = Rc::new(C::from_pair(_14, _15).into_noun_unchecked());
+                let t = Rc::new(C::from_pair(_6, tt.clone()).into_noun_unchecked());
+                let h = Rc::new(C::from_pair(_4, _5).into_noun_unchecked());
+                let noun = C::from_pair(h.clone(), t.clone()).into_noun_unchecked();
 
                 assert_eq!(noun.get(1), Some(&noun));
                 assert_eq!(noun.get(2), Some(&*h));
