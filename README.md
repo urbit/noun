@@ -1,5 +1,8 @@
 # noun
 
+[![CI](https://github.com/mcevoypeter/noun/actions/workflows/ci.yml/badge.svg)](https://github.com/mcevoypeter/noun/actions/workflows/ci.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE.txt)
+
 [Urbit](https://urbit.org) uses the [noun](https://urbit.org/docs/glossary/noun)
 as its only data structure. The [Urbit runtime](https://urbit.org/docs/vere) does not *need* to rely exclusively on nouns
 to represent data, but nouns are naturally the best choice in a lot of
