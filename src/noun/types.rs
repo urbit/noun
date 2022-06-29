@@ -25,7 +25,11 @@ impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
     }
 }
 
-impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
+impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
+    fn cell_as_parts(cell: &RcCell) -> (&Self, &Self) {
+        (cell.head(), cell.tail())
+    }
+}
 
 impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
     fn get(&self, axis: usize) -> Option<&Self> {

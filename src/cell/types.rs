@@ -25,14 +25,6 @@ impl Cell<VecAtom, EnumNoun<VecAtom, Self>> for RcCell {
         &self.tail
     }
 
-    fn head_as_noun(&self) -> &EnumNoun<VecAtom, Self> {
-        &*self.head
-    }
-
-    fn tail_as_noun(&self) -> &EnumNoun<VecAtom, Self> {
-        &*self.tail
-    }
-
     fn into_parts(self) -> (Self::Head, Self::Tail) {
         (self.head, self.tail)
     }

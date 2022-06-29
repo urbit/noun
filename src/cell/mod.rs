@@ -29,12 +29,6 @@ where
     /// Returns the tail of the cell.
     fn tail(&self) -> &Self::Tail;
 
-    /// Returns the head of the cell as a noun.
-    fn head_as_noun(&self) -> &N;
-
-    /// Returns the tail of the cell as a noun.
-    fn tail_as_noun(&self) -> &N;
-
     /// Converts a cell into its head and tail.
     fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
         (self.head(), self.tail())
@@ -42,28 +36,22 @@ where
 
     /// Converts a cell into its head and tail as nouns.
     fn as_pair(&self) -> (&N, &N) {
-        (self.head_as_noun(), self.tail_as_noun())
+        unimplemented!()
     }
 
     /// Converts a cell of the form `[a b c]` into a 3-element tuple of nouns.
     fn as_triple(&self) -> Result<(&N, &N, &N), ()> {
-        let h = self.head_as_noun();
-        let (th, tt) = self.tail_as_noun().as_cell()?.as_pair();
-        Ok((h, th, tt))
+        unimplemented!()
     }
 
     /// Converts a cell of the form `[a b c d]` into a 4-element tuple of nouns.
     fn as_quad(&self) -> Result<(&N, &N, &N, &N), ()> {
-        let (h, th, tt) = self.as_triple()?;
-        let (tth, ttt) = tt.as_cell()?.as_pair();
-        Ok((h, th, tth, ttt))
+        unimplemented!()
     }
 
     /// Converts a cell of the form `[a b c d e]` into a 5-element tuple of nouns.
     fn as_quint(&self) -> Result<(&N, &N, &N, &N, &N), ()> {
-        let (h, th, tth, ttt) = self.as_quad()?;
-        let (ttth, tttt) = ttt.as_cell()?.as_pair();
-        Ok((h, th, tth, ttth, tttt))
+        unimplemented!()
     }
 
     /// Converts a cell into its head and tail, consuming the cell.

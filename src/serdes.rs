@@ -305,16 +305,16 @@ where
         cache: &'b mut HashMap<&'a Self, u64>,
         pos: u64,
     ) -> JamResult<()> {
-        let head = cell.head_as_noun();
-        let (_, head_bits_written) = Self::encode(head, dst, cache, pos)?;
+        let (head, tail) = Self::cell_as_parts(cell);
 
-        let tail = cell.tail_as_noun();
+        let (_, head_bits_written) = Self::encode(head, dst, cache, pos)?;
         let pos = pos + u64::from(head_bits_written);
         let (_, tail_bits_written) = Self::encode(tail, dst, cache, pos)?;
 
-        let bits_written = head_bits_written + tail_bits_written;
-        Ok(((), bits_written))
+        Ok(((), head_bits_written + tail_bits_written))
     }
+
+    fn cell_as_parts(cell: &C) -> (&Self, &Self);
 }
 
 #[repr(u8)]
