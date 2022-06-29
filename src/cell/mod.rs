@@ -29,31 +29,6 @@ where
     /// Returns the tail of the cell.
     fn tail(&self) -> &Self::Tail;
 
-    /// Converts a cell into its head and tail.
-    fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
-        (self.head(), self.tail())
-    }
-
-    /// Converts a cell into its head and tail as nouns.
-    fn as_pair(&self) -> (&N, &N) {
-        unimplemented!()
-    }
-
-    /// Converts a cell of the form `[a b c]` into a 3-element tuple of nouns.
-    fn as_triple(&self) -> Result<(&N, &N, &N), ()> {
-        unimplemented!()
-    }
-
-    /// Converts a cell of the form `[a b c d]` into a 4-element tuple of nouns.
-    fn as_quad(&self) -> Result<(&N, &N, &N, &N), ()> {
-        unimplemented!()
-    }
-
-    /// Converts a cell of the form `[a b c d e]` into a 5-element tuple of nouns.
-    fn as_quint(&self) -> Result<(&N, &N, &N, &N, &N), ()> {
-        unimplemented!()
-    }
-
     /// Converts a cell into its head and tail, consuming the cell.
     fn into_parts(self) -> (Self::Head, Self::Tail);
 }
