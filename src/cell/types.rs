@@ -13,12 +13,12 @@ impl Cell<VecAtom, EnumNoun<VecAtom, Self>> for RcCell {
     type Head = Rc<EnumNoun<VecAtom, Self>>;
     type Tail = Self::Head;
 
-    fn from_parts(head: Self::Head, tail: Self::Tail) -> Self {
+    fn new(head: Self::Head, tail: Self::Tail) -> Self {
         Self { head, tail }
     }
 
     fn from_pair(head: Self::Head, tail: Self::Tail) -> Self {
-        Self::from_parts(head, tail)
+        Self::new(head, tail)
     }
 
     fn head(&self) -> &Self::Head {

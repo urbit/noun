@@ -417,7 +417,7 @@ mod tests {
             let jammed_noun = VecAtom::from_u16(0b1100110001);
             let head = Rc::new(VecAtom::from_u8(1).into_noun_unchecked());
             let tail = head.clone();
-            let cell = Cell::from_parts(head, tail);
+            let cell = Cell::new(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 jammed_noun,
                 cell
@@ -429,7 +429,7 @@ mod tests {
             let jammed_noun = VecAtom::from_u16(0b1001101100001001);
             let head = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
             let tail = Rc::new(VecAtom::from_u8(19).into_noun_unchecked());
-            let cell = Cell::from_parts(head, tail);
+            let cell = Cell::new(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 jammed_noun,
                 cell
@@ -441,7 +441,7 @@ mod tests {
             let jammed_noun = VecAtom::from_u64(0b100100111001110001000011010000001);
             let head = Rc::new(VecAtom::from_u16(10_000).into_noun_unchecked());
             let tail = head.clone();
-            let cell = Cell::from_parts(head, tail);
+            let cell = Cell::new(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 jammed_noun,
                 cell
@@ -454,7 +454,7 @@ mod tests {
                 VecAtom::from_u64(0b100100111110111001101011001001111111111110100000001);
             let head = Rc::new(VecAtom::from_u32(999_999_999).into_noun_unchecked());
             let tail = head.clone();
-            let cell = Cell::from_parts(head, tail);
+            let cell = Cell::new(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 jammed_noun,
                 cell
@@ -467,9 +467,9 @@ mod tests {
             let _107 = Rc::new(VecAtom::from_u32(107).into_noun_unchecked());
             let _110 = Rc::new(VecAtom::from_u32(110).into_noun_unchecked());
             let head =
-                Rc::new(RcCell::from_parts(_107.clone(), _110.clone()).into_noun_unchecked());
+                Rc::new(RcCell::new(_107.clone(), _110.clone()).into_noun_unchecked());
             let tail = head.clone();
-            let cell = Cell::from_parts(head, tail);
+            let cell = Cell::new(head, tail);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 jammed_noun,
                 cell
@@ -560,7 +560,7 @@ mod tests {
         {
             let head = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
             let tail = Rc::new(VecAtom::from_u8(19).into_noun_unchecked());
-            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
+            let cell = RcCell::new(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u16(39_689);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,
@@ -572,7 +572,7 @@ mod tests {
         {
             let head = Rc::new(VecAtom::from_u8(1).into_noun_unchecked());
             let tail = head.clone();
-            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
+            let cell = RcCell::new(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u16(817);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,
@@ -586,14 +586,14 @@ mod tests {
             let _444 = Rc::new(VecAtom::from_u16(444).into_noun_unchecked());
             let _888 = Rc::new(VecAtom::from_u16(888).into_noun_unchecked());
             let head = Rc::new(
-                RcCell::from_parts(
+                RcCell::new(
                     _222,
-                    Rc::new(RcCell::from_parts(_444, _888).into_noun_unchecked()),
+                    Rc::new(RcCell::new(_444, _888).into_noun_unchecked()),
                 )
                 .into_noun_unchecked(),
             );
             let tail = head.clone();
-            let cell = RcCell::from_parts(head, tail).into_noun_unchecked();
+            let cell = RcCell::new(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u128(170_479_614_045_978_345_989);
             assert!(run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>(
                 &cell,

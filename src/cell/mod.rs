@@ -21,7 +21,7 @@ where
     type Tail;
 
     /// Create a new cell from a head and a tail.
-    fn from_parts(head: Self::Head, tail: Self::Tail) -> Self;
+    fn new(head: Self::Head, tail: Self::Tail) -> Self;
 
     /// Create a new cell from a pair of reference-counted nouns.
     fn from_pair(head: Rc<N>, tail: Rc<N>) -> Self;
