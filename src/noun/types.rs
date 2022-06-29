@@ -6,6 +6,7 @@ use crate::{
     noun::Noun,
     serdes::{Cue, Jam},
 };
+use std::rc::Rc;
 
 #[derive(Eq, Clone, Debug, Hash)]
 pub enum EnumNoun<A, C>
@@ -18,7 +19,11 @@ where
     Cell(C),
 }
 
-impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
+impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
+    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> RcCell {
+        RcCell::new(head, tail)
+    }
+}
 
 impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {}
 
@@ -78,6 +83,7 @@ impl PartialEq for EnumNoun<VecAtom, RcCell> {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -99,10 +105,10 @@ mod tests {
                 let _14 = Rc::new(A::from_u8(14).into_noun_unchecked());
                 let _15 = Rc::new(A::from_u8(15).into_noun_unchecked());
 
-                let tt = Rc::new(C::from_pair(_14, _15).into_noun_unchecked());
-                let t = Rc::new(C::from_pair(_6, tt.clone()).into_noun_unchecked());
-                let h = Rc::new(C::from_pair(_4, _5).into_noun_unchecked());
-                let noun = C::from_pair(h.clone(), t.clone()).into_noun_unchecked();
+                let tt = Rc::new(C::new(_14, _15).into_noun_unchecked());
+                let t = Rc::new(C::new(_6, tt.clone()).into_noun_unchecked());
+                let h = Rc::new(C::new(_4, _5).into_noun_unchecked());
+                let noun = C::new(h.clone(), t.clone()).into_noun_unchecked();
 
                 assert_eq!(noun.get(1), Some(&noun));
                 assert_eq!(noun.get(2), Some(&*h));
@@ -115,3 +121,4 @@ mod tests {
         run_test::<VecAtom, RcCell, EnumNoun<VecAtom, RcCell>>();
     }
 }
+*/

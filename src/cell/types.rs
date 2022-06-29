@@ -17,10 +17,6 @@ impl Cell<VecAtom, EnumNoun<VecAtom, Self>> for RcCell {
         Self { head, tail }
     }
 
-    fn from_pair(head: Self::Head, tail: Self::Tail) -> Self {
-        Self::new(head, tail)
-    }
-
     fn head(&self) -> &Self::Head {
         &self.head
     }

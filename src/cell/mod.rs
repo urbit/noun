@@ -5,7 +5,7 @@
 pub mod types;
 
 use crate::{atom::Atom, noun::Noun};
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
 /// Interface to the cell data structure.
 pub trait Cell<A, N>
@@ -22,9 +22,6 @@ where
 
     /// Create a new cell from a head and a tail.
     fn new(head: Self::Head, tail: Self::Tail) -> Self;
-
-    /// Create a new cell from a pair of reference-counted nouns.
-    fn from_pair(head: Rc<N>, tail: Rc<N>) -> Self;
 
     /// Returns the head of the cell.
     fn head(&self) -> &Self::Head;
