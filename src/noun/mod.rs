@@ -11,7 +11,7 @@ use std::{fmt::Debug, hash::Hash};
 pub trait Noun<A, C>
 where
     A: Atom,
-    C: Cell<A, Self>,
+    C: Cell,
     Self: Debug + Eq + Hash + Sized,
 {
     fn get(&self, axis: usize) -> Option<&Self>;

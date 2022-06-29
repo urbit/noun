@@ -9,7 +9,7 @@ pub struct RcCell {
     tail: Rc<EnumNoun<VecAtom, Self>>,
 }
 
-impl Cell<VecAtom, EnumNoun<VecAtom, Self>> for RcCell {
+impl Cell for RcCell {
     type Head = Rc<EnumNoun<VecAtom, Self>>;
     type Tail = Self::Head;
 

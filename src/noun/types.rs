@@ -12,7 +12,7 @@ use std::rc::Rc;
 pub enum EnumNoun<A, C>
 where
     A: Atom,
-    C: Cell<A, Self>,
+    C: Cell,
     Self: Noun<A, C>,
 {
     Atom(A),

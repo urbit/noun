@@ -6,7 +6,7 @@ use crate::{atom::Atom, cell::Cell, noun::Noun};
 pub trait FromNoun<A, C, N>
 where
     A: Atom,
-    C: Cell<A, N>,
+    C: Cell,
     N: Noun<A, C>,
     Self: Sized,
 {
@@ -21,7 +21,7 @@ where
 pub trait IntoNoun<A, C, N>
 where
     A: Atom,
-    C: Cell<A, N>,
+    C: Cell,
     N: Noun<A, C>,
     Self: Sized,
 {

@@ -18,7 +18,7 @@ pub type CueResult<T> = Result<(T, u32), ()>;
 pub trait Cue<A, C>
 where
     A: Atom + IntoNoun<A, C, Self>,
-    C: Cell<A, Self> + IntoNoun<A, C, Self>,
+    C: Cell + IntoNoun<A, C, Self>,
     Self: Noun<A, C> + Debug + Sized,
 {
     /// Decodes a bitstream into a noun.
@@ -201,7 +201,7 @@ pub type JamResult<T> = Result<(T, u32), ()>;
 pub trait Jam<'a, A, C>
 where
     A: Atom,
-    C: 'a + Cell<A, Self>,
+    C: 'a + Cell,
     Self: 'a + Noun<A, C> + Sized,
 {
     fn jam(&'a self) -> Result<Vec<u8>, ()> {
@@ -350,7 +350,7 @@ mod tests {
         fn run_test<A, C, N>(jammed_noun: A, expected: A) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: Cell<A, N> + IntoNoun<A, C, N>,
+            C: Cell + IntoNoun<A, C, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
             let bitstream = jammed_noun.as_bits();
@@ -406,7 +406,7 @@ mod tests {
         fn run_test<A, C, N>(jammed_noun: A, cell: C) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: Cell<A, N> + IntoNoun<A, C, N>,
+            C: Cell + IntoNoun<A, C, N>,
             N: Cue<A, C> + Noun<A, C>,
         {
             let bitstream = jammed_noun.as_bits();
@@ -485,7 +485,7 @@ mod tests {
         fn run_test<'a, A, C, N>(atom: &'a N, expected: A) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: 'a + Cell<A, N>,
+            C: 'a + Cell,
             N: Jam<'a, A, C> + Noun<A, C>,
         {
             let jammed_noun = A::from(atom.jam()?);
@@ -550,7 +550,7 @@ mod tests {
         fn run_test<'a, A, C, N>(cell: &'a N, expected: A) -> Result<bool, ()>
         where
             A: Atom + IntoNoun<A, C, N>,
-            C: 'a + Cell<A, N>,
+            C: 'a + Cell,
             N: Jam<'a, A, C> + Noun<A, C>,
         {
             let jammed_noun = A::from(cell.jam()?);
