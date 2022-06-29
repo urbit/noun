@@ -1,15 +1,25 @@
 //! Assorted [`Cell`] implementations.
 
-use crate::{atom::types::VecAtom, cell::Cell, convert::IntoNoun, noun::types::EnumNoun};
+use crate::{
+    atom::{types::VecAtom, Atom},
+    cell::Cell,
+    convert::IntoNoun,
+    noun::{types::EnumNoun, Noun},
+};
 use std::{hash::Hash, rc::Rc};
 
 #[derive(Clone, Hash, Debug, Eq)]
-pub struct RcCell {
-    head: Rc<EnumNoun<VecAtom, Self>>,
-    tail: Rc<EnumNoun<VecAtom, Self>>,
+pub struct RcCell<A>
+where
+    A: Atom,
+    EnumNoun<A, Self>: Noun<A, Self>,
+    Self: Cell,
+{
+    head: Rc<EnumNoun<A, Self>>,
+    tail: Rc<EnumNoun<A, Self>>,
 }
 
-impl Cell for RcCell {
+impl Cell for RcCell<VecAtom> {
     type Head = Rc<EnumNoun<VecAtom, Self>>;
     type Tail = Self::Head;
 
@@ -30,7 +40,7 @@ impl Cell for RcCell {
     }
 }
 
-impl IntoNoun<VecAtom, Self, EnumNoun<VecAtom, Self>> for RcCell {
+impl IntoNoun<VecAtom, Self, EnumNoun<VecAtom, Self>> for RcCell<VecAtom> {
     fn to_noun(&self) -> Result<EnumNoun<VecAtom, Self>, ()> {
         unimplemented!("An EnumNoun cannot be constructed from &RcCell.");
     }
@@ -48,7 +58,7 @@ impl IntoNoun<VecAtom, Self, EnumNoun<VecAtom, Self>> for RcCell {
     }
 }
 
-impl PartialEq for RcCell {
+impl PartialEq for RcCell<VecAtom> {
     fn eq(&self, other: &Self) -> bool {
         self.head == other.head && self.tail == other.tail
     }

@@ -19,19 +19,19 @@ where
     Cell(C),
 }
 
-impl Cue<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
-    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> RcCell {
+impl Cue<VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
+    fn new_cell(head: Rc<Self>, tail: Rc<Self>) -> RcCell<VecAtom> {
         RcCell::new(head, tail)
     }
 }
 
-impl Jam<'_, VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
-    fn cell_as_parts(cell: &RcCell) -> (&Self, &Self) {
+impl Jam<'_, VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
+    fn cell_as_parts(cell: &RcCell<VecAtom>) -> (&Self, &Self) {
         (cell.head(), cell.tail())
     }
 }
 
-impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
+impl Noun<VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
     fn get(&self, axis: usize) -> Option<&Self> {
         if let Self::Cell(cell) = self {
             match axis {
@@ -53,7 +53,7 @@ impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
         }
     }
 
-    fn as_cell(&self) -> Result<&RcCell, ()> {
+    fn as_cell(&self) -> Result<&RcCell<VecAtom>, ()> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(()),
@@ -67,7 +67,7 @@ impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
         }
     }
 
-    fn into_cell(self) -> Result<RcCell, Self> {
+    fn into_cell(self) -> Result<RcCell<VecAtom>, Self> {
         match self {
             Self::Cell(cell) => Ok(cell),
             _ => Err(self),
@@ -75,7 +75,7 @@ impl Noun<VecAtom, RcCell> for EnumNoun<VecAtom, RcCell> {
     }
 }
 
-impl PartialEq for EnumNoun<VecAtom, RcCell> {
+impl PartialEq for EnumNoun<VecAtom, RcCell<VecAtom>> {
     fn eq(&self, other: &Self) -> bool {
         if let (Self::Atom(this), Self::Atom(that)) = (self, other) {
             this == that
