@@ -14,8 +14,6 @@ where
     C: Cell,
     Self: Debug + Eq + Hash + Sized,
 {
-    fn get(&self, axis: usize) -> Option<&Self>;
-
     fn as_atom(&self) -> Result<&A, ()>;
 
     fn as_cell(&self) -> Result<&C, ()>;

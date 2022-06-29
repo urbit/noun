@@ -32,20 +32,6 @@ impl Jam<'_, VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
 }
 
 impl Noun<VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
-    fn get(&self, axis: usize) -> Option<&Self> {
-        if let Self::Cell(cell) = self {
-            match axis {
-                0 | 1 => Some(self),
-                2 => Some(&*cell.head()),
-                3 => Some(&*cell.tail()),
-                n if n % 2 == 0 => (&*cell.head()).get(axis / 2),
-                _ => (&*cell.tail()).get(axis / 2),
-            }
-        } else {
-            None
-        }
-    }
-
     fn as_atom(&self) -> Result<&VecAtom, ()> {
         match self {
             Self::Atom(atom) => Ok(atom),
