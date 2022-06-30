@@ -29,3 +29,24 @@ where
     /// Converts a cell into its head and tail, consuming the cell.
     fn into_parts(self) -> (Self::Head, Self::Tail);
 }
+
+/// Convenience macro for creating a new cell.
+#[macro_export]
+macro_rules! new_cell {
+    // [a b] -> Cell
+    (($a:expr, $b:expr) to $cell:ty) => {
+        <$cell>::new($a, $b)
+    };
+    // [a b c] -> Cell
+    (($a:expr, $b:expr, $c:expr) to $cell:ty) => {
+        <$cell>::new($a, cell!(($b, $c) to $cell))
+    };
+    // [a b c d] -> Cell
+    (($a:expr, $b:expr, $c:expr, $d:expr) to $cell:ty) => {
+        <$cell>::new($a, cell!(($b, $c, $d) to $cell))
+    };
+    // [a b c d e] -> Cell
+    (($a:expr, $b:expr, $c:expr, $d:expr, $e:expr) to $cell:ty) => {
+        <$cell>::new($a, cell!(($b, $c, $d, $e) to $cell))
+    };
+}

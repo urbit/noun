@@ -156,3 +156,36 @@ pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
         str::from_utf8(self.as_bytes()).map_err(|_| ())
     }
 }
+
+/// Convenience macro for creating a new atom.
+#[macro_export]
+macro_rules! new_atom {
+    // u8 -> Atom
+    ($val:expr, u8 to $atom:ty) => {
+        <$atom>::from_u8($val)
+    };
+    // u16 -> Atom
+    ($val:expr, u16 to $atom:ty) => {
+        <$atom>::from_u16($val)
+    };
+    // u32 -> Atom
+    ($val:expr, u32 to $atom:ty) => {
+        <$atom>::from_u32($val)
+    };
+    // u64 -> Atom
+    ($val:expr, u64 to $atom:ty) => {
+        <$atom>::from_u64($val)
+    };
+    // u128 -> Atom
+    ($val:expr, u128 to $atom:ty) => {
+        <$atom>::from_u128($val)
+    };
+    // usize -> Atom
+    ($val:expr, usize to $atom:ty) => {
+        <$atom>::from_usize($val)
+    };
+    // Vec<u8> -> Atom
+    ($val:expr, Vec to $atom:ty) => {
+        <$atom>::from($val)
+    };
+}
