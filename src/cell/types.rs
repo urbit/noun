@@ -27,12 +27,12 @@ impl Cell for RcCell<VecAtom> {
         Self { head, tail }
     }
 
-    fn head(&self) -> &Self::Head {
-        &self.head
+    fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
+        (&self.head, &self.tail)
     }
 
-    fn tail(&self) -> &Self::Tail {
-        &self.tail
+    fn to_parts(&self) -> (Self::Head, Self::Tail) {
+        (self.head.clone(), self.tail.clone())
     }
 
     fn into_parts(self) -> (Self::Head, Self::Tail) {

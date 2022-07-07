@@ -27,7 +27,8 @@ impl Cue<VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
 
 impl Jam<'_, VecAtom, RcCell<VecAtom>> for EnumNoun<VecAtom, RcCell<VecAtom>> {
     fn cell_as_parts(cell: &RcCell<VecAtom>) -> (&Self, &Self) {
-        (cell.head(), cell.tail())
+        let (head, tail) = cell.as_parts();
+        (head, tail)
     }
 }
 
