@@ -597,6 +597,68 @@ mod tests {
             >(&cell, jammed_noun)?);
         }
 
+        // [0 1 2 3 4 5 6 7 8 9 10] serializes to 25.681.224.503.728.653.597.984.370.231.065.
+        {
+            let cell = {
+                const END: u8 = 10;
+                let mut noun = Rc::new(VecAtom::from_u8(END).into_noun_unchecked());
+                for i in (0..END).rev() {
+                    noun = Rc::new(
+                        RcCell::new(Rc::new(VecAtom::from_u8(i).into_noun_unchecked()), noun)
+                            .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from_u128(25_681_224_503_728_653_597_984_370_231_065);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [0 1 2 3 4 5 6 7 8 9 10] serializes to 25.681.224.503.728.653.597.984.370.231.065.
+        {
+            let cell = {
+                const END: u8 = 10;
+                let mut noun = Rc::new(VecAtom::from_u8(END).into_noun_unchecked());
+                for i in (0..END).rev() {
+                    noun = Rc::new(
+                        RcCell::new(Rc::new(VecAtom::from_u8(i).into_noun_unchecked()), noun)
+                            .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from_u128(25_681_224_503_728_653_597_984_370_231_065);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [99 100 101 102 103 104 0] serializes to 223.372.995.869.285.333.705.242.560.449.
+        {
+            let cell = {
+                let mut noun = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+                for i in (99..=104).rev() {
+                    noun = Rc::new(
+                        RcCell::new(Rc::new(VecAtom::from_u8(i).into_noun_unchecked()), noun)
+                            .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from_u128(223_372_995_869_285_333_705_242_560_449);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
         // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
         {
             let _222 = Rc::new(VecAtom::from_u8(222).into_noun_unchecked());
@@ -609,6 +671,106 @@ mod tests {
             let tail = head.clone();
             let cell = RcCell::new(head, tail).into_noun_unchecked();
             let jammed_noun = VecAtom::from_u128(170_479_614_045_978_345_989);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [[0 1] [1 2] [2 3] [3 4] 0] serializes to 11.976.248.475.217.237.797.
+        {
+            let cell = {
+                let mut noun = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+                for i in (0..=3).rev() {
+                    noun = Rc::new(
+                        RcCell::new(
+                            Rc::new(
+                                RcCell::new(
+                                    Rc::new(VecAtom::from_u8(i).into_noun_unchecked()),
+                                    Rc::new(VecAtom::from_u8(i + 1).into_noun_unchecked()),
+                                )
+                                .into_noun_unchecked(),
+                            ),
+                            noun,
+                        )
+                        .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from_u64(11_976_248_475_217_237_797);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [[0 1] [1 2] [2 3] [3 4] [4 5] [5 6] [6 7] [7 8] [8 9] 0] serializes to
+        // 7.694.087.033.387.855.647.747.387.855.514.468.399.947.749.137.782.565.
+        {
+            let cell = {
+                let mut noun = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+                for i in (0..=8).rev() {
+                    noun = Rc::new(
+                        RcCell::new(
+                            Rc::new(
+                                RcCell::new(
+                                    Rc::new(VecAtom::from_u8(i).into_noun_unchecked()),
+                                    Rc::new(VecAtom::from_u8(i + 1).into_noun_unchecked()),
+                                )
+                                .into_noun_unchecked(),
+                            ),
+                            noun,
+                        )
+                        .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from(vec![
+                37, 23, 35, 11, 137, 46, 52, 102, 97, 226, 22, 46, 118, 97, 227, 23, 62, 4, 11,
+                130, 144, 20,
+            ]);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [[0 1] [2 3] [4 5] [6 7] [8 9] [10 11] [12 13] [14 15] [16 17] [18 19] [20 21] 0]
+        // serializes to
+        // 308.947.677.754.874.070.959.300.747.182.056.036.528.545.493.781.368.831.595.479.491.505.523.344.414.501.
+        {
+            let cell = {
+                let mut noun = Rc::new(VecAtom::from_u8(0).into_noun_unchecked());
+                for i in (0..=21).rev() {
+                    if i % 2 != 0 {
+                        continue;
+                    }
+                    println!("[{} {}]", i, i + 1);
+                    noun = Rc::new(
+                        RcCell::new(
+                            Rc::new(
+                                RcCell::new(
+                                    Rc::new(VecAtom::from_u8(i).into_noun_unchecked()),
+                                    Rc::new(VecAtom::from_u8(i + 1).into_noun_unchecked()),
+                                )
+                                .into_noun_unchecked(),
+                            ),
+                            noun,
+                        )
+                        .into_noun_unchecked(),
+                    );
+                }
+                noun
+            };
+            let jammed_noun = VecAtom::from(vec![
+                37, 23, 18, 93, 152, 184, 133, 141, 95, 16, 132, 100, 65, 20, 178, 5, 97, 72, 23,
+                196, 33, 95, 48, 8, 139, 5, 147, 176, 89, 48, 10, 171, 2,
+            ]);
             assert!(run_test::<
                 VecAtom,
                 RcCell<VecAtom>,
