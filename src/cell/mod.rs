@@ -20,11 +20,11 @@ where
     /// Create a new cell from a head and a tail.
     fn new(head: Self::Head, tail: Self::Tail) -> Self;
 
-    /// Returns references to the head and tail of the cell.
-    fn as_parts(&self) -> (&Self::Head, &Self::Tail);
+    /// Returns the head of the cell.
+    fn head(&self) -> &Self::Head;
 
-    /// Returns the head and tail of the cell.
-    fn to_parts(&self) -> (Self::Head, Self::Tail);
+    /// Returns the tail of the cell.
+    fn tail(&self) -> &Self::Tail;
 
     /// Converts a cell into its head and tail, consuming the cell.
     fn into_parts(self) -> (Self::Head, Self::Tail);
