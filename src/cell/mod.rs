@@ -26,6 +26,14 @@ where
     /// Returns the tail of the cell.
     fn tail(&self) -> &Self::Tail;
 
+    /// Returns references to the head and tail of a cell.
+    fn as_parts(&self) -> (&Self::Head, &Self::Tail) {
+        (self.head(), self.tail())
+    }
+
+    /// Returns the head and tail of a cell.
+    fn to_parts(&self) -> (Self::Head, Self::Tail);
+
     /// Converts a cell into its head and tail, consuming the cell.
     fn into_parts(self) -> (Self::Head, Self::Tail);
 }
