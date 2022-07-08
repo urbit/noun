@@ -750,7 +750,6 @@ mod tests {
                     if i % 2 != 0 {
                         continue;
                     }
-                    println!("[{} {}]", i, i + 1);
                     noun = Rc::new(
                         RcCell::new(
                             Rc::new(
@@ -771,6 +770,65 @@ mod tests {
                 37, 23, 18, 93, 152, 184, 133, 141, 95, 16, 132, 100, 65, 20, 178, 5, 97, 72, 23,
                 196, 33, 95, 48, 8, 139, 5, 147, 176, 89, 48, 10, 171, 2,
             ]);
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [%vary 'Origin' 'Accept-Encoding'] serializes to
+        // 1.427.713.133.920.096.063.641.088.762.781.075.907.123.156.300.989.246.947.070.330.614.708.100.865.
+        {
+            let cell = RcCell::new(
+                Rc::new(VecAtom::from("vary").into_noun_unchecked()),
+                Rc::new(
+                    RcCell::new(
+                        Rc::new(VecAtom::from("Origin").into_noun_unchecked()),
+                        Rc::new(VecAtom::from("Accept-Encoding").into_noun_unchecked()),
+                    )
+                    .into_noun_unchecked(),
+                ),
+            )
+            .into_noun_unchecked();
+            let jammed_noun = VecAtom::from(vec![
+                1, 223, 46, 76, 46, 31, 224, 123, 146, 75, 59, 75, 115, 3, 188, 131, 198, 198, 202,
+                224, 232, 90, 138, 220, 198, 222, 200, 210, 220, 206,
+            ]);
+
+            assert!(run_test::<
+                VecAtom,
+                RcCell<VecAtom>,
+                EnumNoun<VecAtom, RcCell<VecAtom>>,
+            >(&cell, jammed_noun)?);
+        }
+
+        // [[%vary 'Origin'] [%vary 'Accept-Encoding']] serializes to
+        // 2.923.956.498.268.356.738.336.949.786.175.643.457.788.180.560.108.194.340.456.079.961.920.720.567.301.
+        {
+            let vary = Rc::new(VecAtom::from("vary").into_noun_unchecked());
+            let cell = RcCell::new(
+                Rc::new(
+                    RcCell::new(
+                        vary.clone(),
+                        Rc::new(VecAtom::from("Origin").into_noun_unchecked()),
+                    )
+                    .into_noun_unchecked(),
+                ),
+                Rc::new(
+                    RcCell::new(
+                        vary,
+                        Rc::new(VecAtom::from("Accept-Encoding").into_noun_unchecked()),
+                    )
+                    .into_noun_unchecked(),
+                ),
+            )
+            .into_noun_unchecked();
+            let jammed_noun = VecAtom::from(vec![
+                5, 124, 187, 48, 185, 60, 224, 123, 146, 75, 59, 75, 115, 55, 19, 224, 29, 52, 54,
+                86, 6, 71, 215, 82, 228, 54, 246, 70, 150, 230, 118, 6,
+            ]);
+
             assert!(run_test::<
                 VecAtom,
                 RcCell<VecAtom>,
