@@ -12,12 +12,7 @@ use std::{fmt::Debug, ops::Add, str};
 /// Convert an unsigned integer into an atom.
 macro_rules! uint_to_atom {
     ($uint:expr, $atom:ty) => {{
-        let mut vec = Vec::from($uint.to_le_bytes());
-        if let Some(idx) = vec.iter().rposition(|x| *x != 0) {
-            let len = idx + 1;
-            vec.truncate(len);
-        }
-        <$atom>::from(vec)
+        <$atom>::from(Vec::from($uint.to_le_bytes()))
     }};
 }
 
@@ -39,6 +34,8 @@ macro_rules! atom_to_uint {
 }
 
 /// Interface to the atom data structure.
+///
+/// A non-zero atom must not have trailing zero bytes.
 pub trait Atom: Add + Debug + Eq + From<Vec<u8>> + Sized {
     /// Create a new atom from an 8-bit unsigned integer.
     fn from_u8(uint: u8) -> Self {

@@ -22,7 +22,12 @@ impl Atom for VecAtom {
 }
 
 impl From<Vec<u8>> for VecAtom {
-    fn from(val: Vec<u8>) -> Self {
+    fn from(mut val: Vec<u8>) -> Self {
+        let len = match val.iter().rposition(|x| *x != 0) {
+            Some(idx) => idx + 1,
+            None => 0,
+        };
+        val.truncate(len);
         Self(val)
     }
 }
