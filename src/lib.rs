@@ -9,7 +9,6 @@ pub mod atom;
 pub mod cell;
 pub mod convert;
 pub mod noun;
-pub mod ops;
 pub mod serdes;
 
-pub use crate::noun::*;
+pub type Rc<T> = std::rc::Rc<T>;
