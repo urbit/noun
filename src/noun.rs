@@ -103,12 +103,7 @@ impl Cue for Noun {
                         // Back reference tag = 0b11.
                         Some(true) => decode_backref(bits, cache),
                         // Cell tag = 0b01.
-                        Some(false) => {
-                            let pos = bits.pos() as u64;
-                            let cell = decode_cell(bits, cache)?.into_noun_ptr();
-                            cache.insert(pos, cell.clone());
-                            Ok(cell)
-                        }
+                        Some(false) => Ok(decode_cell(bits, cache)?.into_noun_ptr()),
                         None => return Err(serdes::Error::InvalidTag),
                     }
                 }
@@ -230,155 +225,124 @@ mod tests {
     use super::*;
 
     #[test]
-    fn cue_atom() {
-        // 2 deserializes to 0.
-        {
-            let jammed_noun = Atom::from(0b10u8);
-            let atom = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(atom, Atom::from(0u8).into_noun());
-        }
-
-        // 12 deserializes to 1.
-        {
-            let jammed_noun = Atom::from(0b1100u8);
-            let atom = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(atom, Atom::from(1u8).into_noun());
-        }
-
-        // 72 deserializes to 2.
-        {
-            let jammed_noun = Atom::from(0b1001000u8);
-            let atom = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(atom, Atom::from(2u8).into_noun());
-        }
-
-        // 2480 deserializes to 19.
-        {
-            let jammed_noun = Atom::from(0b100110110000u16);
-            let atom = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(atom, Atom::from(19u8).into_noun());
-        }
-    }
-
-    #[test]
-    fn cue_cell() {
-        // 39.689 deserializes into [0 19].
-        {
-            let jammed_noun = Atom::from(0b1001101100001001u16);
-            let cell = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(cell, Cell::from([0u8, 19u8]).into_noun());
-        }
-
-        // 817 deserializes to [1 1].
-        {
-            let jammed_noun = Atom::from(0b1100110001u16);
-            let cell = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(cell, Cell::from([1u8, 1u8]).into_noun());
-        }
-
-        // 4.952.983.169 deserializes into [10.000 10.000].
-        {
-            let jammed_noun = Atom::from(0b100100111001110001000011010000001u64);
-            let cell = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(cell, Cell::from([10_000u16, 10_000u16]).into_noun());
-        }
-
-        // 1.301.217.674.263.809 serializes to [999.999.999 999.999.999].
-        {
-            let jammed_noun = Atom::from(0b100100111110111001101011001001111111111110100000001u64);
-            let cell = Noun::cue(jammed_noun).expect("cue");
-            assert_eq!(
-                cell,
-                Cell::from([999_999_999u32, 999_999_999u32]).into_noun()
-            );
-        }
-
-        // 635.080.761.093 deserializes into [[107 110] [107 110]].
-        {
-            let jammed_noun = Atom::from(0b1001001111011101110000110101111100000101u64);
-            let cell = Noun::cue(jammed_noun).expect("cue");
-            let head = Cell::from([107u8, 110u8]).into_noun_ptr();
-            assert_eq!(cell, Cell::from([head.clone(), head]).into_noun());
-        }
-    }
-
-    #[test]
-    fn jam_atom() {
+    fn jam_cue_atom() {
         // 0 serializes to 2.
         {
             let atom = Atom::from(0u8).into_noun();
-            assert_eq!(atom.jam(), Atom::from(2u8));
+            let jammed_atom = Atom::from(2u8);
+            assert_eq!(atom.clone().jam(), jammed_atom);
+            assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 1 serializes to 12.
         {
             let atom = Atom::from(1u8).into_noun();
-            assert_eq!(atom.jam(), Atom::from(12u8));
+            let jammed_atom = Atom::from(12u8);
+            assert_eq!(atom.clone().jam(), jammed_atom);
+            assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 2 serializes to 72.
         {
             let atom = Atom::from(2u8).into_noun();
-            assert_eq!(atom.jam(), Atom::from(72u8));
+            let jammed_atom = Atom::from(72u8);
+            assert_eq!(atom.clone().jam(), jammed_atom);
+            assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 19 serializes to 2480.
         {
             let atom = Atom::from(19u8).into_noun();
-            assert_eq!(atom.jam(), Atom::from(2480u16));
+            let jammed_atom = Atom::from(2480u16);
+            assert_eq!(atom.clone().jam(), jammed_atom);
+            assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 581.949.002 serializes to 1.191.831.557.952.
         {
             let atom = Atom::from(581_949_002u32).into_noun();
-            assert_eq!(atom.jam(), Atom::from(1_191_831_557_952u64));
+            let jammed_atom = Atom::from(1_191_831_557_952u64);
+            assert_eq!(atom.clone().jam(), jammed_atom);
+            assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
     }
 
     #[test]
-    fn jam_cell() {
+    fn jam_cue_cell() {
         // [0 19] serializes into 39.689.
         {
             let cell = Cell::from([0u8, 19u8]).into_noun();
-            assert_eq!(cell.jam(), Atom::from(39_689u16));
+            let jammed_cell = Atom::from(39_689u16);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [1 1] serializes to 817.
         {
             let cell = Cell::from([1u8, 1u8]).into_noun();
-            assert_eq!(cell.jam(), Atom::from(817u16));
+            let jammed_cell = Atom::from(817u16);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
+        }
+
+        // [10.000 10.000] serializes into 4.952.983.169.
+        {
+            let cell = Cell::from([10_000u16, 10_000u16]).into_noun();
+            let jammed_cell = Atom::from(0b100100111001110001000011010000001u64);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
+        }
+
+        // [999.999.999 999.999.999] serializes to 1.301.217.674.263.809.
+        {
+            let cell = Cell::from([999_999_999u32, 999_999_999u32]).into_noun();
+            let jammed_cell = Atom::from(0b100100111110111001101011001001111111111110100000001u64);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [222 444 888] serializes to 250.038.217.192.960.129.
         {
             let cell = Cell::from([222u16, 444u16, 888u16]).into_noun();
-            assert_eq!(cell.jam(), Atom::from(250_038_217_192_960_129u64));
+            let jammed_cell = Atom::from(250_038_217_192_960_129u64);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
+        }
+
+        // [[107 110] [107 110]] serializes to 635.080.761.093.
+        {
+            let head = Cell::from([107u8, 110u8]).into_noun_ptr();
+            let cell = Cell::from([head.clone(), head]).into_noun();
+            let jammed_cell = Atom::from(0b1001001111011101110000110101111100000101u64);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [0 1 2 3 4 5 6 7 8 9 10] serializes to 25.681.224.503.728.653.597.984.370.231.065.
         {
             let cell =
                 Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8, 10u8]).into_noun();
-            assert_eq!(
-                cell.jam(),
-                Atom::from(25_681_224_503_728_653_597_984_370_231_065u128)
-            );
+
+            let jammed_cell = Atom::from(25_681_224_503_728_653_597_984_370_231_065u128);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [99 100 101 102 103 104 0] serializes to 223.372.995.869.285.333.705.242.560.449.
         {
             let cell = Cell::from([99u8, 100u8, 101u8, 102u8, 103u8, 104u8, 0u8]).into_noun();
-            assert_eq!(
-                cell.jam(),
-                Atom::from(223_372_995_869_285_333_705_242_560_449u128)
-            );
+            let jammed_cell = Atom::from(223_372_995_869_285_333_705_242_560_449u128);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
         {
             let head = Cell::from([222u16, 444u16, 888u16]).into_noun_ptr();
             let cell = Cell::from([head.clone(), head]).into_noun();
-            assert_eq!(cell.jam(), Atom::from(170_479_614_045_978_345_989u128));
+            let jammed_cell = Atom::from(170_479_614_045_978_345_989u128);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [[0 1] [1 2] [2 3] [3 4] 0] serializes to 11.976.248.475.217.237.797.
@@ -391,7 +355,9 @@ mod tests {
                 Atom::from(0u8).into_noun(),
             ])
             .into_noun();
-            assert_eq!(cell.jam(), Atom::from(11_976_248_475_217_237_797u64));
+            let jammed_cell = Atom::from(11_976_248_475_217_237_797u64);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [[0 1] [1 2] [2 3] [3 4] [4 5] [5 6] [6 7] [7 8] [8 9] 0] serializes to
@@ -414,7 +380,8 @@ mod tests {
                 37, 23, 35, 11, 137, 46, 52, 102, 97, 226, 22, 46, 118, 97, 227, 23, 62, 4, 11,
                 130, 144, 20,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [[0 1] [2 3] [4 5] [6 7] [8 9] [10 11] [12 13] [14 15] [16 17] [18 19] [20 21] 0]
@@ -440,7 +407,8 @@ mod tests {
                 37, 23, 18, 93, 152, 184, 133, 141, 95, 16, 132, 100, 65, 20, 178, 5, 97, 72, 23,
                 196, 33, 95, 48, 8, 139, 5, 147, 176, 89, 48, 10, 171, 2,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [[%vary 'Origin'] [%vary 'Accept-Encoding']] serializes to
@@ -455,14 +423,16 @@ mod tests {
                 5, 124, 187, 48, 185, 60, 224, 123, 146, 75, 59, 75, 115, 55, 19, 224, 29, 52, 54,
                 86, 6, 71, 215, 82, 228, 54, 246, 70, 150, 230, 118, 6,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [%x-cached 'HIT'] serializes to 3.419.056.981.361.227.851.413.339.139.505.665.
         {
             let cell = Cell::from(["x-cached", "HIT"]).into_noun();
             let jammed_cell = Atom::from(3_419_056_981_361_227_851_413_339_139_505_665u128);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [
@@ -486,7 +456,8 @@ mod tests {
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 89,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [
@@ -513,7 +484,8 @@ mod tests {
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
                 99, 116, 105, 111, 110, 128, 207, 90, 89, 25, 92, 75, 24, 91, 154, 93, 89,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [
@@ -544,7 +516,8 @@ mod tests {
                 99, 116, 105, 111, 110, 128, 207, 90, 89, 25, 92, 75, 24, 91, 154, 93, 185, 0, 190,
                 99, 111, 110, 116, 101, 110, 116, 45, 108, 101, 110, 103, 116, 104, 208, 53, 185,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [
@@ -579,7 +552,8 @@ mod tests {
                 1, 252, 198, 222, 220, 232, 202, 220, 232, 90, 232, 242, 224, 202, 0, 255, 48, 56,
                 56, 182, 180, 177, 48, 186, 180, 55, 183, 23, 181, 185, 55, 183,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         // [
@@ -618,7 +592,8 @@ mod tests {
                 174, 12, 224, 217, 72, 46, 141, 5, 4, 6, 7, 68, 169, 142, 13, 68, 6, 70, 70, 6, 36,
                 198, 70, 135, 102, 70, 167, 6, 6, 228, 168, 137, 42,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
         //  [%server 'nginx/1.14.0 (Ubuntu)'] serializes to
@@ -629,9 +604,11 @@ mod tests {
                 1, 190, 185, 50, 57, 187, 50, 57, 128, 38, 183, 179, 52, 55, 188, 151, 24, 151, 24,
                 26, 23, 24, 16, 148, 42, 177, 58, 55, 186, 186, 20,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
 
+        // (jam [[%x-cached 'HIT'] [%vary 'Origin'] [%vary 'Accept-Encoding'] [%connection %keep-alive] [%content-length '59'] [%content-type 'application/json'] [%date 'Fri, 08 Jul 2022 16:43:50 GMT'] [%server 'nginx/1.14.0 (Ubuntu)'] 0])
         // [
         //  [%x-cached 'HIT']
         //  [%vary 'Origin']
@@ -671,7 +648,8 @@ mod tests {
                 76, 14, 160, 201, 237, 44, 205, 13, 239, 37, 198, 37, 134, 198, 5, 6, 4, 165, 74,
                 172, 206, 141, 174, 46, 21,
             ]);
-            assert_eq!(cell.jam(), jammed_cell);
+            assert_eq!(cell.clone().clone().jam(), jammed_cell);
+            assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
     }
 }

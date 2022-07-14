@@ -218,17 +218,21 @@ impl Atom {
 
 impl Display for Atom {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "0x")?;
-        if self.bytes.is_empty() {
-            write!(f, "0")
+        if let Ok(string) = self.as_str() {
+            write!(f, "\"{}\"", string)
         } else {
-            for (i, byte) in (&self.bytes).iter().enumerate() {
-                if i > 0 && i % 4 == 0 {
-                    write!(f, ".")?;
+            write!(f, "0x")?;
+            if self.bytes.is_empty() {
+                write!(f, "0")
+            } else {
+                for (i, byte) in (&self.bytes).iter().enumerate() {
+                    if i > 0 && i % 4 == 0 {
+                        write!(f, ".")?;
+                    }
+                    write!(f, "{:x}", byte)?;
                 }
-                write!(f, "{:x}", byte)?;
+                Ok(())
             }
-            Ok(())
         }
     }
 }
