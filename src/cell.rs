@@ -16,6 +16,58 @@ impl Cell {
         self.tail.clone()
     }
 
+    /// Unpack a cell of the form `[a1 a2 ... aN]` into a list, returning `None` if the cell is not
+    /// large enough to unpack into a list of length `N`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use noun::{atom::Atom, cell::Cell};
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8]);
+    ///
+    /// let nouns = cell.as_list::<6>().unwrap();
+    /// assert_eq!(*nouns[0], Atom::from(0u8).into_noun());
+    /// assert_eq!(*nouns[1], Atom::from(1u8).into_noun());
+    /// assert_eq!(*nouns[2], Atom::from(2u8).into_noun());
+    /// assert_eq!(*nouns[3], Atom::from(3u8).into_noun());
+    /// assert_eq!(*nouns[4], Atom::from(4u8).into_noun());
+    /// assert_eq!(*nouns[5], Atom::from(5u8).into_noun());
+    /// ```
+    ///
+    /// ```
+    /// # use noun::{atom::Atom, cell::Cell};
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
+    ///
+    /// assert_eq!(cell.as_list::<6>(), None);
+    /// ```
+    pub fn as_list<const N: usize>(&self) -> Option<[Rc<Noun>; N]> {
+        debug_assert!(N >= 2);
+        let mut nouns = Vec::with_capacity(N);
+        nouns.push(self.head());
+        let mut noun = self.tail();
+        for i in 1..N {
+            match *noun {
+                Noun::Atom(_) => {
+                    if i < N - 1 {
+                        return None;
+                    }
+                    nouns.push(noun.clone());
+                }
+                Noun::Cell(ref cell) => {
+                    nouns.push(cell.head());
+                    noun = cell.tail();
+                }
+            }
+        }
+        // Is copying too expensive?
+        Some(nouns.try_into().unwrap())
+    }
+
+    /// Convert a cell into its head and tail, consuming the cell.
+    pub fn into_parts(self) -> (Rc<Noun>, Rc<Noun>) {
+        (self.head, self.tail)
+    }
+
     /// Convert a cell into a noun, consuming the cell.
     pub fn into_noun(self) -> Noun {
         Noun::Cell(self)

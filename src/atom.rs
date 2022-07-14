@@ -191,6 +191,11 @@ impl Atom {
         atom_to_uint!(self, usize)
     }
 
+    /// Convert an atom into a byte vector, consuming the atom.
+    pub fn into_vec(self) -> Vec<u8> {
+        self.bytes
+    }
+
     /// Convert an atom into a noun, consuming the atom.
     pub fn into_noun(self) -> Noun {
         Noun::Atom(self)
