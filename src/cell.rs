@@ -175,35 +175,35 @@ macro_rules! cell_from_array {
     }};
 }
 
-cell_from_array!(n=2);
-cell_from_array!(n=3);
-cell_from_array!(n=4);
-cell_from_array!(n=5);
-cell_from_array!(n=6);
-cell_from_array!(n=7);
-cell_from_array!(n=8);
-cell_from_array!(n=9);
-cell_from_array!(n=10);
-cell_from_array!(n=11);
-cell_from_array!(n=12);
-cell_from_array!(n=13);
-cell_from_array!(n=14);
-cell_from_array!(n=15);
-cell_from_array!(n=16);
-cell_from_array!(n=17);
-cell_from_array!(n=18);
-cell_from_array!(n=19);
-cell_from_array!(n=20);
-cell_from_array!(n=21);
-cell_from_array!(n=22);
-cell_from_array!(n=23);
-cell_from_array!(n=24);
-cell_from_array!(n=25);
-cell_from_array!(n=26);
-cell_from_array!(n=27);
-cell_from_array!(n=28);
-cell_from_array!(n=29);
-cell_from_array!(n=30);
+cell_from_array!(n = 2);
+cell_from_array!(n = 3);
+cell_from_array!(n = 4);
+cell_from_array!(n = 5);
+cell_from_array!(n = 6);
+cell_from_array!(n = 7);
+cell_from_array!(n = 8);
+cell_from_array!(n = 9);
+cell_from_array!(n = 10);
+cell_from_array!(n = 11);
+cell_from_array!(n = 12);
+cell_from_array!(n = 13);
+cell_from_array!(n = 14);
+cell_from_array!(n = 15);
+cell_from_array!(n = 16);
+cell_from_array!(n = 17);
+cell_from_array!(n = 18);
+cell_from_array!(n = 19);
+cell_from_array!(n = 20);
+cell_from_array!(n = 21);
+cell_from_array!(n = 22);
+cell_from_array!(n = 23);
+cell_from_array!(n = 24);
+cell_from_array!(n = 25);
+cell_from_array!(n = 26);
+cell_from_array!(n = 27);
+cell_from_array!(n = 28);
+cell_from_array!(n = 29);
+cell_from_array!(n = 30);
 
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {
