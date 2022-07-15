@@ -659,7 +659,6 @@ mod tests {
                 Atom::from(0u8).into_noun(),
                 Atom::from(78u8).into_noun(),
                 Atom::from(r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#).into_noun(),
-
             ])
             .into_noun();
             let jammed_cell = Atom::from(vec![

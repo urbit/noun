@@ -54,8 +54,12 @@ impl Cell {
                     nouns.push(noun.clone());
                 }
                 Noun::Cell(ref cell) => {
-                    nouns.push(cell.head());
-                    noun = cell.tail();
+                    if i < N - 1 {
+                        nouns.push(cell.head());
+                        noun = cell.tail();
+                    } else {
+                        nouns.push(noun.clone());
+                    }
                 }
             }
         }
@@ -526,5 +530,80 @@ cell_from_array!([Vec<u8>; 26]);
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {
         self.head == other.head && self.tail == other.tail
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn as_list() {
+        macro_rules! check_atom {
+            ($atom:expr, $expected:expr) => {
+                if let Noun::Atom(atom) = &*$atom {
+                    assert_eq!(atom, &Atom::from($expected));
+                } else {
+                    panic!("unexpectec cell");
+                }
+            };
+        }
+
+        {
+            let cell = Cell::from([
+                Atom::from("request").into_noun(),
+                Atom::from(0u8).into_noun(),
+                Atom::from("POST").into_noun(),
+                Atom::from("http://eth-mainnet.urbit.org:8545").into_noun(),
+                Cell::from([
+                    Cell::from([Atom::from("Content-Type"), Atom::from("application/json")]).into_noun(),
+                    Atom::from(0u8).into_noun(),
+                ]).into_noun(),
+                Atom::from(0u8).into_noun(),
+                Atom::from(78u8).into_noun(),
+                Atom::from(r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#).into_noun(),
+            ]);
+            let [tag, req_num, method, uri, headers, body] = cell.as_list::<6>().expect("as list");
+            check_atom!(tag, "request");
+            check_atom!(req_num, 0u8);
+            check_atom!(method, "POST");
+            check_atom!(uri, "http://eth-mainnet.urbit.org:8545");
+            if let Noun::Cell(headers) = &*headers {
+                if let Noun::Cell(header) = &*headers.head() {
+                    let (key, val) = (header.head(), header.tail());
+                    check_atom!(key, "Content-Type");
+                    check_atom!(val, "application/json");
+                } else {
+                    panic!("unexpected atom");
+                }
+                println!("headers tail = {}", headers.tail());
+                if let Noun::Atom(null) = &*headers.tail() {
+                    //check_atom!(null, 0u8);
+                } else {
+                    panic!("unexpected cell");
+                }
+            } else {
+                panic!("unexpected atom");
+            }
+            if let Noun::Cell(body) = &*body {
+                check_atom!(body.head(), 0u8);
+                if let Noun::Cell(body) = &*body.tail() {
+                    if let (Noun::Atom(body_len), Noun::Atom(body)) = (&*body.head(), &*body.tail())
+                    {
+                        assert_eq!(body_len, &Atom::from(78u8));
+                        assert_eq!(
+                            body,
+                            r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#
+                        );
+                    } else {
+                        panic!("unexpected cell");
+                    }
+                } else {
+                    panic!("unexpected atom");
+                }
+            } else {
+                panic!("unexpected atom");
+            }
+        }
     }
 }
