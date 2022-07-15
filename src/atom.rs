@@ -278,41 +278,18 @@ impl From<Vec<u8>> for Atom {
 }
 
 impl PartialEq for Atom {
-    /// # Examples
-    ///
-    /// ```
-    /// # use noun::atom::Atom;
-    /// let lh = Atom::from("The Importance of Being Ernest");
-    /// let rh = Atom::from("The Importance of Being Ernest");
-    /// assert_eq!(lh, rh);
-    /// ```
-    ///
-    /// ```
-    /// # use noun::atom::Atom;
-    /// let lh = Atom::from("Oh, to be a glove");
-    /// let rh = Atom::from("upon that hand.");
-    /// assert_ne!(lh, rh);
-    /// ```
     fn eq(&self, other: &Self) -> bool {
         self.bytes == other.bytes
     }
 }
 
+impl PartialEq<&Self> for Atom {
+    fn eq(&self, other: &&Self) -> bool {
+        self.bytes == other.bytes
+    }
+}
+
 impl PartialEq<str> for Atom {
-    /// # Examples
-    ///
-    /// ```
-    /// # use noun::atom::Atom;
-    /// let string = "hello";
-    /// let atom = Atom::from(string);
-    /// assert_eq!(atom, string);
-    /// ```
-    ///
-    /// ```
-    /// # use noun::atom::Atom;
-    /// let atom = Atom::from("hello");
-    /// assert_ne!(atom, "goodbye");
-    /// ```
     fn eq(&self, other: &str) -> bool {
         if let Ok(string) = str::from_utf8(self.as_bytes()) {
             string == other
@@ -331,6 +308,28 @@ impl PartialEq<&str> for Atom {
         }
     }
 }
+
+/// Compare an atom to an unsigned integer.
+macro_rules! atom_eq_uint {
+    ($uint:ty, $as_uint:ident) => {
+        impl PartialEq<$uint> for Atom {
+            fn eq(&self, other: &$uint) -> bool {
+                if let Some(uint) = self.$as_uint() {
+                    uint == *other
+                } else {
+                    false
+                }
+            }
+        }
+    };
+}
+
+atom_eq_uint!(u8, as_u8);
+atom_eq_uint!(u16, as_u16);
+atom_eq_uint!(u32, as_u32);
+atom_eq_uint!(u64, as_u64);
+atom_eq_uint!(u128, as_u128);
+atom_eq_uint!(usize, as_usize);
 
 /// An iterator over the bits of an `Atom` as `bool`s.
 pub struct Iter<'a> {
@@ -436,6 +435,65 @@ mod tests {
             assert_eq!(Some(true), atom_iter.next());
 
             assert_eq!(None, atom_iter.next());
+        }
+    }
+
+    #[test]
+    fn partial_eq() {
+        {
+            let lh = Atom::from("The Importance of Being Ernest");
+            let rh = Atom::from("The Importance of Being Ernest");
+            assert_eq!(lh, rh);
+        }
+
+        {
+            let lh = Atom::from("Oh, to be a glove");
+            let rh = Atom::from("upon that hand.");
+            assert_ne!(lh, rh);
+        }
+
+        {
+            let string = "hello";
+            let atom = Atom::from(string);
+            assert_eq!(atom, string);
+        }
+
+        {
+            let atom = Atom::from("hello");
+            assert_ne!(atom, "goodbye");
+        }
+
+        {
+            macro_rules! uint_eq_test {
+                ($uint:expr) => {
+                    let atom = Atom::from($uint);
+                    assert_eq!(atom, $uint);
+                };
+            }
+
+            uint_eq_test!(0u8);
+            uint_eq_test!(107u8);
+            uint_eq_test!(16_000u16);
+            uint_eq_test!(949_543_111u32);
+            uint_eq_test!(184_884_819u64);
+            uint_eq_test!(19_595_184_881_994_188_181u128);
+            uint_eq_test!(10_101_044_481_818usize);
+        }
+
+        {
+            macro_rules! uint_ne_test {
+                ($atom:expr, $uint:expr) => {
+                    let atom = Atom::from($atom);
+                    assert_ne!(atom, $uint);
+                };
+            }
+
+            uint_ne_test!(97u8, 103u8);
+            uint_ne_test!(98u8, 64_222u16);
+            uint_ne_test!(99u8, 777_919_400u32);
+            uint_ne_test!(100u8, 881_944_000_887u64);
+            uint_ne_test!(881_944_000_887u64, 21_601_185_860_100_176_183u128);
+            uint_ne_test!(64_222u16, 127usize);
         }
     }
 }
