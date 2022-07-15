@@ -77,7 +77,20 @@ impl Cell {
 
 impl Display for Cell {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        write!(f, "[{} {}]", self.head(), self.tail())
+        write!(f, "[")?;
+        match (&*self.head(), &*self.tail()) {
+            (head, Noun::Atom(tail)) => write!(f, "{} {}", head, tail)?,
+            (head, _) => {
+                write!(f, "{} ", head)?;
+                let mut tail = self.tail();
+                while let Noun::Cell(cell) = &*tail {
+                    write!(f, "{} ", cell.head())?;
+                    tail = cell.tail();
+                }
+                write!(f, "{}", tail)?;
+            }
+        }
+        write!(f, "]")
     }
 }
 
@@ -236,7 +249,6 @@ mod tests {
                 } else {
                     panic!("unexpected atom");
                 }
-                println!("headers tail = {}", headers.tail());
                 if let Noun::Atom(null) = &*headers.tail() {
                     //check_atom!(null, 0u8);
                 } else {
