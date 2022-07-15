@@ -47,20 +47,12 @@ impl Cell {
         let mut noun = self.tail();
         for i in 1..N {
             match *noun {
-                Noun::Atom(_) => {
-                    if i < N - 1 {
-                        return None;
-                    }
-                    nouns.push(noun.clone());
+                Noun::Atom(_) if i < N - 1 => return None,
+                Noun::Cell(ref cell) if i < N - 1 => {
+                    nouns.push(cell.head());
+                    noun = cell.tail();
                 }
-                Noun::Cell(ref cell) => {
-                    if i < N - 1 {
-                        nouns.push(cell.head());
-                        noun = cell.tail();
-                    } else {
-                        nouns.push(noun.clone());
-                    }
-                }
+                _ => nouns.push(noun.clone()),
             }
         }
         // Is copying too expensive?
@@ -110,6 +102,7 @@ macro_rules! array_to_cell {
     }};
 }
 
+/// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array.
 macro_rules! cell_from_array {
     ([Atom; $len:expr]) => {
         impl From<[Atom; $len]> for Cell {
