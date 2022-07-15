@@ -7,7 +7,7 @@ pub enum Error {
     AtomToUint,
     AtomToStr,
     DestType,
-    NotEnoughElements,
+    MissingValue,
     UnexpectedAtom,
     UnexpectedCell,
 }
