@@ -4,13 +4,6 @@ use std::{
     str::{self, Utf8Error},
 };
 
-/// Convert an unsigned integer into an atom.
-macro_rules! uint_to_atom {
-    ($uint:expr) => {{
-        Atom::from(Vec::from($uint.to_le_bytes()))
-    }};
-}
-
 /// Convert an atom into an unsigned integer, returning `None` if the byte width of the atom exceeds
 /// the byte width of the target unsigned integer type.
 macro_rules! atom_to_uint {
@@ -251,41 +244,23 @@ impl From<String> for Atom {
     }
 }
 
-impl From<u8> for Atom {
-    fn from(uint: u8) -> Self {
-        uint_to_atom!(uint)
-    }
+/// Convert an unsigned integer into an atom.
+macro_rules! atom_from_uint {
+    ($uint:ty) => {
+        impl From<$uint> for Atom {
+            fn from(uint: $uint) -> Self {
+                Atom::from(Vec::from(uint.to_le_bytes()))
+            }
+        }
+    };
 }
 
-impl From<u16> for Atom {
-    fn from(uint: u16) -> Self {
-        uint_to_atom!(uint)
-    }
-}
-
-impl From<u32> for Atom {
-    fn from(uint: u32) -> Self {
-        uint_to_atom!(uint)
-    }
-}
-
-impl From<u64> for Atom {
-    fn from(uint: u64) -> Self {
-        uint_to_atom!(uint)
-    }
-}
-
-impl From<u128> for Atom {
-    fn from(uint: u128) -> Self {
-        uint_to_atom!(uint)
-    }
-}
-
-impl From<usize> for Atom {
-    fn from(uint: usize) -> Self {
-        uint_to_atom!(uint)
-    }
-}
+atom_from_uint!(u8);
+atom_from_uint!(u16);
+atom_from_uint!(u32);
+atom_from_uint!(u64);
+atom_from_uint!(u128);
+atom_from_uint!(usize);
 
 impl From<Vec<u8>> for Atom {
     fn from(mut vec: Vec<u8>) -> Self {
