@@ -1,5 +1,7 @@
+//! Nouns.
+
 use crate::{
-    atom::{self, Atom, AtomBuilder},
+    atom::{self, Atom},
     cell::Cell,
     serdes::{self, Cue, Jam},
     Rc,
@@ -10,6 +12,7 @@ use std::{
     mem::drop,
 };
 
+/// An atom or a cell.
 #[derive(Clone, Debug, Eq, Hash)]
 pub enum Noun {
     Atom(Atom),
@@ -48,7 +51,7 @@ impl Cue for Noun {
             if len == 0 {
                 Ok(Atom::from(0u8))
             } else {
-                let mut atom_builder = AtomBuilder::new();
+                let mut atom_builder = Atom::builder();
                 for _ in 0..len {
                     let bit = bits.next().ok_or(serdes::Error::AtomConstruction)?;
                     atom_builder.push_bit(bit);
@@ -83,14 +86,14 @@ impl Cue for Noun {
                             let tail = decode(bits, cache)?;
                             cache.insert(pos, tail.clone());
 
-                            Ok(Cell::from([head, tail]).into_noun_ptr())
+                            Ok(Cell::from([head, tail]).into_rc_noun())
                         }
                         None => return Err(serdes::Error::InvalidTag),
                     }
                 }
                 // Atom tag = 0b0.
                 Some(false) => {
-                    let atom = decode_atom(bits)?.into_noun_ptr();
+                    let atom = decode_atom(bits)?.into_rc_noun();
                     cache.insert(pos, atom.clone());
                     Ok(atom)
                 }
@@ -111,7 +114,7 @@ impl Cue for Noun {
 
 impl Jam for Noun {
     fn jam(self) -> Atom {
-        fn encode_len(mut len: u64, bits: &mut AtomBuilder) {
+        fn encode_len(mut len: u64, bits: &mut atom::Builder) {
             let len_of_len = u64::BITS - len.leading_zeros();
             for _ in 0..len_of_len {
                 bits.push_bit(false);
@@ -126,7 +129,7 @@ impl Jam for Noun {
             }
         }
 
-        fn encode_atom(atom: &Atom, bits: &mut AtomBuilder) {
+        fn encode_atom(atom: &Atom, bits: &mut atom::Builder) {
             // Atom tag = 0b0.
             bits.push_bit(false);
             encode_len(atom.bit_len() as u64, bits);
@@ -135,7 +138,7 @@ impl Jam for Noun {
             }
         }
 
-        fn encode(noun: Rc<Noun>, bits: &mut AtomBuilder, cache: &mut HashMap<Rc<Noun>, u64>) {
+        fn encode(noun: Rc<Noun>, bits: &mut atom::Builder, cache: &mut HashMap<Rc<Noun>, u64>) {
             if let Some(idx) = cache.get(&noun) {
                 if let Noun::Atom(ref atom) = *noun {
                     let idx_bit_len = u64::from(u64::BITS - idx.leading_zeros());
@@ -172,7 +175,7 @@ impl Jam for Noun {
         }
 
         let noun = Rc::new(self);
-        let mut bits = AtomBuilder::new();
+        let mut bits = Atom::builder();
         let mut cache = HashMap::new();
         encode(noun, &mut bits, &mut cache);
         bits.into_atom()
@@ -291,7 +294,7 @@ mod tests {
 
         // [[107 110] [107 110]] serializes to 635.080.761.093.
         {
-            let head = Cell::from([107u8, 110u8]).into_noun_ptr();
+            let head = Cell::from([107u8, 110u8]).into_rc_noun();
             let cell = Cell::from([head.clone(), head]).into_noun();
             let jammed_cell = Atom::from(0b1001001111011101110000110101111100000101u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
@@ -318,7 +321,7 @@ mod tests {
 
         // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
         {
-            let head = Cell::from([222u16, 444u16, 888u16]).into_noun_ptr();
+            let head = Cell::from([222u16, 444u16, 888u16]).into_rc_noun();
             let cell = Cell::from([head.clone(), head]).into_noun();
             let jammed_cell = Atom::from(170_479_614_045_978_345_989u128);
             assert_eq!(cell.clone().jam(), jammed_cell);

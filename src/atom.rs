@@ -1,11 +1,13 @@
+//! Atoms.
+
 use crate::{noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
 };
 
-/// Convert an atom into an unsigned integer, returning `None` if the byte width of the atom exceeds
-/// the byte width of the target unsigned integer type.
+/// Converts an atom into an unsigned integer, returning `None` if the byte width of the atom
+/// exceeds the byte width of the target unsigned integer type.
 macro_rules! atom_as_uint {
     ($atom:expr, $uint:ty) => {{
         let atom = $atom.as_bytes();
@@ -21,7 +23,7 @@ macro_rules! atom_as_uint {
     }};
 }
 
-/// Get the length in bits of a sequence of bytes.
+/// Returns the length in bits of a sequence of bytes.
 fn bit_len(bytes: &[u8]) -> usize {
     if let Some(last_byte) = bytes.last() {
         let byte_len = u32::try_from(bytes.len()).expect("usize to u32");
@@ -32,14 +34,14 @@ fn bit_len(bytes: &[u8]) -> usize {
     }
 }
 
-/// A bitwise atom constructor.
-pub struct AtomBuilder {
+/// A bitwise atom builder.
+pub struct Builder {
     bytes: Vec<u8>,
     bit_idx: usize,
 }
 
-impl AtomBuilder {
-    /// Create an empty atom builder.
+impl Builder {
+    /// Creates an empty atom builder.
     pub fn new() -> Self {
         Self {
             bytes: Vec::new(),
@@ -47,11 +49,12 @@ impl AtomBuilder {
         }
     }
 
+    /// Returns the current bitwise position of the end of this builder.
     pub fn pos(&self) -> usize {
         self.bit_idx
     }
 
-    /// Push a bit onto the end of an atom builder.
+    /// Pushes a bit onto the end of this builder.
     pub fn push_bit(&mut self, bit: bool) {
         let u8_bits = usize::try_from(u8::BITS).expect("u32 to usize");
         let byte_idx = self.bit_idx / u8_bits;
@@ -68,7 +71,7 @@ impl AtomBuilder {
         self.bit_idx += 1;
     }
 
-    /// Convert an atom builder into an immutable atom.
+    /// Converts this builder into an `Atom`, consuming the builder.
     pub fn into_atom(self) -> Atom {
         let bytes = self.bytes;
         let bit_len = bit_len(&bytes[..]);
@@ -84,23 +87,30 @@ pub struct Atom {
 }
 
 impl Atom {
-    /// Return the length in bits of an atom.
+    /// Creates an empty atom builder.
+    ///
+    /// This method is equivalent to `Builder::new()`.
+    pub fn builder() -> Builder {
+        Builder::new()
+    }
+
+    /// Returns the length in bits of this atom.
     pub fn bit_len(&self) -> usize {
         self.bit_len
     }
 
-    /// Convert an atom into a byte slice.
+    /// Converts this atom into a byte slice.
     pub fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
 
-    /// Convert an atom into a string slice, returning an error if the atom is not composed of
+    /// Converts this atom into a string slice, returning an error if the atom is not composed of
     /// valid UTF-8 bytes.
     pub fn as_str(&self) -> Result<&str, Utf8Error> {
         str::from_utf8(self.as_bytes())
     }
 
-    /// Convert an atom into an 8-bit unsigned integer, returning `None` if the atom is greater
+    /// Converts this atom into an 8-bit unsigned integer, returning `None` if the atom is greater
     /// than `u8::MAX`.
     ///
     /// # Examples
@@ -114,7 +124,7 @@ impl Atom {
         atom_as_uint!(self, u8)
     }
 
-    /// Convert an atom into an 16-bit unsigned integer, returning `None` if the atom is greater
+    /// Converts this atom into an 16-bit unsigned integer, returning `None` if the atom is greater
     /// than `u16::MAX`.
     ///
     /// # Examples
@@ -128,7 +138,7 @@ impl Atom {
         atom_as_uint!(self, u16)
     }
 
-    /// Convert an atom into an 32-bit unsigned integer, returning `None` if the atom is greater
+    /// Converts this atom into an 32-bit unsigned integer, returning `None` if the atom is greater
     /// than `u32::MAX`.
     ///
     /// # Examples
@@ -142,7 +152,7 @@ impl Atom {
         atom_as_uint!(self, u32)
     }
 
-    /// Convert an atom into an 64-bit unsigned integer, returning `None` if the atom is greater
+    /// Converts this atom into an 64-bit unsigned integer, returning `None` if the atom is greater
     /// than `u64::MAX`.
     ///
     /// # Examples
@@ -156,7 +166,7 @@ impl Atom {
         atom_as_uint!(self, u64)
     }
 
-    /// Convert an atom into an 128-bit unsigned integer, returning `None` if the atom is greater
+    /// Converts this atom into an 128-bit unsigned integer, returning `None` if the atom is greater
     /// than `u128::MAX`.
     ///
     /// # Examples
@@ -170,8 +180,8 @@ impl Atom {
         atom_as_uint!(self, u128)
     }
 
-    /// Convert an atom into a pointer-sized unsigned integer, returning `None` if the atom is greater
-    /// than `usize::MAX`.
+    /// Converts this atom into a pointer-sized unsigned integer, returning `None` if the atom is
+    /// greater than `usize::MAX`.
     ///
     /// # Examples
     /// ```
@@ -184,22 +194,24 @@ impl Atom {
         atom_as_uint!(self, usize)
     }
 
-    /// Convert an atom into a byte vector, consuming the atom.
+    /// Converts this atom into a byte vector, consuming the atom.
+    ///
+    /// This method does not allocate on the heap.
     pub fn into_vec(self) -> Vec<u8> {
         self.bytes
     }
 
-    /// Convert an atom into a noun, consuming the atom.
+    /// Converts this atom into a noun, consuming the atom.
     pub fn into_noun(self) -> Noun {
         Noun::Atom(self)
     }
 
-    /// Convert an atom into a reference-counted noun pointer, consuming the atom.
-    pub fn into_noun_ptr(self) -> Rc<Noun> {
+    /// Converts this atom into a reference-counted noun pointer, consuming the atom.
+    pub fn into_rc_noun(self) -> Rc<Noun> {
         Rc::new(Noun::Atom(self))
     }
 
-    /// Return a bitwise iterator over an atom.
+    /// Returns a bitwise iterator over this atom.
     pub fn iter(&self) -> Iter {
         Iter {
             atom: self,
@@ -305,7 +317,7 @@ impl PartialEq<&str> for Atom {
     }
 }
 
-/// Compare an atom to an unsigned integer.
+/// Compares an atom to an unsigned integer.
 macro_rules! atom_eq_uint {
     ($uint:ty, $as_uint:ident) => {
         impl PartialEq<$uint> for Atom {
@@ -338,6 +350,7 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iter<'_> {
+    /// Returns the current bitwise position of this iterator.
     pub fn pos(&self) -> usize {
         self.bit_idx
     }

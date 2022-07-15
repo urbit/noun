@@ -1,6 +1,9 @@
+//! Cells.
+
 use crate::{atom::Atom, noun::Noun, Rc};
 use std::fmt::{Display, Error, Formatter};
 
+/// A pair of reference-counted nouns.
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct Cell {
     head: Rc<Noun>,
@@ -8,16 +11,18 @@ pub struct Cell {
 }
 
 impl Cell {
+    /// Returns the head of this noun.
     pub fn head(&self) -> Rc<Noun> {
         self.head.clone()
     }
 
+    /// Returns the tail of this noun.
     pub fn tail(&self) -> Rc<Noun> {
         self.tail.clone()
     }
 
-    /// Unpack a cell of the form `[a1 a2 ... aN]` into a list, returning `None` if the cell is not
-    /// large enough to unpack into a list of length `N`.
+    /// Unpacks this cell into an array of length `N`, returning `None` if the cell is not of the
+    /// form `[a1 a2 ... aN]`.
     ///
     /// # Examples
     ///
@@ -59,18 +64,18 @@ impl Cell {
         Some(nouns.try_into().unwrap())
     }
 
-    /// Convert a cell into its head and tail, consuming the cell.
+    /// Converts this cell into its head and tail, consuming the cell.
     pub fn into_parts(self) -> (Rc<Noun>, Rc<Noun>) {
         (self.head, self.tail)
     }
 
-    /// Convert a cell into a noun, consuming the cell.
+    /// Converts this cell into a noun, consuming the cell.
     pub fn into_noun(self) -> Noun {
         Noun::Cell(self)
     }
 
-    /// Convert a cell into a reference-counted noun pointer, consuming the cell.
-    pub fn into_noun_ptr(self) -> Rc<Noun> {
+    /// Converts this cell into a reference-counted noun, consuming the cell.
+    pub fn into_rc_noun(self) -> Rc<Noun> {
         Rc::new(Noun::Cell(self))
     }
 }
@@ -212,16 +217,6 @@ mod tests {
 
     #[test]
     fn as_list() {
-        macro_rules! check_atom {
-            ($atom:expr, $expected:expr) => {
-                if let Noun::Atom(atom) = &*$atom {
-                    assert_eq!(atom, &Atom::from($expected));
-                } else {
-                    panic!("unexpectec cell");
-                }
-            };
-        }
-
         {
             let cell = Cell::from([
                 Atom::from("request").into_noun(),
@@ -237,20 +232,29 @@ mod tests {
                 Atom::from(r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#).into_noun(),
             ]);
             let [tag, req_num, method, uri, headers, body] = cell.as_list::<6>().expect("as list");
-            check_atom!(tag, "request");
-            check_atom!(req_num, 0u8);
-            check_atom!(method, "POST");
-            check_atom!(uri, "http://eth-mainnet.urbit.org:8545");
+            if let (Noun::Atom(tag), Noun::Atom(req_num), Noun::Atom(method), Noun::Atom(uri)) =
+                (&*tag, &*req_num, &*method, &*uri)
+            {
+                assert_eq!(tag, "request");
+                assert_eq!(*req_num, 0u8);
+                assert_eq!(method, "POST");
+                assert_eq!(uri, "http://eth-mainnet.urbit.org:8545");
+            } else {
+                panic!("unexpected cell");
+            }
             if let Noun::Cell(headers) = &*headers {
                 if let Noun::Cell(header) = &*headers.head() {
-                    let (key, val) = (header.head(), header.tail());
-                    check_atom!(key, "Content-Type");
-                    check_atom!(val, "application/json");
+                    if let (Noun::Atom(key), Noun::Atom(val)) = (&*header.head(), &*header.tail()) {
+                        assert_eq!(key, "Content-Type");
+                        assert_eq!(val, "application/json");
+                    } else {
+                        panic!("unexpected cell");
+                    }
                 } else {
                     panic!("unexpected atom");
                 }
                 if let Noun::Atom(null) = &*headers.tail() {
-                    //check_atom!(null, 0u8);
+                    assert_eq!(*null, 0u8);
                 } else {
                     panic!("unexpected cell");
                 }
@@ -258,11 +262,15 @@ mod tests {
                 panic!("unexpected atom");
             }
             if let Noun::Cell(body) = &*body {
-                check_atom!(body.head(), 0u8);
+                if let Noun::Atom(null) = &*body.head() {
+                    assert_eq!(*null, 0u8);
+                } else {
+                    panic!("unexpected cell");
+                }
                 if let Noun::Cell(body) = &*body.tail() {
                     if let (Noun::Atom(body_len), Noun::Atom(body)) = (&*body.head(), &*body.tail())
                     {
-                        assert_eq!(body_len, &Atom::from(78u8));
+                        assert_eq!(*body_len, 78u8);
                         assert_eq!(
                             body,
                             r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#
