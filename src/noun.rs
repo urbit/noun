@@ -97,19 +97,23 @@ impl Cue for Noun {
             bits: &mut atom::Iter,
             cache: &mut HashMap<u64, Rc<Noun>>,
         ) -> serdes::Result<Rc<Noun>> {
+            let pos = bits.pos() as u64;
             match bits.next() {
                 Some(true) => {
                     match bits.next() {
                         // Back reference tag = 0b11.
                         Some(true) => decode_backref(bits, cache),
                         // Cell tag = 0b01.
-                        Some(false) => Ok(decode_cell(bits, cache)?.into_noun_ptr()),
+                        Some(false) => {
+                            let cell = decode_cell(bits, cache)?.into_noun_ptr();
+                            cache.insert(pos, cell.clone());
+                            Ok(cell)
+                        }
                         None => return Err(serdes::Error::InvalidTag),
                     }
                 }
                 // Atom tag = 0b0.
                 Some(false) => {
-                    let pos = bits.pos() as u64;
                     let atom = decode_atom(bits)?.into_noun_ptr();
                     cache.insert(pos, atom.clone());
                     Ok(atom)
