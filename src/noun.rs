@@ -203,6 +203,12 @@ impl PartialEq for Noun {
     }
 }
 
+#[cfg(feature = "thread-safe")]
+unsafe impl Send for Noun {}
+
+#[cfg(feature = "thread-safe")]
+unsafe impl Sync for Noun {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

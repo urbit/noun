@@ -13,8 +13,16 @@ pub mod serdes;
 
 /// Reference-counting pointer.
 ///
-/// Alias for [`std::rc::Arc`] if the `thread-safe` feature is enabled or [`std::rc::Rc`] otherwise.
+/// Alias for [`std::rc::Rc`] when `thread-safe` feature is disabled.
 ///
-/// - [`std::rc::Arc`]: https://doc.rust-lang.org/stable/std/sync/struct.Arc.html
-/// - [`std::rc::Rc`]: https://doc.rust-lang.org/stable/std/rc/struct.Rc.html
+/// [`std::rc::Rc`]: https://doc.rust-lang.org/stable/std/rc/struct.Rc.html
+#[cfg(not(feature = "thread-safe"))]
 pub type Rc<T> = std::rc::Rc<T>;
+
+/// Reference-counting pointer.
+///
+/// Alias for [`std::sync::Arc`] when `thread-safe` feature is enabled.
+///
+/// [`std::sync::Arc`]: https://doc.rust-lang.org/stable/std/sync/struct.Arc.html
+#[cfg(feature = "thread-safe")]
+pub type Rc<T> = std::sync::Arc<T>;
