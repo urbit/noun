@@ -87,10 +87,50 @@ impl From<(Rc<Noun>, Rc<Noun>)> for Cell {
     }
 }
 
-macro_rules! array_to_cell {
-    ($list:expr) => {{
-        debug_assert!($list.len() >= 2);
-        let (mut remaining, pair) = $list.split_at($list.len() - 2);
+/// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array.
+macro_rules! cell_from_array {
+    ([Atom; $len:expr]) => {
+        impl From<[Atom; $len]> for Cell {
+            fn from(atoms: [Atom; $len]) -> Self {
+                let atoms = atoms.map(|a| Rc::new(a.into_noun()));
+                cell_from_array!(atoms)
+            }
+        }
+    };
+    ([Cell; $len:expr]) => {
+        impl From<[Cell; $len]> for Cell {
+            fn from(cells: [Self; $len]) -> Self {
+                let cells = cells.map(|c| Rc::new(c.into_noun()));
+                cell_from_array!(cells)
+            }
+        }
+    };
+    ([Noun; $len:expr]) => {
+        impl From<[Noun; $len]> for Cell {
+            fn from(nouns: [Noun; $len]) -> Self {
+                let nouns = nouns.map(|n| Rc::new(n));
+                cell_from_array!(nouns)
+            }
+        }
+    };
+    ([Rc<Noun>; $len:expr]) => {
+        impl From<[Rc<Noun>; $len]> for Cell {
+            fn from(nouns: [Rc<Noun>; $len]) -> Self {
+                cell_from_array!(nouns)
+            }
+        }
+    };
+    ([$atom_src:ty; $len:expr]) => {
+        impl From<[$atom_src; $len]> for Cell {
+            fn from(atom_srcs: [$atom_src; $len]) -> Self {
+                let atom_srcs = atom_srcs.map(|a| Rc::new(Atom::from(a).into_noun()));
+                cell_from_array!(atom_srcs)
+            }
+        }
+    };
+    ($array:expr) => {{
+        debug_assert!($array.len() >= 2);
+        let (mut remaining, pair) = $array.split_at($array.len() - 2);
         let mut cell = Cell::from((pair[0].clone(), pair[1].clone()));
         while !remaining.is_empty() {
             let split = remaining.split_at(remaining.len() - 1);
@@ -100,49 +140,6 @@ macro_rules! array_to_cell {
         }
         cell
     }};
-}
-
-/// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array.
-macro_rules! cell_from_array {
-    ([Atom; $len:expr]) => {
-        impl From<[Atom; $len]> for Cell {
-            fn from(atoms: [Atom; $len]) -> Self {
-                let atoms = atoms.map(|a| Rc::new(a.into_noun()));
-                array_to_cell!(atoms)
-            }
-        }
-    };
-    ([Cell; $len:expr]) => {
-        impl From<[Cell; $len]> for Cell {
-            fn from(cells: [Self; $len]) -> Self {
-                let cells = cells.map(|c| Rc::new(c.into_noun()));
-                array_to_cell!(cells)
-            }
-        }
-    };
-    ([Noun; $len:expr]) => {
-        impl From<[Noun; $len]> for Cell {
-            fn from(nouns: [Noun; $len]) -> Self {
-                let nouns = nouns.map(|n| Rc::new(n));
-                array_to_cell!(nouns)
-            }
-        }
-    };
-    ([Rc<Noun>; $len:expr]) => {
-        impl From<[Rc<Noun>; $len]> for Cell {
-            fn from(nouns: [Rc<Noun>; $len]) -> Self {
-                array_to_cell!(nouns)
-            }
-        }
-    };
-    ([$atom_src:ty; $len:expr]) => {
-        impl From<[$atom_src; $len]> for Cell {
-            fn from(atom_srcs: [$atom_src; $len]) -> Self {
-                let atom_srcs = atom_srcs.map(|a| Rc::new(Atom::from(a).into_noun()));
-                array_to_cell!(atom_srcs)
-            }
-        }
-    };
 }
 
 // Create a cell of the form `[a b]`.
