@@ -18,79 +18,43 @@ pub enum Noun {
 
 impl Cue for Noun {
     fn cue(jammed_noun: Atom) -> serdes::Result<Self> {
-        fn decode_len(bits: &mut atom::Iter) -> serdes::Result<u64> {
-            let mut len_of_len = 0;
-            loop {
-                match bits.next() {
-                    Some(true) => break,
-                    Some(false) => len_of_len += 1,
-                    None => return Err(serdes::Error::InvalidLen),
-                }
-            }
-
-            if len_of_len == 0 {
-                Ok(0)
-            } else {
-                // The most significant bit of the length is implicit because it's always 1.
-                let len_bits = len_of_len - 1;
-                let mut len: u64 = 1 << len_bits;
-                for i in 0..len_bits {
+        fn decode_atom(bits: &mut atom::Iter) -> serdes::Result<Atom> {
+            let len = {
+                let mut len_of_len = 0;
+                loop {
                     match bits.next() {
-                        Some(true) => len |= 1 << i,
-                        Some(false) => len &= !(1 << i),
+                        Some(true) => break,
+                        Some(false) => len_of_len += 1,
                         None => return Err(serdes::Error::InvalidLen),
                     }
                 }
-                Ok(len)
-            }
-        }
 
-        fn decode_atom(bits: &mut atom::Iter) -> serdes::Result<Atom> {
-            let len = decode_len(bits)?;
+                if len_of_len == 0 {
+                    0
+                } else {
+                    // The most significant bit of the length is implicit because it's always 1.
+                    let len_bits = len_of_len - 1;
+                    let mut len: u64 = 1 << len_bits;
+                    for i in 0..len_bits {
+                        match bits.next() {
+                            Some(true) => len |= 1 << i,
+                            Some(false) => len &= !(1 << i),
+                            None => return Err(serdes::Error::InvalidLen),
+                        }
+                    }
+                    len
+                }
+            };
             if len == 0 {
                 Ok(Atom::from(0u8))
             } else {
                 let mut atom_builder = AtomBuilder::new();
                 for _ in 0..len {
-                    if let Some(bit) = bits.next() {
-                        atom_builder.push_bit(bit);
-                    } else {
-                        return Err(serdes::Error::AtomConstruction);
-                    }
+                    let bit = bits.next().ok_or(serdes::Error::AtomConstruction)?;
+                    atom_builder.push_bit(bit);
                 }
                 Ok(atom_builder.into_atom())
             }
-        }
-
-        fn decode_backref(
-            bits: &mut atom::Iter,
-            cache: &mut HashMap<u64, Rc<Noun>>,
-        ) -> serdes::Result<Rc<Noun>> {
-            let atom = decode_atom(bits)?;
-            if let Some(idx) = atom.as_u64() {
-                if let Some(noun) = cache.get(&idx) {
-                    Ok(noun.clone())
-                } else {
-                    Err(serdes::Error::CacheMiss)
-                }
-            } else {
-                Err(serdes::Error::InvalidBackref)
-            }
-        }
-
-        fn decode_cell(
-            bits: &mut atom::Iter,
-            cache: &mut HashMap<u64, Rc<Noun>>,
-        ) -> serdes::Result<Cell> {
-            let head_pos = bits.pos() as u64;
-            let head = decode(bits, cache)?;
-            cache.insert(head_pos, head.clone());
-
-            let tail_pos = bits.pos() as u64;
-            let tail = decode(bits, cache)?;
-            cache.insert(tail_pos, tail.clone());
-
-            Ok(Cell::from([head, tail]))
         }
 
         fn decode(
@@ -102,12 +66,24 @@ impl Cue for Noun {
                 Some(true) => {
                     match bits.next() {
                         // Back reference tag = 0b11.
-                        Some(true) => decode_backref(bits, cache),
+                        Some(true) => {
+                            let idx = decode_atom(bits)?
+                                .as_u64()
+                                .ok_or(serdes::Error::InvalidBackref)?;
+                            let noun = cache.get(&idx).ok_or(serdes::Error::CacheMiss)?;
+                            Ok(noun.clone())
+                        }
                         // Cell tag = 0b01.
                         Some(false) => {
-                            let cell = decode_cell(bits, cache)?.into_noun_ptr();
-                            cache.insert(pos, cell.clone());
-                            Ok(cell)
+                            let pos = bits.pos() as u64;
+                            let head = decode(bits, cache)?;
+                            cache.insert(pos, head.clone());
+
+                            let pos = bits.pos() as u64;
+                            let tail = decode(bits, cache)?;
+                            cache.insert(pos, tail.clone());
+
+                            Ok(Cell::from([head, tail]).into_noun_ptr())
                         }
                         None => return Err(serdes::Error::InvalidTag),
                     }
