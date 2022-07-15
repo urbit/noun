@@ -3,14 +3,5 @@
 version = 3
 
 [[package]]
-name = "bitstream-io"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97d524fdb78bf6dc6d2dc4c02043e4b4962ede0a17ae3e13f0ed211a7eda5897"
-
-[[package]]
 name = "noun"
 version = "0.1.0"
-dependencies = [
- "bitstream-io",
-]

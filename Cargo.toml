@@ -5,6 +5,3 @@ edition = "2021"
 
 [features]
 default = []
-
-[dependencies]
-bitstream-io = "1.2"
