@@ -6,7 +6,7 @@ use std::{
 
 /// Convert an atom into an unsigned integer, returning `None` if the byte width of the atom exceeds
 /// the byte width of the target unsigned integer type.
-macro_rules! atom_to_uint {
+macro_rules! atom_as_uint {
     ($atom:expr, $uint:ty) => {{
         let atom = $atom.as_bytes();
         const N: usize = std::mem::size_of::<$uint>();
@@ -111,7 +111,7 @@ impl Atom {
     /// assert_eq!(atom.as_u8().unwrap(), uint);
     /// ```
     pub fn as_u8(&self) -> Option<u8> {
-        atom_to_uint!(self, u8)
+        atom_as_uint!(self, u8)
     }
 
     /// Convert an atom into an 16-bit unsigned integer, returning `None` if the atom is greater
@@ -125,7 +125,7 @@ impl Atom {
     /// assert_eq!(atom.as_u16().unwrap(), uint);
     /// ```
     pub fn as_u16(&self) -> Option<u16> {
-        atom_to_uint!(self, u16)
+        atom_as_uint!(self, u16)
     }
 
     /// Convert an atom into an 32-bit unsigned integer, returning `None` if the atom is greater
@@ -139,7 +139,7 @@ impl Atom {
     /// assert_eq!(atom.as_u32().unwrap(), uint);
     /// ```
     pub fn as_u32(&self) -> Option<u32> {
-        atom_to_uint!(self, u32)
+        atom_as_uint!(self, u32)
     }
 
     /// Convert an atom into an 64-bit unsigned integer, returning `None` if the atom is greater
@@ -153,7 +153,7 @@ impl Atom {
     /// assert_eq!(atom.as_u64().unwrap(), uint);
     /// ```
     pub fn as_u64(&self) -> Option<u64> {
-        atom_to_uint!(self, u64)
+        atom_as_uint!(self, u64)
     }
 
     /// Convert an atom into an 128-bit unsigned integer, returning `None` if the atom is greater
@@ -167,7 +167,7 @@ impl Atom {
     /// assert_eq!(atom.as_u128().unwrap(), uint);
     /// ```
     pub fn as_u128(&self) -> Option<u128> {
-        atom_to_uint!(self, u128)
+        atom_as_uint!(self, u128)
     }
 
     /// Convert an atom into a pointer-sized unsigned integer, returning `None` if the atom is greater
@@ -181,7 +181,7 @@ impl Atom {
     /// assert_eq!(atom.as_usize().unwrap(), uint);
     /// ```
     pub fn as_usize(&self) -> Option<usize> {
-        atom_to_uint!(self, usize)
+        atom_as_uint!(self, usize)
     }
 
     /// Convert an atom into a byte vector, consuming the atom.
