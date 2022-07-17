@@ -245,6 +245,7 @@ unsafe impl Sync for Noun {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::convert::IntoNoun;
 
     #[test]
     fn jam_cue_atom() {

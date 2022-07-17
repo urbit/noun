@@ -1,6 +1,6 @@
 //! Atoms.
 
-use crate::{Noun, Nounish, Rc};
+use crate::{convert::IntoNoun, Noun, Nounish, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
@@ -201,11 +201,6 @@ impl Atom {
         self.bytes
     }
 
-    /// Converts this atom into a noun, consuming the atom.
-    pub fn into_noun(self) -> Noun {
-        Noun::Atom(self)
-    }
-
     /// Converts this atom into a reference-counted noun pointer, consuming the atom.
     pub fn into_rc_noun(self) -> Rc<Noun> {
         Rc::new(Noun::Atom(self))
@@ -249,6 +244,12 @@ impl From<&str> for Atom {
 impl From<String> for Atom {
     fn from(string: String) -> Self {
         Self::from(string.into_bytes())
+    }
+}
+
+impl IntoNoun<Noun> for Atom {
+    fn into_noun(self) -> Noun {
+        Noun::Atom(self)
     }
 }
 

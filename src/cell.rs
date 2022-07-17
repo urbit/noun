@@ -1,6 +1,6 @@
 //! Cells.
 
-use crate::{atom::Atom, Noun, Nounish, Rc};
+use crate::{atom::Atom, convert::IntoNoun, Noun, Nounish, Rc};
 use std::fmt::{Display, Error, Formatter};
 
 /// A pair of reference-counted nouns.
@@ -27,7 +27,7 @@ impl Cell {
     /// # Examples
     ///
     /// ```
-    /// # use noun::{atom::Atom, cell::Cell};
+    /// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
     /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8]);
     ///
     /// let nouns = cell.as_list::<6>().unwrap();
@@ -67,11 +67,6 @@ impl Cell {
     /// Converts this cell into its head and tail, consuming the cell.
     pub fn into_parts(self) -> (Rc<Noun>, Rc<Noun>) {
         (self.head, self.tail)
-    }
-
-    /// Converts this cell into a noun, consuming the cell.
-    pub fn into_noun(self) -> Noun {
-        Noun::Cell(self)
     }
 
     /// Converts this cell into a reference-counted noun, consuming the cell.
@@ -205,6 +200,12 @@ cell_from_array!(n = 28);
 cell_from_array!(n = 29);
 cell_from_array!(n = 30);
 
+impl IntoNoun<Noun> for Cell {
+    fn into_noun(self) -> Noun {
+        Noun::Cell(self)
+    }
+}
+
 impl Nounish for Cell {}
 impl Nounish for &Cell {}
 impl Nounish for Box<Cell> {}
@@ -219,6 +220,7 @@ impl PartialEq for Cell {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::convert::IntoNoun;
 
     #[test]
     fn as_list() {
