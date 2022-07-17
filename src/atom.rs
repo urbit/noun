@@ -1,6 +1,6 @@
 //! Atoms.
 
-use crate::{noun::Noun, Rc};
+use crate::{Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
