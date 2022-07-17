@@ -1,6 +1,6 @@
 //! Atoms.
 
-use crate::{Noun, Rc};
+use crate::{Noun, Nounish, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
@@ -251,6 +251,11 @@ impl From<String> for Atom {
         Self::from(string.into_bytes())
     }
 }
+
+impl Nounish for Atom {}
+impl Nounish for &Atom {}
+impl Nounish for Box<Atom> {}
+impl Nounish for Rc<Atom> {}
 
 /// Convert an unsigned integer into an atom.
 macro_rules! atom_from_uint {

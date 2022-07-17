@@ -1,6 +1,6 @@
 //! Serialization and deserialization.
 
-use crate::atom::Atom;
+use crate::{atom::Atom, Nounish};
 use std::{
     fmt::{self, Display, Formatter},
     result,
@@ -33,7 +33,7 @@ impl Display for Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Serialize this noun type into a bitstream.
-pub trait Jam {
+pub trait Jam: Nounish {
     /// Performs bitwise serialization of this noun type in accordance with the [jam] protocol,
     /// returning the resulting bitstream as an atom.
     ///
@@ -44,7 +44,7 @@ pub trait Jam {
 }
 
 /// Deserialize a bitstream into this noun type.
-pub trait Cue: Sized {
+pub trait Cue: Nounish + Sized {
     /// Performs bitwise deserialization of a bitstream in accordance with the [cue] protocol,
     /// returning the resulting noun type.
     ///

@@ -37,6 +37,9 @@ use std::{
     mem::drop,
 };
 
+/// Marker trait for noun-like types.
+pub trait Nounish {}
+
 /// An atom or a cell.
 #[derive(Clone, Debug, Eq, Hash)]
 pub enum Noun {
@@ -215,6 +218,11 @@ impl Display for Noun {
         }
     }
 }
+
+impl Nounish for Noun {}
+impl Nounish for &Noun {}
+impl Nounish for Box<Noun> {}
+impl Nounish for Rc<Noun> {}
 
 impl PartialEq for Noun {
     fn eq(&self, other: &Self) -> bool {

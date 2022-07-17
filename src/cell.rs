@@ -1,6 +1,6 @@
 //! Cells.
 
-use crate::{atom::Atom, Noun, Rc};
+use crate::{atom::Atom, Noun, Nounish, Rc};
 use std::fmt::{Display, Error, Formatter};
 
 /// A pair of reference-counted nouns.
@@ -204,6 +204,11 @@ cell_from_array!(n = 27);
 cell_from_array!(n = 28);
 cell_from_array!(n = 29);
 cell_from_array!(n = 30);
+
+impl Nounish for Cell {}
+impl Nounish for &Cell {}
+impl Nounish for Box<Cell> {}
+impl Nounish for Rc<Cell> {}
 
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {

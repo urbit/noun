@@ -1,6 +1,6 @@
 //! Conversions to and from nouns.
 
-use crate::Noun;
+use crate::Nounish;
 use std::fmt::{self, Display, Formatter};
 
 /// Errors that occur when converting from a noun.
@@ -31,17 +31,17 @@ impl Display for Error {
 }
 
 /// Converts a noun to this type.
-pub trait FromNoun: Sized {
+pub trait FromNoun<N: Nounish>: Sized {
     /// Convert a noun into this type, consuming the noun.
-    fn from_noun(noun: &Noun) -> Result<Self, Error>;
+    fn from_noun(noun: N) -> Result<Self, Error>;
 }
 
 /// Converts this type into a noun.
-pub trait IntoNoun {
+pub trait IntoNoun<N: Nounish> {
     /// The error to return if this type could not be converted into a noun.
     type Error;
 
     /// Converts this type into a noun, consuming the implementing type, and returning an error if
     /// the type cannot be converted.
-    fn into_noun(self) -> Result<Noun, Self::Error>;
+    fn into_noun(self) -> Result<N, Self::Error>;
 }
