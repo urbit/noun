@@ -1,6 +1,6 @@
 //! Serialization and deserialization.
 
-use crate::{atom::Atom, Nounish};
+use crate::{atom::Atom, noun::Nounish};
 use std::{
     fmt::{self, Display, Formatter},
     result,

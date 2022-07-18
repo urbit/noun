@@ -1,6 +1,11 @@
 //! Cells.
 
-use crate::{atom::Atom, convert::IntoNoun, Noun, Nounish, Rc};
+use crate::{
+    atom::Atom,
+    convert::IntoNoun,
+    noun::{Noun, Nounish},
+    Rc,
+};
 use std::fmt::{Display, Error, Formatter};
 
 /// A pair of reference-counted nouns.

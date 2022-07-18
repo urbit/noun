@@ -1,6 +1,10 @@
 //! Atoms.
 
-use crate::{convert::IntoNoun, Noun, Nounish, Rc};
+use crate::{
+    convert::IntoNoun,
+    noun::{Noun, Nounish},
+    Rc,
+};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
