@@ -1,4 +1,12 @@
-//! Cells.
+//! Pairs of nouns.
+//!
+//! A cell is a pair of reference-counted nouns. A cell can be:
+//! - created from an array of atoms, cells, nouns, or types that can easily be converted into
+//!   atoms;
+//! - compared to other cells;
+//! - unpacked into an array of nouns;
+//! - pretty-printed;
+//! - converted into a noun.
 
 use crate::{
     atom::Atom,
@@ -9,6 +17,23 @@ use crate::{
 use std::fmt::{Display, Error, Formatter};
 
 /// A pair of reference-counted nouns.
+///
+/// To create a new cell, use one of the `From<[T; N]>` implementations. For example:
+/// ```
+/// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
+/// let cell = Cell::from(["hello", "world"]);
+/// assert_eq!(*cell.head(), Atom::from("hello").into_noun());
+/// assert_eq!(*cell.tail(), Atom::from("world").into_noun());
+/// ```
+///
+/// ```
+/// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
+/// let cell = Cell::from([0u8, 2u8, 4u8, 8u8]);
+/// assert_eq!(*cell.head(), Atom::from(0u8).into_noun());
+/// assert_eq!(*cell.tail(), Cell::from([2u8, 4u8, 8u8]).into_noun());
+/// ```
+///
+///
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct Cell {
     head: Rc<Noun>,
@@ -16,6 +41,11 @@ pub struct Cell {
 }
 
 impl Cell {
+    /// Constructs a new cell.
+    fn new(head: Rc<Noun>, tail: Rc<Noun>) -> Self {
+        Self { head, tail }
+    }
+
     /// Returns the head of this noun.
     pub fn head(&self) -> Rc<Noun> {
         self.head.clone()
@@ -82,6 +112,9 @@ impl Cell {
 
 impl Display for Cell {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        // This is unfortunately more complicated than
+        // `write!(f, "[{} {}]", self.head(), self.tail())` to handle the fact that brackets are
+        // left-associative and therefore need not always be printed.
         write!(f, "[")?;
         match (&*self.head(), &*self.tail()) {
             (head, Noun::Atom(tail)) => write!(f, "{} {}", head, tail)?,
@@ -96,12 +129,6 @@ impl Display for Cell {
             }
         }
         write!(f, "]")
-    }
-}
-
-impl From<(Rc<Noun>, Rc<Noun>)> for Cell {
-    fn from((head, tail): (Rc<Noun>, Rc<Noun>)) -> Self {
-        Self { head, tail }
     }
 }
 
@@ -164,12 +191,12 @@ macro_rules! cell_from_array {
     ($array:expr) => {{
         debug_assert!($array.len() >= 2);
         let (mut remaining, pair) = $array.split_at($array.len() - 2);
-        let mut cell = Cell::from((pair[0].clone(), pair[1].clone()));
+        let mut cell = Cell::new(pair[0].clone(), pair[1].clone());
         while !remaining.is_empty() {
             let split = remaining.split_at(remaining.len() - 1);
             remaining = split.0;
             let single = split.1;
-            cell = Cell::from([single[0].clone(), Rc::new(cell.into_noun())]);
+            cell = Cell::new(single[0].clone(), Rc::new(cell.into_noun()));
         }
         cell
     }};

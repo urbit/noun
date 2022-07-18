@@ -18,7 +18,9 @@ pub trait Nounish {}
 /// An atom or a cell.
 #[derive(Clone, Debug, Eq, Hash)]
 pub enum Noun {
+    /// An arbitrarily large unsigned integer.
     Atom(Atom),
+    /// A pair of nouns.
     Cell(Cell),
 }
 
@@ -56,7 +58,7 @@ impl Cue for Noun {
             } else {
                 let mut atom_builder = Atom::builder();
                 for _ in 0..len {
-                    let bit = bits.next().ok_or(serdes::Error::AtomConstruction)?;
+                    let bit = bits.next().ok_or(serdes::Error::AtomBuilding)?;
                     atom_builder.push_bit(bit);
                 }
                 Ok(atom_builder.into_atom())

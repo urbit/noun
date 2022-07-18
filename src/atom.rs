@@ -1,4 +1,16 @@
-//! Atoms.
+//! Arbiratily large unsigned integers.
+//!
+//! An [atom] is an arbitrarily large unsigned integer represented as a little-endian contiguous
+//! sequence of bytes. An atom can be:
+//! - created a single bit at a time or from other types that can be easily converted into atoms
+//!   like primitive unsigned integers, strings, and string slices;
+//! - iterated over a single bit at a time;
+//! - compared to other atoms and other atom-like types;
+//! - used as an addend;
+//! - pretty-printed as a hexadecimal number;
+//! - converted into a noun, a primitive unsigned integer type, or a string slice.
+//!
+//! [atom]: https://developers.urbit.org/reference/glossary/atom
 
 use crate::{
     convert::IntoNoun,
@@ -9,23 +21,6 @@ use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
 };
-
-/// Converts an atom into an unsigned integer, returning `None` if the byte width of the atom
-/// exceeds the byte width of the target unsigned integer type.
-macro_rules! atom_as_uint {
-    ($atom:expr, $uint:ty) => {{
-        let atom = $atom.as_bytes();
-        const N: usize = std::mem::size_of::<$uint>();
-        let len = atom.len();
-        if len <= N {
-            let mut bytes: [u8; N] = [0; N];
-            let _ = &mut bytes[..len].copy_from_slice(atom);
-            Some(<$uint>::from_le_bytes(bytes))
-        } else {
-            None
-        }
-    }};
-}
 
 /// Returns the length in bits of a sequence of bytes.
 fn bit_len(bytes: &[u8]) -> usize {
@@ -38,7 +33,7 @@ fn bit_len(bytes: &[u8]) -> usize {
     }
 }
 
-/// A bitwise atom builder.
+/// A bitwise [`Atom`] builder.
 pub struct Builder {
     bytes: Vec<u8>,
     bit_idx: usize,
@@ -83,11 +78,28 @@ impl Builder {
     }
 }
 
-/// An arbitrarily large unsigned number.
+/// An arbitrarily large unsigned integer represented as a [`Vec<u8>`].
 #[derive(Eq, Clone, Debug, Hash)]
 pub struct Atom {
     bytes: Vec<u8>,
     bit_len: usize,
+}
+
+/// Converts an atom into an unsigned integer, returning `None` if the byte width of the atom
+/// exceeds the byte width of the target unsigned integer type.
+macro_rules! atom_as_uint {
+    ($atom:expr, $uint:ty) => {{
+        let atom = $atom.as_bytes();
+        const N: usize = std::mem::size_of::<$uint>();
+        let len = atom.len();
+        if len <= N {
+            let mut bytes: [u8; N] = [0; N];
+            let _ = &mut bytes[..len].copy_from_slice(atom);
+            Some(<$uint>::from_le_bytes(bytes))
+        } else {
+            None
+        }
+    }};
 }
 
 impl Atom {
@@ -267,7 +279,7 @@ impl Nounish for &Atom {}
 impl Nounish for Box<Atom> {}
 impl Nounish for Rc<Atom> {}
 
-/// Convert an unsigned integer into an atom.
+/// Convert an unsigned integer primitive into an atom.
 macro_rules! atom_from_uint {
     ($uint:ty) => {
         impl From<$uint> for Atom {
@@ -332,7 +344,7 @@ impl PartialEq<&str> for Atom {
     }
 }
 
-/// Compares an atom to an unsigned integer.
+/// Compares an atom to an unsigned integer primitive.
 macro_rules! atom_eq_uint {
     ($uint:ty, $as_uint:ident) => {
         impl PartialEq<$uint> for Atom {
@@ -354,7 +366,10 @@ atom_eq_uint!(u64, as_u64);
 atom_eq_uint!(u128, as_u128);
 atom_eq_uint!(usize, as_usize);
 
-/// An iterator over the bits of an `Atom` as `bool`s.
+/// An iterator over the bits of an [`Atom`].
+///
+/// Iteration starts with the least significant bit of the [`Atom`] and ends with the most
+/// significant bit.
 pub struct Iter<'a> {
     /// Atom being interated over.
     atom: &'a Atom,
