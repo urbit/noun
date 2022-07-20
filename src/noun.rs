@@ -83,15 +83,13 @@ impl Cue for Noun {
                         }
                         // Cell tag = 0b01.
                         Some(false) => {
-                            let pos = bits.pos() as u64;
                             let head = decode(bits, cache)?;
-                            cache.insert(pos, head.clone());
-
-                            let pos = bits.pos() as u64;
                             let tail = decode(bits, cache)?;
-                            cache.insert(pos, tail.clone());
 
-                            Ok(Cell::from([head, tail]).into_rc_noun())
+                            let cell = Cell::from([head, tail]).into_rc_noun();
+                            cache.insert(pos, cell.clone());
+
+                            Ok(cell)
                         }
                         None => return Err(serdes::Error::InvalidTag),
                     }
