@@ -42,7 +42,7 @@ jobs:
         with:
           command: rustdoc
   test:
-    name: Test ${{ matrix.rust }} on ${{ matrix.os }}
+    name: Test ${{ matrix.rust }} on ${{ matrix.os }} with features [${{ matrix.features }}]
     needs: [style, doc]
     strategy:
       matrix:
@@ -54,6 +54,9 @@ jobs:
           - ubuntu-latest
           - windows-latest
           - macOS-latest
+        features:
+          - "''"
+          - thread-safe
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -68,9 +71,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features --features thread-safe
+          args: --no-default-features --features ${{ matrix.features }}
