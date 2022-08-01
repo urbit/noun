@@ -82,8 +82,10 @@ pub enum Error {
     InvalidTag,
 }
 
-/// A specialized `Result` type for serialization/deserialization operations that return
-/// `serdes::Error` on error.
+/// A specialized [`Result`] type for serialization/deserialization operations that return
+/// [`serdes::Error`] on error.
+///
+/// [`serdes::Error`]: [`Error`]
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Serialize a noun type into a bitstream.

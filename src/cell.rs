@@ -32,8 +32,6 @@ use std::fmt::{Display, Error, Formatter};
 /// assert_eq!(*cell.head(), Atom::from(0u8).into_noun());
 /// assert_eq!(*cell.tail(), Cell::from([2u8, 4u8, 8u8]).into_noun());
 /// ```
-///
-///
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct Cell {
     head: Rc<Noun>,
@@ -134,7 +132,7 @@ impl Display for Cell {
 
 /// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array.
 macro_rules! cell_from_array {
-    (n=$n:expr) => {
+    (n = $n:expr) => {
         cell_from_array!([Atom; $n]);
         cell_from_array!([Cell; $n]);
         cell_from_array!([Noun; $n]);

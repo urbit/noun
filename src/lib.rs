@@ -10,8 +10,6 @@
 //!
 //! [Urbit]: https://urbit.org
 //! [noun]: https://urbit.org/docs/glossary/noun
-//! [`std::rc::Rc`]: https://doc.rust-lang.org/stable/std/rc/struct.Rc.html
-//! [`std::sync::Arc`]: https://doc.rust-lang.org/stable/std/sync/struct.Arc.html
 
 pub mod atom;
 pub mod cell;
