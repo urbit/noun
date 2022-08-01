@@ -66,6 +66,10 @@
 //! [Cue]: https://developers.urbit.org/reference/hoon/stdlib/2p#cue
 
 use crate::{atom::Atom, noun::Nounish};
+use std::{
+    fmt::{self, Display, Formatter},
+    result,
+};
 
 /// Errors that occur when serializing/deserializing.
 #[derive(Debug)]
@@ -80,6 +84,21 @@ pub enum Error {
     InvalidLen,
     /// A corrupt tag was encountered.
     InvalidTag,
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> result::Result<(), fmt::Error> {
+        match self {
+            Self::AtomBuilding => write!(f, "building an atom a bit at a time failed"),
+            Self::CacheMiss => write!(
+                f,
+                "a key that was expected to be in the cache was missing from the cache"
+            ),
+            Self::InvalidBackref => write!(f, "encountered an invalid backreference"),
+            Self::InvalidLen => write!(f, "encountered an invalid length"),
+            Self::InvalidTag => write!(f, "encountered an invalid tag"),
+        }
+    }
 }
 
 /// A specialized [`Result`] type for serialization/deserialization operations that return
