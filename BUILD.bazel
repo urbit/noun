@@ -1,0 +1,19 @@
+alias(
+  name = "rust_lib",
+  actual = "//src:noun_rust_lib",
+)
+
+alias(
+  name = "static_lib",
+  actual = "//src:noun_static_lib",
+)
+
+test_suite(
+  name = "test",
+  tests = ["//src:noun_test"],
+)
+
+alias(
+  name = "doc",
+  actual = "//src:noun_doc",
+)
