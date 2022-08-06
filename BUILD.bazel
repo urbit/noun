@@ -1,6 +1,7 @@
 load(
   "@rules_rust//rust:defs.bzl",
   "rust_doc",
+  "rust_doc_test",
   "rust_library",
   "rust_static_library",
   "rust_test"
@@ -46,6 +47,12 @@ rust_static_library(
 # Unit tests.
 rust_test(
   name = "noun_test",
+  crate = ":noun_rust_lib",
+)
+
+# Doc tests.
+rust_doc_test(
+  name = "noun_doc_test",
   crate = ":noun_rust_lib",
 )
 
