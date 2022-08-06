@@ -1,4 +1,4 @@
-name: Bazel CI
+name: Bazel build
 on:
   pull_request:
   push:
@@ -40,7 +40,9 @@ jobs:
           - nightly
         os:
           - ubuntu-latest
-          - windows-latest
+          # TODO: the `windows-latest` runner fails with LNK1104 on all Rust
+          # toolchains as of 2022/08/06.
+          #- windows-latest
           - macOS-latest
         features:
           - "''"

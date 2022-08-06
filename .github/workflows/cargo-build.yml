@@ -1,4 +1,4 @@
-name: Cargo CI
+name: Cargo build
 on:
   pull_request:
   push:

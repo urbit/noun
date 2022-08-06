@@ -4,7 +4,8 @@
 # Always display the flags being used.
 common --announce_rc
 
-# These settings make the Windows workers behave similarly to Unix workers.
+# These settings make Windows workers behave similarly to Unix workers.
+# See https://docs.bazel.build/versions/4.2.2/windows.html.
 startup --windows_enable_symlinks
 build --enable_runfiles
 
