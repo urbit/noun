@@ -1,0 +1,25 @@
+# Bazel settings used in GitHub CI. See
+# https://bazel.build/docs/best-practices#bazelrc-file.
+
+# Always display the flags being used.
+common --announce_rc
+
+# These settings make the Windows workers behave similarly to Unix workers.
+startup --windows_enable_symlinks
+build --enable_runfiles
+
+# Show errors in CI.
+test --test_output=errors
+
+# Show more information about failures.
+build --verbose_failures
+
+# UI for cleaner CI output.
+common --color=no
+common --curses=no
+common --show_task_finish
+common --show_timestamps
+
+# Add `rustfmt` check.
+build --aspects=@rules_rust//rust:defs.bzl%rustfmt_aspect
+build --output_groups=+rustfmt_checks

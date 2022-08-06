@@ -1,4 +1,4 @@
-name: CI
+name: Cargo CI
 on:
   pull_request:
   push:
@@ -26,7 +26,12 @@ jobs:
           command: fmt
           args: --all --check
   doc: 
-    name: Build docs
+    name: Build docs with features [${{ matrix.features }}]
+    strategy:
+      matrix:
+        features:
+          - "''"
+          - thread-safe
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
@@ -37,14 +42,16 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - name: cargo rustdoc
+      - name: cargo rustdoc --features ${{ matrix.features }}
         uses: actions-rs/cargo@v1
         with:
           command: rustdoc
+          args: --features ${{ matrix.features }}
   test:
-    name: Test ${{ matrix.rust }} on ${{ matrix.os }} with features [${{ matrix.features }}]
+    name: Test features [${{ matrix.features }}] using ${{ matrix.rust }} Rust on ${{ matrix.os }}
     needs: [style, doc]
     strategy:
+      fail-fast: false
       matrix:
         rust:
           - stable
