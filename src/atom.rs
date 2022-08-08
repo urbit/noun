@@ -15,6 +15,7 @@
 use crate::{convert::IntoNoun, noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
+    ops::{Add, Div, Rem, Sub},
     str::{self, Utf8Error},
 };
 
@@ -233,6 +234,42 @@ impl Atom {
     }
 }
 
+impl Add for Atom {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        todo!("{} + {}", self, rhs)
+    }
+}
+
+/// Add an unsigned integer primitive to an atom.
+macro_rules! atom_add_uint {
+    ($uint:ty) => {
+        impl Add<$uint> for Atom {
+            type Output = Self;
+
+            fn add(self, rhs: $uint) -> Self::Output {
+                todo!("{} + {}", self, rhs)
+            }
+        }
+
+        impl Add<$uint> for &Atom {
+            type Output = Atom;
+
+            fn add(self, rhs: $uint) -> Self::Output {
+                todo!("{} + {}", self, rhs)
+            }
+        }
+    }
+}
+
+atom_add_uint!(u8);
+atom_add_uint!(u16);
+atom_add_uint!(u32);
+atom_add_uint!(u64);
+atom_add_uint!(u128);
+atom_add_uint!(usize);
+
 impl Display for Atom {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "0x")?;
@@ -249,6 +286,42 @@ impl Display for Atom {
         }
     }
 }
+
+impl Div for Atom {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        todo!("{} / {}", self, rhs)
+    }
+}
+
+/// Divide an atom by an unsigned integer primitive.
+macro_rules! atom_div_uint {
+    ($uint:ty) => {
+        impl Div<$uint> for Atom {
+            type Output = Self;
+
+            fn div(self, rhs: $uint) -> Self::Output {
+                todo!("{} / {}", self, rhs)
+            }
+        }
+
+        impl Div<$uint> for &Atom {
+            type Output = Atom;
+
+            fn div(self, rhs: $uint) -> Self::Output {
+                todo!("{} / {}", self, rhs)
+            }
+        }
+    }
+}
+
+atom_div_uint!(u8);
+atom_div_uint!(u16);
+atom_div_uint!(u32);
+atom_div_uint!(u64);
+atom_div_uint!(u128);
+atom_div_uint!(usize);
 
 impl From<&str> for Atom {
     fn from(string: &str) -> Self {
@@ -356,6 +429,78 @@ atom_eq_uint!(u32, as_u32);
 atom_eq_uint!(u64, as_u64);
 atom_eq_uint!(u128, as_u128);
 atom_eq_uint!(usize, as_usize);
+
+impl Rem for Atom {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        todo!("{} % {}", self, rhs)
+    }
+}
+
+/// Get the remainder of an atom divided by an unsigned integer primitive.
+macro_rules! atom_rem_uint {
+    ($uint:ty) => {
+        impl Rem<$uint> for Atom {
+            type Output = Self;
+
+            fn rem(self, rhs: $uint) -> Self::Output {
+                todo!("{} % {}", self, rhs)
+            }
+        }
+
+        impl Rem<$uint> for &Atom {
+            type Output = Atom;
+
+            fn rem(self, rhs: $uint) -> Self::Output {
+                todo!("{} % {}", self, rhs)
+            }
+        }
+    }
+}
+
+atom_rem_uint!(u8);
+atom_rem_uint!(u16);
+atom_rem_uint!(u32);
+atom_rem_uint!(u64);
+atom_rem_uint!(u128);
+atom_rem_uint!(usize);
+
+impl Sub for Atom {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        todo!("{} - {}", self, rhs)
+    }
+}
+
+/// Subtract an unsigned integer primitive from an atom.
+macro_rules! atom_sub_uint {
+    ($uint:ty) => {
+        impl Sub<$uint> for Atom {
+            type Output = Self;
+
+            fn sub(self, rhs: $uint) -> Self::Output {
+                todo!("{} - {}", self, rhs)
+            }
+        }
+
+        impl Sub<$uint> for &Atom {
+            type Output = Atom;
+
+            fn sub(self, rhs: $uint) -> Self::Output {
+                todo!("{} - {}", self, rhs)
+            }
+        }
+    }
+}
+
+atom_sub_uint!(u8);
+atom_sub_uint!(u16);
+atom_sub_uint!(u32);
+atom_sub_uint!(u64);
+atom_sub_uint!(u128);
+atom_sub_uint!(usize);
 
 /// An iterator over the bits of an [`Atom`].
 ///
