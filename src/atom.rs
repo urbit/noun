@@ -268,17 +268,6 @@ impl From<String> for Atom {
     }
 }
 
-impl IntoNoun<Noun> for Atom {
-    fn into_noun(self) -> Noun {
-        Noun::Atom(self)
-    }
-}
-
-impl Nounish for Atom {}
-impl Nounish for &Atom {}
-impl Nounish for Box<Atom> {}
-impl Nounish for Rc<Atom> {}
-
 /// Convert an unsigned integer primitive into an atom.
 macro_rules! atom_from_uint {
     ($uint:ty) => {
@@ -311,6 +300,17 @@ impl From<Vec<u8>> for Atom {
         }
     }
 }
+
+impl IntoNoun<Noun> for Atom {
+    fn into_noun(self) -> Noun {
+        Noun::Atom(self)
+    }
+}
+
+impl Nounish for Atom {}
+impl Nounish for &Atom {}
+impl Nounish for Box<Atom> {}
+impl Nounish for Rc<Atom> {}
 
 impl PartialEq for Atom {
     fn eq(&self, other: &Self) -> bool {
