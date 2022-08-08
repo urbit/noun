@@ -65,7 +65,7 @@
 //! [Jam]: https://developers.urbit.org/reference/hoon/stdlib/2p#jam
 //! [Cue]: https://developers.urbit.org/reference/hoon/stdlib/2p#cue
 
-use crate::{atom::Atom, noun::Nounish};
+use crate::{atom::Atom, marker::Nounish};
 use std::{
     fmt::{self, Display, Formatter},
     result,

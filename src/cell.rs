@@ -8,12 +8,7 @@
 //! - pretty-printed;
 //! - converted into a noun.
 
-use crate::{
-    atom::Atom,
-    convert::IntoNoun,
-    noun::{Noun, Nounish},
-    Rc,
-};
+use crate::{atom::Atom, convert::IntoNoun, noun::Noun, Rc};
 use std::fmt::{Display, Error, Formatter};
 
 /// A pair of reference-counted nouns.
@@ -235,11 +230,6 @@ impl IntoNoun<Noun> for Cell {
         Noun::Cell(self)
     }
 }
-
-impl Nounish for Cell {}
-impl Nounish for &Cell {}
-impl Nounish for Box<Cell> {}
-impl Nounish for Rc<Cell> {}
 
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {

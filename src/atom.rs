@@ -12,11 +12,7 @@
 //!
 //! [atom]: https://developers.urbit.org/reference/glossary/atom
 
-use crate::{
-    convert::IntoNoun,
-    noun::{Noun, Nounish},
-    Rc,
-};
+use crate::{convert::IntoNoun, noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     str::{self, Utf8Error},
@@ -306,11 +302,6 @@ impl IntoNoun<Noun> for Atom {
         Noun::Atom(self)
     }
 }
-
-impl Nounish for Atom {}
-impl Nounish for &Atom {}
-impl Nounish for Box<Atom> {}
-impl Nounish for Rc<Atom> {}
 
 impl PartialEq for Atom {
     fn eq(&self, other: &Self) -> bool {

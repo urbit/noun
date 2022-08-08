@@ -14,6 +14,7 @@
 pub mod atom;
 pub mod cell;
 pub mod convert;
+pub mod marker;
 pub mod noun;
 pub mod serdes;
 

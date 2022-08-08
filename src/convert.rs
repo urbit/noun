@@ -1,6 +1,6 @@
 //! Conversions to and from nouns.
 
-use crate::noun::Nounish;
+use crate::marker::Nounish;
 use std::fmt::{self, Display, Formatter};
 
 /// Errors that occur when converting from a noun.
