@@ -9,7 +9,10 @@
 //! - converted into a noun.
 
 use crate::{atom::Atom, convert::IntoNoun, noun::Noun, Rc};
-use std::fmt::{Display, Error, Formatter};
+use std::{
+    fmt::{Display, Error, Formatter},
+    mem::MaybeUninit,
+};
 
 /// A pair of reference-counted nouns.
 ///
@@ -75,21 +78,24 @@ impl Cell {
     /// ```
     pub fn as_list<const N: usize>(&self) -> Option<[Rc<Noun>; N]> {
         debug_assert!(N >= 2);
-        let mut nouns = Vec::with_capacity(N);
-        nouns.push(self.head());
+        // See https://doc.rust-lang.org/nomicon/unchecked-uninit.html.
+        let mut nouns: [MaybeUninit<Rc<Noun>>; N] = unsafe { MaybeUninit::uninit().assume_init() };
+        nouns[0] = MaybeUninit::new(self.head());
         let mut noun = self.tail();
         for i in 1..N {
             match *noun {
                 Noun::Atom(_) if i < N - 1 => return None,
                 Noun::Cell(ref cell) if i < N - 1 => {
-                    nouns.push(cell.head());
+                    nouns[i] = MaybeUninit::new(cell.head());
                     noun = cell.tail();
                 }
-                _ => nouns.push(noun.clone()),
+                _ => nouns[i] = MaybeUninit::new(noun.clone()),
             }
         }
-        // Is copying too expensive?
-        Some(nouns.try_into().unwrap())
+        // Using `mem::transmute()` here as suggested in the Rustnomicon example linked above results in
+        // compiler error E0512.
+        let nouns = unsafe { nouns.as_ptr().cast::<[Rc<Noun>; N]>().read() };
+        Some(nouns)
     }
 
     /// Converts this cell into its head and tail, consuming the cell.

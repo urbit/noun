@@ -260,7 +260,7 @@ macro_rules! atom_add_uint {
                 todo!("{} + {}", self, rhs)
             }
         }
-    }
+    };
 }
 
 atom_add_uint!(u8);
@@ -313,7 +313,7 @@ macro_rules! atom_div_uint {
                 todo!("{} / {}", self, rhs)
             }
         }
-    }
+    };
 }
 
 atom_div_uint!(u8);
@@ -456,7 +456,7 @@ macro_rules! atom_rem_uint {
                 todo!("{} % {}", self, rhs)
             }
         }
-    }
+    };
 }
 
 atom_rem_uint!(u8);
@@ -492,7 +492,7 @@ macro_rules! atom_sub_uint {
                 todo!("{} - {}", self, rhs)
             }
         }
-    }
+    };
 }
 
 atom_sub_uint!(u8);
