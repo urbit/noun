@@ -1,8 +1,6 @@
 [package]
 name = "noun"
-# Must match `VERSION` variable of `src/BUILD.bazel`.
 version = "0.1.0"
-# Must match `RUST_EDITION` variable of `src/BUILD.bazel`.
 edition = "2021"
 
 [features]
