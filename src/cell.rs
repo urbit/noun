@@ -98,6 +98,41 @@ impl Cell {
         Some(nouns)
     }
 
+    /// Unpacks this cell into a vector.
+    ///
+    /// If the length of the cell is known at compile-time, use [`Self::as_list()`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 4u8, 8u8, 16u8, 32u8, 64u8, 128u8]);
+    ///
+    /// let nouns = cell.to_vec();
+    /// assert_eq!(nouns.len(), 9);
+    /// assert_eq!(*nouns[0], Atom::from(0u8).into_noun());
+    /// assert_eq!(*nouns[1], Atom::from(1u8).into_noun());
+    /// assert_eq!(*nouns[2], Atom::from(2u8).into_noun());
+    /// assert_eq!(*nouns[3], Atom::from(4u8).into_noun());
+    /// assert_eq!(*nouns[4], Atom::from(8u8).into_noun());
+    /// assert_eq!(*nouns[5], Atom::from(16u8).into_noun());
+    /// assert_eq!(*nouns[6], Atom::from(32u8).into_noun());
+    /// assert_eq!(*nouns[7], Atom::from(64u8).into_noun());
+    /// assert_eq!(*nouns[8], Atom::from(128u8).into_noun());
+    ///
+    /// ```
+    pub fn to_vec(&self) -> Vec<Rc<Noun>> {
+        let mut nouns = Vec::new();
+        nouns.push(self.head());
+        let mut noun = self.tail();
+        while let Noun::Cell(cell) = &*noun {
+            nouns.push(cell.head());
+            noun = cell.tail();
+        }
+        nouns.push(noun);
+        nouns
+    }
+
     /// Converts this cell into its head and tail, consuming the cell.
     pub fn into_parts(self) -> (Rc<Noun>, Rc<Noun>) {
         (self.head, self.tail)
