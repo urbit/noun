@@ -61,7 +61,7 @@ impl Cell {
     /// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
     /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8]);
     ///
-    /// let nouns = cell.as_list::<6>().unwrap();
+    /// let nouns = cell.to_array::<6>().unwrap();
     /// assert_eq!(*nouns[0], Atom::from(0u8).into_noun());
     /// assert_eq!(*nouns[1], Atom::from(1u8).into_noun());
     /// assert_eq!(*nouns[2], Atom::from(2u8).into_noun());
@@ -74,9 +74,9 @@ impl Cell {
     /// # use noun::{atom::Atom, cell::Cell};
     /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
     ///
-    /// assert_eq!(cell.as_list::<6>(), None);
+    /// assert_eq!(cell.to_array::<6>(), None);
     /// ```
-    pub fn as_list<const N: usize>(&self) -> Option<[Rc<Noun>; N]> {
+    pub fn to_array<const N: usize>(&self) -> Option<[Rc<Noun>; N]> {
         debug_assert!(N >= 2);
         // See https://doc.rust-lang.org/nomicon/unchecked-uninit.html.
         let mut nouns: [MaybeUninit<Rc<Noun>>; N] = unsafe { MaybeUninit::uninit().assume_init() };
@@ -100,7 +100,7 @@ impl Cell {
 
     /// Unpacks this cell into a vector.
     ///
-    /// If the length of the cell is known at compile-time, use [`Self::as_list()`] instead.
+    /// If the length of the cell is known at compile-time, use [`Self::to_array()`] instead.
     ///
     /// # Examples
     ///
@@ -284,7 +284,7 @@ mod tests {
     use crate::convert::IntoNoun;
 
     #[test]
-    fn as_list() {
+    fn to_array() {
         {
             let cell = Cell::from([
                 Atom::from("request").into_noun(),
@@ -299,7 +299,7 @@ mod tests {
                 Atom::from(78u8).into_noun(),
                 Atom::from(r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#).into_noun(),
             ]);
-            let [tag, req_num, method, uri, headers, body] = cell.as_list::<6>().expect("as list");
+            let [tag, req_num, method, uri, headers, body] = cell.to_array::<6>().expect("as list");
             if let (Noun::Atom(tag), Noun::Atom(req_num), Noun::Atom(method), Noun::Atom(uri)) =
                 (&*tag, &*req_num, &*method, &*uri)
             {
