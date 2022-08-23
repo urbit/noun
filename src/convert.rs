@@ -6,11 +6,17 @@ use std::fmt::{self, Display, Formatter};
 /// Errors that occur when converting from a noun.
 #[derive(Debug)]
 pub enum Error {
+    /// An atom could not be converted into an unsigned integer.
     AtomToUint,
+    /// An atom could not be converted into a string.
     AtomToStr,
+    /// An error specific to the implementing type occurred.
     ImplType,
+    /// No value exists at a particular axis of a cell.
     MissingValue,
+    /// Encountered an atom when a cell was expected.
     UnexpectedAtom,
+    /// Encountered a cell when an atom was expected.
     UnexpectedCell,
 }
 
@@ -39,7 +45,6 @@ pub trait FromNoun<N: Nounish>: Sized {
 /// Attempt to convert a noun into this type.
 pub trait TryFromNoun<N: Nounish>: Sized {
     /// Converts a noun to this type, returning an error if the conversion failed.
-
     fn try_from_noun(noun: N) -> Result<Self, Error>;
 }
 
