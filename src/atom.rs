@@ -108,12 +108,15 @@ impl Atom {
     }
 
     /// Creates the atom `0`.
-    pub fn null() -> Self {
-        Self::from(0u8)
+    pub const fn null() -> Self {
+        Self {
+            bytes: Vec::new(),
+            bit_len: 0,
+        }
     }
 
     /// Returns the length in bits of this atom.
-    pub fn bit_len(&self) -> usize {
+    pub const fn bit_len(&self) -> usize {
         self.bit_len
     }
 
