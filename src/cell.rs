@@ -369,7 +369,13 @@ mod tests {
             let _8 = Atom::from(8u8).into_rc_noun();
             let _32 = Atom::from(32u8).into_rc_noun();
             let _128 = Atom::from(128u8).into_rc_noun();
-            let cell = Cell::from(vec![_0.clone(), _2.clone(), _8.clone(), _32.clone(), _128.clone()]);
+            let cell = Cell::from(vec![
+                _0.clone(),
+                _2.clone(),
+                _8.clone(),
+                _32.clone(),
+                _128.clone(),
+            ]);
 
             let [a, b, c, d, e] = cell.to_array::<5>().expect("cell to array");
             assert_eq!(a, _0);
