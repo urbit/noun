@@ -266,6 +266,12 @@ cell_from_array!(n = 28);
 cell_from_array!(n = 29);
 cell_from_array!(n = 30);
 
+impl From<Vec<Rc<Noun>>> for Cell {
+    fn from(nouns: Vec<Rc<Noun>>) -> Self {
+        cell_from_array!(nouns)
+    }
+}
+
 impl IntoNoun<Noun> for Cell {
     fn into_noun(self) -> Noun {
         Noun::Cell(self)
@@ -352,6 +358,25 @@ mod tests {
             } else {
                 panic!("unexpected atom");
             }
+        }
+    }
+
+    #[test]
+    fn from_vec() {
+        {
+            let _0 = Atom::from(0u8).into_rc_noun();
+            let _2 = Atom::from(2u8).into_rc_noun();
+            let _8 = Atom::from(8u8).into_rc_noun();
+            let _32 = Atom::from(32u8).into_rc_noun();
+            let _128 = Atom::from(128u8).into_rc_noun();
+            let cell = Cell::from(vec![_0.clone(), _2.clone(), _8.clone(), _32.clone(), _128.clone()]);
+
+            let [a, b, c, d, e] = cell.to_array::<5>().expect("cell to array");
+            assert_eq!(a, _0);
+            assert_eq!(b, _2);
+            assert_eq!(c, _8);
+            assert_eq!(d, _32);
+            assert_eq!(e, _128);
         }
     }
 }
