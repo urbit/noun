@@ -12,7 +12,6 @@
 //!
 //! [atom]: https://developers.urbit.org/reference/glossary/atom
 
-use crate::{noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     ops::{Add, Div, Rem, Sub},
@@ -220,11 +219,6 @@ impl Atom {
     /// This method does not allocate on the heap.
     pub fn into_vec(self) -> Vec<u8> {
         self.bytes
-    }
-
-    /// Converts this atom into a reference-counted noun pointer, consuming the atom.
-    pub fn into_rc_noun(self) -> Rc<Noun> {
-        Rc::new(Noun::Atom(self))
     }
 
     /// Returns a bitwise iterator over this atom.
@@ -547,8 +541,6 @@ macro_rules! atom {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn bit_len() {
         {

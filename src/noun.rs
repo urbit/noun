@@ -85,7 +85,7 @@ impl Cue for Noun {
                             let head = decode(bits, cache)?;
                             let tail = decode(bits, cache)?;
 
-                            let cell = cell![head, tail].into_rc_noun();
+                            let cell = Rc::<Noun>::from(cell![head, tail]);
                             cache.insert(pos, cell.clone());
 
                             Ok(cell)
@@ -95,7 +95,7 @@ impl Cue for Noun {
                 }
                 // Atom tag = 0b0.
                 Some(false) => {
-                    let atom = decode_atom(bits)?.into_rc_noun();
+                    let atom = Rc::<Noun>::from(decode_atom(bits)?);
                     cache.insert(pos, atom.clone());
                     Ok(atom)
                 }
@@ -129,9 +129,21 @@ impl From<Atom> for Noun {
     }
 }
 
+impl From<Atom> for Rc<Noun> {
+    fn from(atom: Atom) -> Self {
+        Rc::new(Noun::Atom(atom))
+    }
+}
+
 impl From<Cell> for Noun {
     fn from(cell: Cell) -> Self {
         Self::Cell(cell)
+    }
+}
+
+impl From<Cell> for Rc<Noun> {
+    fn from(cell: Cell) -> Self {
+        Rc::new(Noun::Cell(cell))
     }
 }
 
@@ -314,7 +326,7 @@ mod tests {
 
         // [[107 110] [107 110]] serializes to 635.080.761.093.
         {
-            let head = cell![107u8, 110u8].into_rc_noun();
+            let head = Rc::<Noun>::from(cell![107u8, 110u8]);
             let cell: Noun = Noun::from(cell![head.clone(), head]);
             let jammed_cell = atom!(0b1001001111011101110000110101111100000101u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
@@ -342,7 +354,7 @@ mod tests {
 
         // [[222 444 888] [222 444 888]] serializes to 170.479.614.045.978.345.989.
         {
-            let head = cell![222u16, 444u16, 888u16].into_rc_noun();
+            let head = Rc::<Noun>::from(cell![222u16, 444u16, 888u16]);
             let cell: Noun = Noun::from(cell![head.clone(), head]);
             let jammed_cell = atom!(170_479_614_045_978_345_989u128);
             assert_eq!(cell.clone().jam(), jammed_cell);

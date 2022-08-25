@@ -137,11 +137,6 @@ impl Cell {
     pub fn into_parts(self) -> (Rc<Noun>, Rc<Noun>) {
         (self.head, self.tail)
     }
-
-    /// Converts this cell into a reference-counted noun, consuming the cell.
-    pub fn into_rc_noun(self) -> Rc<Noun> {
-        Rc::new(Noun::Cell(self))
-    }
 }
 
 impl Display for Cell {
@@ -288,12 +283,12 @@ impl PartialEq for Cell {
 ///
 /// - Create a [`Cell`] from a single expression of type `T`. [`Cell`] must implement [`From<T>`].
 /// ```
-/// # use noun::{atom, cell};
+/// # use noun::{atom, cell, Noun, Rc};
 /// let cell = cell![vec![
-///     atom!(0u8).into_rc_noun(),
-///     atom!(1u8).into_rc_noun(),
-///     atom!(2u8).into_rc_noun(),
-///     atom!(3u8).into_rc_noun(),
+///     Rc::<Noun>::from(atom!(0u8)),
+///     Rc::<Noun>::from(atom!(1u8)),
+///     Rc::<Noun>::from(atom!(2u8)),
+///     Rc::<Noun>::from(atom!(3u8)),
 /// ]];
 /// ```
 ///
@@ -394,11 +389,11 @@ mod tests {
     #[test]
     fn from_vec() {
         {
-            let _0 = atom!(0u8).into_rc_noun();
-            let _2 = atom!(2u8).into_rc_noun();
-            let _8 = atom!(8u8).into_rc_noun();
-            let _32 = atom!(32u8).into_rc_noun();
-            let _128 = atom!(128u8).into_rc_noun();
+            let _0 = Rc::<Noun>::from(atom!(0u8));
+            let _2 = Rc::<Noun>::from(atom!(2u8));
+            let _8 = Rc::<Noun>::from(atom!(8u8));
+            let _32 = Rc::<Noun>::from(atom!(32u8));
+            let _128 = Rc::<Noun>::from(atom!(128u8));
             let cell = cell!(vec![
                 _0.clone(),
                 _2.clone(),
