@@ -12,7 +12,7 @@
 //!
 //! [atom]: https://developers.urbit.org/reference/glossary/atom
 
-use crate::{convert::IntoNoun, noun::Noun, Rc};
+use crate::{noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     ops::{Add, Div, Rem, Sub},
@@ -136,9 +136,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = u8::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_u8().unwrap(), uint);
     /// ```
     pub fn as_u8(&self) -> Option<u8> {
@@ -150,9 +150,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = u16::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_u16().unwrap(), uint);
     /// ```
     pub fn as_u16(&self) -> Option<u16> {
@@ -164,9 +164,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = u32::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_u32().unwrap(), uint);
     /// ```
     pub fn as_u32(&self) -> Option<u32> {
@@ -178,9 +178,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = u64::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_u64().unwrap(), uint);
     /// ```
     pub fn as_u64(&self) -> Option<u64> {
@@ -192,9 +192,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = u128::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_u128().unwrap(), uint);
     /// ```
     pub fn as_u128(&self) -> Option<u128> {
@@ -206,9 +206,9 @@ impl Atom {
     ///
     /// # Examples
     /// ```
-    /// # use noun::atom::Atom;
+    /// # use noun::{atom::Atom, atom};
     /// let uint = usize::MAX;
-    /// let atom = Atom::from(uint);
+    /// let atom = atom!(uint);
     /// assert_eq!(atom.as_usize().unwrap(), uint);
     /// ```
     pub fn as_usize(&self) -> Option<usize> {
@@ -373,12 +373,6 @@ impl From<Vec<u8>> for Atom {
     }
 }
 
-impl IntoNoun<Noun> for Atom {
-    fn into_noun(self) -> Noun {
-        Noun::Atom(self)
-    }
-}
-
 impl PartialEq for Atom {
     fn eq(&self, other: &Self) -> bool {
         self.bytes == other.bytes
@@ -540,6 +534,17 @@ impl Iterator for Iter<'_> {
     }
 }
 
+/// Creates a new atom from an expression.
+///
+/// [`Atom`] must implement [`From`] for the type of the expression. This is syntactic sugar for
+/// `Atom::from()`.
+#[macro_export]
+macro_rules! atom {
+    ($atom_src:expr) => {
+        $crate::atom::Atom::from($atom_src)
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -573,13 +578,13 @@ mod tests {
     #[test]
     fn iter() {
         {
-            let atom = Atom::from(0b0u8);
+            let atom = atom!(0b0u8);
             let mut atom_iter = atom.iter();
             assert_eq!(None, atom_iter.next());
         }
 
         {
-            let atom = Atom::from(0b10u8);
+            let atom = atom!(0b10u8);
             let mut atom_iter = atom.iter();
             assert_eq!(Some(false), atom_iter.next());
             assert_eq!(Some(true), atom_iter.next());
@@ -587,7 +592,7 @@ mod tests {
         }
 
         {
-            let atom = Atom::from(0x2f004u32);
+            let atom = atom!(0x2f004u32);
             let mut atom_iter = atom.iter();
             assert_eq!(Some(false), atom_iter.next());
             assert_eq!(Some(false), atom_iter.next());
@@ -619,32 +624,32 @@ mod tests {
     #[test]
     fn partial_eq() {
         {
-            let lh = Atom::from("The Importance of Being Ernest");
-            let rh = Atom::from("The Importance of Being Ernest");
+            let lh = atom!("The Importance of Being Ernest");
+            let rh = atom!("The Importance of Being Ernest");
             assert_eq!(lh, rh);
         }
 
         {
-            let lh = Atom::from("Oh, to be a glove");
-            let rh = Atom::from("upon that hand.");
+            let lh = atom!("Oh, to be a glove");
+            let rh = atom!("upon that hand.");
             assert_ne!(lh, rh);
         }
 
         {
             let string = "hello";
-            let atom = Atom::from(string);
+            let atom = atom!(string);
             assert_eq!(atom, string);
         }
 
         {
-            let atom = Atom::from("hello");
+            let atom = atom!("hello");
             assert_ne!(atom, "goodbye");
         }
 
         {
             macro_rules! uint_eq_test {
                 ($uint:expr) => {
-                    let atom = Atom::from($uint);
+                    let atom = atom!($uint);
                     assert_eq!(atom, $uint);
                 };
             }
@@ -661,7 +666,7 @@ mod tests {
         {
             macro_rules! uint_ne_test {
                 ($atom:expr, $uint:expr) => {
-                    let atom = Atom::from($atom);
+                    let atom = atom!($atom);
                     assert_ne!(atom, $uint);
                 };
             }

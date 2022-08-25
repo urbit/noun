@@ -8,7 +8,7 @@
 //! - pretty-printed;
 //! - converted into a noun.
 
-use crate::{atom::Atom, convert::IntoNoun, noun::Noun, Rc};
+use crate::{atom, atom::Atom, noun::Noun, Rc};
 use std::{
     fmt::{Display, Error, Formatter},
     mem::MaybeUninit,
@@ -18,17 +18,17 @@ use std::{
 ///
 /// To create a new cell, use one of the `From<[T; N]>` implementations. For example:
 /// ```
-/// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
-/// let cell = Cell::from(["hello", "world"]);
-/// assert_eq!(*cell.head(), Atom::from("hello").into_noun());
-/// assert_eq!(*cell.tail(), Atom::from("world").into_noun());
+/// # use noun::{atom::Atom, cell::Cell, Noun, atom, cell};
+/// let cell = cell!["hello", "world"];
+/// assert_eq!(*cell.head(), Noun::from(atom!("hello")));
+/// assert_eq!(*cell.tail(), Noun::from(atom!("world")));
 /// ```
 ///
 /// ```
-/// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
-/// let cell = Cell::from([0u8, 2u8, 4u8, 8u8]);
-/// assert_eq!(*cell.head(), Atom::from(0u8).into_noun());
-/// assert_eq!(*cell.tail(), Cell::from([2u8, 4u8, 8u8]).into_noun());
+/// # use noun::{atom::Atom, cell::Cell, Noun, atom, cell};
+/// let cell = cell![0u8, 2u8, 4u8, 8u8];
+/// assert_eq!(*cell.head(), Noun::from(atom!(0u8)));
+/// assert_eq!(*cell.tail(), Noun::from(cell![2u8, 4u8, 8u8]));
 /// ```
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct Cell {
@@ -58,21 +58,21 @@ impl Cell {
     /// # Examples
     ///
     /// ```
-    /// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
-    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8]);
+    /// # use noun::{atom::Atom, cell::Cell, Noun, atom, cell};
+    /// let cell = cell![0u8, 1u8, 2u8, 3u8, 4u8, 5u8];
     ///
     /// let nouns = cell.to_array::<6>().unwrap();
-    /// assert_eq!(*nouns[0], Atom::from(0u8).into_noun());
-    /// assert_eq!(*nouns[1], Atom::from(1u8).into_noun());
-    /// assert_eq!(*nouns[2], Atom::from(2u8).into_noun());
-    /// assert_eq!(*nouns[3], Atom::from(3u8).into_noun());
-    /// assert_eq!(*nouns[4], Atom::from(4u8).into_noun());
-    /// assert_eq!(*nouns[5], Atom::from(5u8).into_noun());
+    /// assert_eq!(*nouns[0], Noun::from(atom!(0u8)));
+    /// assert_eq!(*nouns[1], Noun::from(atom!(1u8)));
+    /// assert_eq!(*nouns[2], Noun::from(atom!(2u8)));
+    /// assert_eq!(*nouns[3], Noun::from(atom!(3u8)));
+    /// assert_eq!(*nouns[4], Noun::from(atom!(4u8)));
+    /// assert_eq!(*nouns[5], Noun::from(atom!(5u8)));
     /// ```
     ///
     /// ```
-    /// # use noun::{atom::Atom, cell::Cell};
-    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
+    /// # use noun::{atom::Atom, cell::Cell, atom, cell};
+    /// let cell = cell![0u8, 1u8, 2u8, 3u8];
     ///
     /// assert_eq!(cell.to_array::<6>(), None);
     /// ```
@@ -105,20 +105,20 @@ impl Cell {
     /// # Examples
     ///
     /// ```
-    /// # use noun::{atom::Atom, cell::Cell, convert::IntoNoun};
-    /// let cell = Cell::from([0u8, 1u8, 2u8, 4u8, 8u8, 16u8, 32u8, 64u8, 128u8]);
+    /// # use noun::{atom::Atom, cell::Cell, Noun, atom, cell};
+    /// let cell = cell![0u8, 1u8, 2u8, 4u8, 8u8, 16u8, 32u8, 64u8, 128u8];
     ///
     /// let nouns = cell.to_vec();
     /// assert_eq!(nouns.len(), 9);
-    /// assert_eq!(*nouns[0], Atom::from(0u8).into_noun());
-    /// assert_eq!(*nouns[1], Atom::from(1u8).into_noun());
-    /// assert_eq!(*nouns[2], Atom::from(2u8).into_noun());
-    /// assert_eq!(*nouns[3], Atom::from(4u8).into_noun());
-    /// assert_eq!(*nouns[4], Atom::from(8u8).into_noun());
-    /// assert_eq!(*nouns[5], Atom::from(16u8).into_noun());
-    /// assert_eq!(*nouns[6], Atom::from(32u8).into_noun());
-    /// assert_eq!(*nouns[7], Atom::from(64u8).into_noun());
-    /// assert_eq!(*nouns[8], Atom::from(128u8).into_noun());
+    /// assert_eq!(*nouns[0], Noun::from(atom!(0u8)));
+    /// assert_eq!(*nouns[1], Noun::from(atom!(1u8)));
+    /// assert_eq!(*nouns[2], Noun::from(atom!(2u8)));
+    /// assert_eq!(*nouns[3], Noun::from(atom!(4u8)));
+    /// assert_eq!(*nouns[4], Noun::from(atom!(8u8)));
+    /// assert_eq!(*nouns[5], Noun::from(atom!(16u8)));
+    /// assert_eq!(*nouns[6], Noun::from(atom!(32u8)));
+    /// assert_eq!(*nouns[7], Noun::from(atom!(64u8)));
+    /// assert_eq!(*nouns[8], Noun::from(atom!(128u8)));
     ///
     /// ```
     pub fn to_vec(&self) -> Vec<Rc<Noun>> {
@@ -186,7 +186,7 @@ macro_rules! cell_from_array {
     ([Atom; $len:expr]) => {
         impl From<[Atom; $len]> for Cell {
             fn from(atoms: [Atom; $len]) -> Self {
-                let atoms = atoms.map(|a| Rc::new(a.into_noun()));
+                let atoms = atoms.map(|a| Rc::new(Noun::from(a)));
                 cell_from_array!(atoms)
             }
         }
@@ -194,7 +194,7 @@ macro_rules! cell_from_array {
     ([Cell; $len:expr]) => {
         impl From<[Cell; $len]> for Cell {
             fn from(cells: [Self; $len]) -> Self {
-                let cells = cells.map(|c| Rc::new(c.into_noun()));
+                let cells = cells.map(|c| Rc::new(Noun::from(c)));
                 cell_from_array!(cells)
             }
         }
@@ -217,7 +217,7 @@ macro_rules! cell_from_array {
     ([$atom_src:ty; $len:expr]) => {
         impl From<[$atom_src; $len]> for Cell {
             fn from(atom_srcs: [$atom_src; $len]) -> Self {
-                let atom_srcs = atom_srcs.map(|a| Rc::new(Atom::from(a).into_noun()));
+                let atom_srcs = atom_srcs.map(|a| Rc::new(Noun::from(atom!(a))));
                 cell_from_array!(atom_srcs)
             }
         }
@@ -225,12 +225,16 @@ macro_rules! cell_from_array {
     ($array:expr) => {{
         debug_assert!($array.len() >= 2);
         let (mut remaining, pair) = $array.split_at($array.len() - 2);
-        let mut cell = Cell::new(pair[0].clone(), pair[1].clone());
+        let mut cell = {
+            let head: &Rc<Noun> = &pair[0];
+            let tail: &Rc<Noun> = &pair[1];
+            Cell::new(head.clone(), tail.clone())
+        };
         while !remaining.is_empty() {
             let split = remaining.split_at(remaining.len() - 1);
             remaining = split.0;
             let single = split.1;
-            cell = Cell::new(single[0].clone(), Rc::new(cell.into_noun()));
+            cell = Cell::new(single[0].clone(), Rc::new(Noun::from(cell)));
         }
         cell
     }};
@@ -272,39 +276,65 @@ impl From<Vec<Rc<Noun>>> for Cell {
     }
 }
 
-impl IntoNoun<Noun> for Cell {
-    fn into_noun(self) -> Noun {
-        Noun::Cell(self)
-    }
-}
-
 impl PartialEq for Cell {
     fn eq(&self, other: &Self) -> bool {
         self.head == other.head && self.tail == other.tail
     }
 }
 
+/// Creates a new [`Cell`].
+///
+/// This is syntactic sugar for `Cell::from()`.
+///
+/// - Create a [`Cell`] from a single expression of type `T`. [`Cell`] must implement [`From<T>`].
+/// ```
+/// # use noun::{atom, cell};
+/// let cell = cell![vec![
+///     atom!(0u8).into_rc_noun(),
+///     atom!(1u8).into_rc_noun(),
+///     atom!(2u8).into_rc_noun(),
+///     atom!(3u8).into_rc_noun(),
+/// ]];
+/// ```
+///
+/// - Create a [`Cell`] from a sequence of expressions. Each expression must be of the same type
+///   `T`, and [`Cell`] must implement [`From<[T; N]>`], where `N` is the number of expressions.
+/// ```
+/// # use noun::cell;
+/// let cell = cell![0u8, 1u8, 2u8, 3u8];
+/// ```
+#[macro_export]
+macro_rules! cell {
+    ($x:expr) => {
+        $crate::cell::Cell::from($x)
+    };
+    ($($x:expr),+ $(,)?) => {
+        $crate::cell::Cell::from([$($x,)+])
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::convert::IntoNoun;
 
     #[test]
     fn to_array() {
         {
-            let cell = Cell::from([
-                Atom::from("request").into_noun(),
-                Atom::from(0u8).into_noun(),
-                Atom::from("POST").into_noun(),
-                Atom::from("http://eth-mainnet.urbit.org:8545").into_noun(),
-                Cell::from([
-                    Cell::from([Atom::from("Content-Type"), Atom::from("application/json")]).into_noun(),
-                    Atom::from(0u8).into_noun(),
-                ]).into_noun(),
-                Atom::from(0u8).into_noun(),
-                Atom::from(78u8).into_noun(),
-                Atom::from(r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#).into_noun(),
-            ]);
+            let cell = cell![
+                Noun::from(atom!("request")),
+                Noun::from(atom!(0u8)),
+                Noun::from(atom!("POST")),
+                Noun::from(atom!("http://eth-mainnet.urbit.org:8545")),
+                Noun::from(cell![
+                    Noun::from(cell![atom!("Content-Type"), atom!("application/json"),]),
+                    Noun::from(atom!(0u8)),
+                ]),
+                Noun::from(atom!(0u8)),
+                Noun::from(atom!(78u8)),
+                Noun::from(atom!(
+                    r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#
+                )),
+            ];
             let [tag, req_num, method, uri, headers, body] = cell.to_array::<6>().expect("as list");
             if let (Noun::Atom(tag), Noun::Atom(req_num), Noun::Atom(method), Noun::Atom(uri)) =
                 (&*tag, &*req_num, &*method, &*uri)
@@ -364,12 +394,12 @@ mod tests {
     #[test]
     fn from_vec() {
         {
-            let _0 = Atom::from(0u8).into_rc_noun();
-            let _2 = Atom::from(2u8).into_rc_noun();
-            let _8 = Atom::from(8u8).into_rc_noun();
-            let _32 = Atom::from(32u8).into_rc_noun();
-            let _128 = Atom::from(128u8).into_rc_noun();
-            let cell = Cell::from(vec![
+            let _0 = atom!(0u8).into_rc_noun();
+            let _2 = atom!(2u8).into_rc_noun();
+            let _8 = atom!(8u8).into_rc_noun();
+            let _32 = atom!(32u8).into_rc_noun();
+            let _128 = atom!(128u8).into_rc_noun();
+            let cell = cell!(vec![
                 _0.clone(),
                 _2.clone(),
                 _8.clone(),

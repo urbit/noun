@@ -1,6 +1,5 @@
 //! Conversions to and from nouns.
 
-use crate::marker::Nounish;
 use std::fmt::{self, Display, Formatter};
 
 /// Errors that occur when converting from a noun.
@@ -34,31 +33,4 @@ impl Display for Error {
             Self::UnexpectedCell => write!(f, "a cell was encountered when an atom was expected"),
         }
     }
-}
-
-/// Convert a noun into this type.
-pub trait FromNoun<N: Nounish>: Sized {
-    /// Converts a noun to this type, panicking if the conversion failed.
-    fn from_noun(noun: N) -> Self;
-}
-
-/// Attempt to convert a noun into this type.
-pub trait TryFromNoun<N: Nounish>: Sized {
-    /// Converts a noun to this type, returning an error if the conversion failed.
-    fn try_from_noun(noun: N) -> Result<Self, Error>;
-}
-
-/// Convert this type into a noun.
-pub trait IntoNoun<N: Nounish> {
-    /// Converts this type into a noun, panicking if the conversion failed.
-    fn into_noun(self) -> N;
-}
-
-/// Attempt to convert this type into a noun.
-pub trait TryIntoNoun<N: Nounish> {
-    /// The error to return if this type could not be converted into a noun.
-    type Error;
-
-    /// Converts this type into a noun, returning an error if the conversion failed.
-    fn try_into_noun(self) -> Result<N, Self::Error>;
 }
