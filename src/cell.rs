@@ -10,7 +10,9 @@
 
 use crate::{atom, atom::Atom, noun::Noun, Rc};
 use std::{
+    collections::hash_map::DefaultHasher,
     fmt::{Display, Error, Formatter},
+    hash::{Hash, Hasher},
     mem::MaybeUninit,
 };
 
@@ -42,14 +44,22 @@ impl Cell {
         Self { head, tail }
     }
 
-    /// Returns the head of this noun.
+    /// Returns the head of this cell.
     pub fn head(&self) -> Rc<Noun> {
         self.head.clone()
     }
 
-    /// Returns the tail of this noun.
+    /// Returns the tail of this cell.
     pub fn tail(&self) -> Rc<Noun> {
         self.tail.clone()
+    }
+
+    /// Computes the hash of this cell.
+    pub fn hash(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        hasher.write_u64((&*self.head()).hash());
+        hasher.write_u64((&*self.tail()).hash());
+        hasher.finish()
     }
 
     /// Unpacks this cell into an array of length `N`, returning `None` if the cell is not of the

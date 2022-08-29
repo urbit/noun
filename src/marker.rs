@@ -12,17 +12,17 @@ macro_rules! impl_marker {
     };
 }
 
-/// Marker trait for atom-like types.
+/// Atom-like types.
 pub trait Atomish {}
 
 impl_marker!(Atomish, Atom);
 
-/// Marker trait for cell-like types.
+/// Cell-like types.
 pub trait Cellish {}
 
 impl_marker!(Cellish, Cell);
 
-/// Marker trait for noun-like types.
+/// Noun-like types.
 pub trait Nounish {}
 
 impl_marker!(Nounish, Atom);

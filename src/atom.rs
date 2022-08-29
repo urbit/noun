@@ -13,7 +13,9 @@
 //! [atom]: https://developers.urbit.org/reference/glossary/atom
 
 use std::{
+    collections::hash_map::DefaultHasher,
     fmt::{Display, Error, Formatter},
+    hash::Hasher,
     ops::{Add, Div, Rem, Sub},
     str::{self, Utf8Error},
 };
@@ -117,6 +119,13 @@ impl Atom {
     /// Returns the length in bits of this atom.
     pub const fn bit_len(&self) -> usize {
         self.bit_len
+    }
+
+    /// Computes the hash of this atom.
+    pub fn hash(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        hasher.write(self.as_bytes());
+        hasher.finish()
     }
 
     /// Converts this atom into a byte slice.

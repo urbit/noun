@@ -23,6 +23,16 @@ pub enum Noun {
     Cell(Cell),
 }
 
+impl Noun {
+    /// Computes the hash of this noun.
+    pub fn hash(&self) -> u64 {
+        match self {
+            Self::Atom(atom) => atom.hash(),
+            Self::Cell(cell) => cell.hash(),
+        }
+    }
+}
+
 impl Cue for Noun {
     fn cue(jammed_noun: Atom) -> serdes::Result<Self> {
         fn decode_atom(bits: &mut AtomIter) -> serdes::Result<Atom> {
