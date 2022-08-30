@@ -116,6 +116,11 @@ impl Atom {
         }
     }
 
+    /// Returns `true` if this atom is null (i.e. the atom `0`).
+    pub const fn is_null(&self) -> bool {
+        self.bit_len() == 0
+    }
+
     /// Returns the length in bits of this atom.
     pub const fn bit_len(&self) -> usize {
         self.bit_len
@@ -550,6 +555,8 @@ macro_rules! atom {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn bit_len() {
         {
@@ -574,6 +581,12 @@ mod tests {
             ];
             assert_eq!(super::bit_len(&num[..]), 134);
         }
+    }
+
+    #[test]
+    fn is_null() {
+        assert!(Atom::from(0u8).is_null());
+        assert!(!Atom::from(1u8).is_null());
     }
 
     #[test]
