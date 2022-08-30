@@ -14,6 +14,7 @@
 
 use std::{
     collections::hash_map::DefaultHasher,
+    ffi::OsStr,
     fmt::{Display, Error, Formatter},
     hash::Hasher,
     ops::{Add, Div, Rem, Sub},
@@ -338,6 +339,14 @@ atom_div_uint!(u32);
 atom_div_uint!(u64);
 atom_div_uint!(u128);
 atom_div_uint!(usize);
+
+impl TryFrom<&OsStr> for Atom {
+    type Error = ();
+
+    fn try_from(string: &OsStr) -> Result<Self, Self::Error> {
+        Ok(Self::from(string.to_str().ok_or(())?))
+    }
+}
 
 impl From<&str> for Atom {
     fn from(string: &str) -> Self {
