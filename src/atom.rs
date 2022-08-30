@@ -228,6 +228,11 @@ impl Atom {
         atom_as_uint!(self, usize)
     }
 
+    /// Copies this atom into a byte vector.
+    pub fn to_vec(&self) -> Vec<u8> {
+        Vec::from(self.as_bytes())
+    }
+
     /// Converts this atom into a byte vector, consuming the atom.
     ///
     /// This method does not allocate on the heap.
