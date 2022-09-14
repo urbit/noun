@@ -562,6 +562,9 @@ impl Iterator for Iter<'_> {
 /// `Atom::from()`.
 #[macro_export]
 macro_rules! atom {
+    () => {
+        $crate::atom::Atom::null()
+    };
     ($atom_src:expr) => {
         $crate::atom::Atom::from($atom_src)
     };
