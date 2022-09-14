@@ -49,9 +49,19 @@ impl Cell {
         self.head.clone()
     }
 
+    /// Returns the head of this cell as a reference.
+    pub fn head_ref(&self) -> &Noun {
+        &self.head
+    }
+
     /// Returns the tail of this cell.
     pub fn tail(&self) -> Rc<Noun> {
         self.tail.clone()
+    }
+
+    /// Returns the tail of this cell as a reference.
+    pub fn tail_ref(&self) -> &Noun {
+        &self.tail
     }
 
     /// Computes the hash of this cell.
