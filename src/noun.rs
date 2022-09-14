@@ -24,6 +24,15 @@ pub enum Noun {
 }
 
 impl Noun {
+    /// Returns `true` if this noun is a null atom.
+    pub const fn is_null(&self) -> bool {
+        if let Noun::Atom(atom) = self {
+            atom.is_null()
+        } else {
+            false
+        }
+    }
+
     /// Computes the hash of this noun.
     pub fn hash(&self) -> u64 {
         match self {
