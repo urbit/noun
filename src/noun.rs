@@ -254,9 +254,105 @@ unsafe impl Send for Noun {}
 #[cfg(feature = "thread-safe")]
 unsafe impl Sync for Noun {}
 
+/// Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a
+/// [`Vec`] of `$elem_type`, returning a [`convert::Error`] on error.
+///
+/// `$elem_type` must implement [`TryFrom<&Noun>`].
+///
+/// The resulting vector does not include the null terminator.
+#[macro_export]
+macro_rules! convert {
+    ($noun:expr => Vec<$elem_type:ty>) => {{
+        use $crate::{convert::Error, noun::Noun};
+        match $noun {
+            Noun::Atom(atom) => {
+                if atom.is_null() {
+                    Ok(Vec::new())
+                } else {
+                    Err(Error::UnexpectedAtom)
+                }
+            }
+            mut noun => {
+                let mut elems = Vec::new();
+                loop {
+                    match noun {
+                        Noun::Atom(atom) => {
+                            if atom.is_null() {
+                                break Ok(elems);
+                            } else {
+                                break Err(Error::UnexpectedAtom);
+                            }
+                        }
+                        Noun::Cell(cell) => match <$elem_type>::try_from(cell.head_ref()) {
+                            Ok(elem) => {
+                                elems.push(elem);
+                                noun = cell.tail_ref();
+                            }
+                            Err(err) => break Err(err),
+                        },
+                    }
+                }
+            }
+        }
+    }};
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::convert;
+
+    #[test]
+    fn convert() {
+        impl TryFrom<&Noun> for String {
+            type Error = convert::Error;
+
+            fn try_from(noun: &Noun) -> Result<Self, Self::Error> {
+                if let Noun::Atom(noun) = noun {
+                    if let Ok(noun) = noun.as_str() {
+                        Ok(Self::from(noun))
+                    } else {
+                        Err(convert::Error::AtomToStr)
+                    }
+                } else {
+                    Err(convert::Error::UnexpectedCell)
+                }
+            }
+        }
+
+        // Noun -> Vec<String>: expect success.
+        {
+            {
+                let noun = Noun::from(atom!());
+                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
+                assert!(vec.is_empty());
+            }
+
+            {
+                let noun = Noun::from(cell![atom!("hello"), atom!("world"), atom!()]);
+                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
+                assert_eq!(vec.len(), 2);
+                assert_eq!(vec[0], "hello");
+                assert_eq!(vec[1], "world");
+            }
+        }
+
+        // Noun -> Vec<String>: expect failure.
+        {
+            {
+                let noun = Noun::from(cell!["no", "null", "terminator"]);
+                assert!(convert!(&noun => Vec<String>).is_err());
+            }
+
+            {
+                let noun = Noun::from(cell![
+                    Noun::from(cell!["unexpected", "cell"]),
+                    Noun::from(atom!())
+                ]);
+                assert!(convert!(&noun => Vec<String>).is_err());
+            }
+        }
+    }
 
     #[test]
     fn jam_cue_atom() {
