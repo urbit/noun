@@ -254,49 +254,6 @@ unsafe impl Send for Noun {}
 #[cfg(feature = "thread-safe")]
 unsafe impl Sync for Noun {}
 
-/// Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a
-/// [`Vec`] of `$elem_type`, returning a [`convert::Error`] on error.
-///
-/// `$elem_type` must implement [`TryFrom<&Noun>`].
-///
-/// The resulting vector does not include the null terminator.
-#[macro_export]
-macro_rules! convert {
-    ($noun:expr => Vec<$elem_type:ty>) => {{
-        use $crate::{convert::Error, noun::Noun};
-        match $noun {
-            Noun::Atom(atom) => {
-                if atom.is_null() {
-                    Ok(Vec::new())
-                } else {
-                    Err(Error::UnexpectedAtom)
-                }
-            }
-            mut noun => {
-                let mut elems = Vec::new();
-                loop {
-                    match noun {
-                        Noun::Atom(atom) => {
-                            if atom.is_null() {
-                                break Ok(elems);
-                            } else {
-                                break Err(Error::ExpectedNull);
-                            }
-                        }
-                        Noun::Cell(cell) => match <$elem_type>::try_from(cell.head_ref()) {
-                            Ok(elem) => {
-                                elems.push(elem);
-                                noun = cell.tail_ref();
-                            }
-                            Err(err) => break Err(err),
-                        },
-                    }
-                }
-            }
-        }
-    }};
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
