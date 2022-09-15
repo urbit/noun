@@ -11,6 +11,8 @@ pub enum Error {
     AtomToStr,
     /// An error specific to the implementing type occurred.
     ImplType,
+    /// A null atom was expected.
+    MissingNull,
     /// No value exists at a particular axis of a cell.
     MissingValue,
     /// Encountered an atom when a cell was expected.

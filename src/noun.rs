@@ -280,7 +280,7 @@ macro_rules! convert {
                             if atom.is_null() {
                                 break Ok(elems);
                             } else {
-                                break Err(Error::UnexpectedAtom);
+                                break Err(Error::ExpectedNull);
                             }
                         }
                         Noun::Cell(cell) => match <$elem_type>::try_from(cell.head_ref()) {
