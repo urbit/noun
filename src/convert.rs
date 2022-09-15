@@ -30,6 +30,7 @@ impl Display for Error {
             ),
             Self::AtomToStr => write!(f, "the atom is not composed of valid UTF-8 bytes"),
             Self::ImplType => write!(f, "an error specific to the implementing type occurred"),
+            Self::MissingNull => write!(f, "a null atom was expected"),
             Self::MissingValue => write!(f, "the noun does not have a value at this axis"),
             Self::UnexpectedAtom => write!(f, "an atom was encountered when a cell was expected"),
             Self::UnexpectedCell => write!(f, "a cell was encountered when an atom was expected"),
