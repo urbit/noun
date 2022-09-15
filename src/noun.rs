@@ -24,6 +24,11 @@ pub enum Noun {
 }
 
 impl Noun {
+    /// Creates the noun `0`.
+    pub const fn null() -> Self {
+        Self::Atom(Atom::null())
+    }
+
     /// Returns `true` if this noun is a null atom.
     pub const fn is_null(&self) -> bool {
         if let Noun::Atom(atom) = self {
