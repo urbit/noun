@@ -568,6 +568,9 @@ macro_rules! atom {
     ($atom_src:expr) => {
         $crate::atom::Atom::from($atom_src)
     };
+    ($($x:expr),+ $(,)?) => {
+        $crate::atom::Atom::from(vec![$($x,)+])
+    };
 }
 
 #[cfg(test)]
