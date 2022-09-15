@@ -9,10 +9,10 @@ pub enum Error {
     AtomToUint,
     /// An atom could not be converted into a string.
     AtomToStr,
+    /// A null atom was expected.
+    ExpectedNull,
     /// An error specific to the implementing type occurred.
     ImplType,
-    /// A null atom was expected.
-    MissingNull,
     /// No value exists at a particular axis of a cell.
     MissingValue,
     /// Encountered an atom when a cell was expected.
@@ -29,8 +29,8 @@ impl Display for Error {
                 "the atom is too large to fit in the unsigned integer type"
             ),
             Self::AtomToStr => write!(f, "the atom is not composed of valid UTF-8 bytes"),
+            Self::ExpectedNull => write!(f, "a null atom was expected"),
             Self::ImplType => write!(f, "an error specific to the implementing type occurred"),
-            Self::MissingNull => write!(f, "a null atom was expected"),
             Self::MissingValue => write!(f, "the noun does not have a value at this axis"),
             Self::UnexpectedAtom => write!(f, "an atom was encountered when a cell was expected"),
             Self::UnexpectedCell => write!(f, "a cell was encountered when an atom was expected"),
