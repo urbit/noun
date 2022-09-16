@@ -3,6 +3,7 @@
 use crate::{
     atom::{Atom, Builder as AtomBuilder, Iter as AtomIter},
     cell::Cell,
+    convert,
     serdes::{self, Cue, Jam},
     Rc,
 };
@@ -247,6 +248,34 @@ impl PartialEq for Noun {
             this == that
         } else {
             false
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a Noun> for &'a str {
+    type Error = convert::Error;
+
+    fn try_from(noun: &'a Noun) -> Result<Self, Self::Error> {
+        if let Noun::Atom(noun) = noun {
+            noun.as_str().or(Err(convert::Error::AtomToStr))
+        } else {
+            Err(convert::Error::UnexpectedCell)
+        }
+    }
+}
+
+impl TryFrom<&Noun> for String {
+    type Error = convert::Error;
+
+    fn try_from(noun: &Noun) -> Result<Self, Self::Error> {
+        if let Noun::Atom(noun) = noun {
+            if let Ok(noun) = noun.as_str() {
+                Ok(Self::from(noun))
+            } else {
+                Err(convert::Error::AtomToStr)
+            }
+        } else {
+            Err(convert::Error::UnexpectedCell)
         }
     }
 }

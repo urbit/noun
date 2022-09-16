@@ -140,36 +140,7 @@ macro_rules! convert {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::{atom::Atom, cell::Cell, noun::Noun};
-
-    impl TryFrom<&Noun> for String {
-        type Error = Error;
-
-        fn try_from(noun: &Noun) -> Result<Self, Self::Error> {
-            if let Noun::Atom(noun) = noun {
-                if let Ok(noun) = noun.as_str() {
-                    Ok(Self::from(noun))
-                } else {
-                    Err(Error::AtomToStr)
-                }
-            } else {
-                Err(Error::UnexpectedCell)
-            }
-        }
-    }
-
-    impl<'a> TryFrom<&'a Noun> for &'a str {
-        type Error = Error;
-
-        fn try_from(noun: &'a Noun) -> Result<Self, Self::Error> {
-            if let Noun::Atom(noun) = noun {
-                noun.as_str().or(Err(Error::AtomToStr))
-            } else {
-                Err(Error::UnexpectedCell)
-            }
-        }
-    }
 
     impl TryFrom<String> for Noun {
         type Error = ();
