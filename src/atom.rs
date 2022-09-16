@@ -1,16 +1,3 @@
-//! Arbiratily large unsigned integers.
-//!
-//! An [atom] is an arbitrarily large unsigned integer represented as a little-endian contiguous
-//! sequence of bytes. An atom can be:
-//! - created a single bit at a time or from other types that can be easily converted into atoms
-//!   like primitive unsigned integers, strings, and string slices;
-//! - iterated over a single bit at a time;
-//! - compared to other atoms and other atom-like types;
-//! - pretty-printed as a hexadecimal number;
-//! - converted into a noun, a primitive unsigned integer type, or a string slice.
-//!
-//! [atom]: https://developers.urbit.org/reference/glossary/atom
-
 use std::{
     collections::hash_map::DefaultHasher,
     ffi::OsStr,
@@ -75,7 +62,34 @@ impl Builder {
     }
 }
 
-/// An arbitrarily large unsigned integer represented as a [`Vec<u8>`].
+/// An arbitrarily large unsigned integer.
+///
+/// An [atom] is an arbitrarily large unsigned integer represented as a little-endian contiguous
+/// sequence of bytes. An atom can be:
+/// - created a single bit at a time or from other types that can be easily converted into atoms
+///   like primitive unsigned integers, strings, and string slices;
+/// - iterated over a single bit at a time;
+/// - compared to other atoms and other atom-like types;
+/// - pretty-printed as a hexadecimal number;
+/// - converted into a noun, a primitive unsigned integer type, or a string slice.
+///
+/// [atom]: https://developers.urbit.org/reference/glossary/atom
+///
+/// # Examples
+///
+/// To create a new atom, use one of the `From<T>` implementations:
+///
+/// ```
+/// # use noun::atom::Atom;
+/// let atom = Atom::from("hello");
+/// assert_eq!(atom, "hello");
+/// ```
+///
+/// ```
+/// # use noun::atom::Atom;
+/// let atom = Atom::from(0u8);
+/// assert_eq!(atom, 0u8);
+/// ```
 #[derive(Eq, Clone, Debug, Hash)]
 pub struct Atom {
     bytes: Vec<u8>,

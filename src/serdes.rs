@@ -1,4 +1,4 @@
-//! Noun serialization and deserialization.
+//! [`Noun`](crate::Noun) serialization and deserialization.
 //!
 //! # Serialization
 //!

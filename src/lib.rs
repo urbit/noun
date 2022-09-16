@@ -1,5 +1,5 @@
-//! This library provides a batteries-included [noun] implementation, which is [Urbit]'s
-//! native data structure.
+//! This library provides a batteries-included [noun] implementation, [Urbit]'s native data
+//! structure.
 //!
 //! # Thread Safety
 //!
@@ -11,7 +11,9 @@
 //! [Urbit]: https://urbit.org
 //! [noun]: https://urbit.org/docs/glossary/noun
 
+#[doc(hidden)]
 pub mod atom;
+#[doc(hidden)]
 pub mod cell;
 pub mod convert;
 pub mod marker;
@@ -19,6 +21,10 @@ pub mod marker;
 pub mod noun;
 pub mod serdes;
 
+#[doc(inline)]
+pub use crate::atom::{Atom, Builder as AtomBuilder, Iter as AtomIter};
+#[doc(inline)]
+pub use crate::cell::*;
 #[doc(inline)]
 pub use crate::noun::*;
 

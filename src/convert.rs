@@ -1,4 +1,4 @@
-//! Conversions to and from nouns.
+//! Conversions to and from [`Noun`](crate::noun::Noun).
 
 use std::fmt::{self, Display, Formatter};
 
@@ -38,7 +38,7 @@ impl Display for Error {
     }
 }
 
-/// Converts nouns to and from other complex types.
+/// Converts [`Noun`](crate::Noun)s to and from other complex types.
 #[macro_export]
 macro_rules! convert {
     // Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a [`Vec`]

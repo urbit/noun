@@ -1,5 +1,3 @@
-//! Nouns.
-
 use crate::{
     atom::{Atom, Builder as AtomBuilder, Iter as AtomIter},
     cell::Cell,
@@ -13,7 +11,7 @@ use std::{
     mem::drop,
 };
 
-/// An atom or a cell.
+/// An [`Atom`] or a [`Cell`].
 #[derive(Clone, Debug, Eq, Hash)]
 pub enum Noun {
     /// An arbitrarily large unsigned integer.

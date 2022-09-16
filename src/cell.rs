@@ -1,13 +1,3 @@
-//! Pairs of nouns.
-//!
-//! A cell is a pair of reference-counted nouns. A cell can be:
-//! - created from an array of atoms, cells, nouns, or types that can easily be converted into
-//!   atoms;
-//! - compared to other cells;
-//! - unpacked into an array of nouns;
-//! - pretty-printed;
-//! - converted into a noun.
-
 use crate::{atom::Atom, noun::Noun, Rc};
 use std::{
     collections::hash_map::DefaultHasher,
@@ -18,7 +8,18 @@ use std::{
 
 /// A pair of reference-counted nouns.
 ///
-/// To create a new cell, use one of the `From<[T; N]>` implementations. For example:
+/// A cell can be:
+/// - created from an array of atoms, cells, nouns, or types that can easily be converted into
+///   atoms;
+/// - compared to other cells;
+/// - unpacked into an array of nouns;
+/// - pretty-printed;
+/// - converted into a noun.
+///
+/// # Examples
+///
+/// To create a new cell, use one of the `From<[T; N]>` implementations:
+///
 /// ```
 /// # use noun::{atom::Atom, cell::Cell, Noun, cell};
 /// let cell = Cell::from(["hello", "world"]);
@@ -120,7 +121,7 @@ impl Cell {
 
     /// Unpacks this cell into a vector.
     ///
-    /// If the length of the cell is known at compile-time, use [`Self::to_array()`] instead.
+    /// If the length of the cell is known at compile-time, use [`to_array()`](Self::to_array()) instead.
     ///
     /// # Examples
     ///
