@@ -250,6 +250,22 @@ impl PartialEq for Noun {
     }
 }
 
+impl TryFrom<&&str> for Noun {
+    type Error = ();
+
+    fn try_from(string: &&str) -> Result<Self, Self::Error> {
+        Ok(Noun::from(Atom::from(*string)))
+    }
+}
+
+impl TryFrom<String> for Noun {
+    type Error = ();
+
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        Ok(Noun::from(Atom::from(string)))
+    }
+}
+
 impl<'a> TryFrom<&'a Noun> for &'a str {
     type Error = convert::Error;
 

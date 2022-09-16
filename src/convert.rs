@@ -39,14 +39,107 @@ impl Display for Error {
 }
 
 /// Converts [`Noun`](crate::Noun)s to and from other complex types.
+///
+/// There are three forms of this macro:
+///
+/// - Convert a [`&Noun`] of the form `[e0 e1 ... eN 0]` (a null-terminated list) to a
+///   [`Vec`]`<$elem_type>`, returning [`Result`]`<`[`Vec`]`<$elem_type>, `[`Error`]`>`.
+///
+///   `$elem_type` must implement [`TryFrom`]`<`[`&Noun`]`>`.
+///
+///   The resulting [`Vec`] does not include the null terminator.
+///
+/// ```
+/// # use noun::{convert, noun::Noun};
+/// let noun = Noun::null();
+/// let vec = convert!(&noun => Vec<String>).unwrap();
+/// assert!(vec.is_empty());
+/// ```
+///
+/// ```
+/// # use noun::{atom::Atom, cell::Cell, convert, noun::Noun};
+/// let noun = Noun::from(Cell::from([
+///     Atom::from("hello"),
+///     Atom::from("world"),
+///     Atom::null(),
+/// ]));
+/// let vec = convert!(&noun => Vec<String>).unwrap();
+/// assert_eq!(vec, vec!["hello", "world"]);
+/// ```
+///
+/// - Convert a [`&Noun`] of the form `[[k0 v0] [k1 v1] ... [kN vN] 0]` (a null-terminated map) to a
+///   [`HashMap`]`<$key_type, $val_type>`, returning [`Result`]`<`[`HashMap`]`<$key_type, $val_type>,
+///   `[`Error`]`>`.
+///
+///   `$key_type` and `$val_type` must each implement [`TryFrom`]`<`[`&Noun`]`>`.
+///
+///   The resulting [`HashMap`] does not include the null terminator.
+///
+/// ```
+/// # use noun::{cell::Cell, convert, noun::Noun};
+/// let noun = Noun::null();
+/// let map = convert!(&noun => HashMap<&str, &str>).unwrap();
+/// assert_eq!(map.len(), 0);
+/// ```
+///
+/// ```
+/// # use noun::{cell::Cell, convert, noun::Noun};
+/// let noun = Noun::from(Cell::from([
+///     Noun::from(Cell::from(["Ruth", "Babe"])),
+///     Noun::from(Cell::from(["Williams", "Ted"])),
+///     Noun::from(Cell::from(["Bonds", "Barry"])),
+///     Noun::from(Cell::from(["Pujols", "Albert"])),
+///     Noun::null()
+/// ]));
+/// let map = convert!(&noun => HashMap<&str, &str>).unwrap();
+/// assert_eq!(map.len(), 4);
+/// assert_eq!(map.get("Ruth"), Some(&"Babe"));
+/// assert_eq!(map.get("Williams"), Some(&"Ted"));
+/// assert_eq!(map.get("Bonds"), Some(&"Barry"));
+/// assert_eq!(map.get("Pujols"), Some(&"Albert"));
+/// ```
+///
+/// - Convert an iterator of the form `[e0, e1, ... eN]` where each element has type `T` into a
+///   [`Noun`] of the form `[e0 e1 ... eN 0]` (a null-terminated list), returning
+///   [`Result`]`<`[`Noun`]`, <err_type>>`, where `<err_type>` is the type of error returned by
+///   `Noun::try_from` when attempting to convert `T` into a [`Noun`].
+///
+///   [`Noun`] must implement [`TryFrom`]`<T>`.
+///
+/// ```
+/// # use noun::{atom::Atom, cell::Cell, convert, noun::Noun};
+/// let strings = [];
+/// let noun = convert!(strings.iter() => Noun).unwrap();
+/// assert!(noun.is_null());
+/// ```
+///
+/// ```
+/// # use noun::{atom::Atom, cell::Cell, convert, noun::Noun};
+/// let strings = vec![
+///     String::from("1"),
+///     String::from("2"),
+///     String::from("3"),
+///     String::from("4"),
+/// ];
+/// let noun = convert!(strings.into_iter() => Noun).unwrap();
+/// assert_eq!(
+///     noun,
+///     Noun::from(Cell::from([
+///         Atom::from("1"),
+///         Atom::from("2"),
+///         Atom::from("3"),
+///         Atom::from("4"),
+///         Atom::null(),
+///     ]))
+/// );
+/// ```
+///
+/// [`Err(Error)`]: Error
+/// [`HashMap`]: std::collections::HashMap
+/// [`&Noun`]: crate::Noun
+/// [`Noun`]: crate::Noun
 #[macro_export]
 macro_rules! convert {
-    // Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a [`Vec`]
-    // of `$elem_type`, returning `Ok(Vec<$elem_type>)` on success and `Err(Error)` on error.
-    //
-    // `$elem_type` must implement `TryFrom<&Noun>`.
-    //
-    // The resulting vector does not include the null terminator.
     ($noun:expr => Vec<$elem_type:ty>) => {{
         use $crate::{convert::Error, noun::Noun};
         let mut noun = $noun;
@@ -70,13 +163,6 @@ macro_rules! convert {
             }
         }
     }};
-    // Converts a `&Noun` of the form `[[a0 b0] [a1 b1] ... [aN bN] 0]` (i.e. a null-terminated
-    // map) to a [`HashMap`] with key type `$key_type` and value type `$value_type`., returning
-    // `Ok(HashMap<$key_type, $val_type>)` on success and `Err(Error)` on error.
-    //
-    // `$key_type` and `$val_type` both must implement `TryFrom<&Noun>`.
-    //
-    // The resulting map does not include the null terminator.
     ($noun:expr => HashMap<$key_type:ty, $val_type:ty>) => {{
         use std::collections::HashMap;
         use $crate::{convert::Error, noun::Noun};
@@ -111,12 +197,6 @@ macro_rules! convert {
             }
         }
     }};
-    // Converts an iterator of the form `[a0, a1, ..., aN]`, each element of which has type `T`,
-    // into a `Noun` of the form `[a0 a1 ... aN 0]` (a null-terminated list), returning `Ok<noun>)`
-    // on success and `Err(<err_type>)` on error, where `<err_type>` is the type of error returned
-    // by `Noun::try_from` when attempting to convert `T` into a `Noun`.
-    //
-    // `Noun` must implement `TryFrom<<iterator_item_type>>`.
     ($iter:expr => Noun) => {{
         use $crate::{cell::Cell, noun::Noun, Rc};
         let mut noun = Rc::<Noun>::from(Noun::null());
@@ -142,45 +222,8 @@ macro_rules! convert {
 mod tests {
     use crate::{atom::Atom, cell::Cell, noun::Noun};
 
-    impl TryFrom<String> for Noun {
-        type Error = ();
-
-        fn try_from(string: String) -> Result<Self, Self::Error> {
-            Ok(Noun::from(Atom::from(string)))
-        }
-    }
-
-    impl TryFrom<&&str> for Noun {
-        type Error = ();
-
-        fn try_from(string: &&str) -> Result<Self, Self::Error> {
-            Ok(Noun::from(Atom::from(*string)))
-        }
-    }
-
     #[test]
-    fn convert_from_noun() {
-        // Noun -> Vec<String>: expect success.
-        {
-            {
-                let noun = Noun::null();
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
-                assert!(vec.is_empty());
-            }
-
-            {
-                let noun = Noun::from(Cell::from([
-                    Atom::from("hello"),
-                    Atom::from("world"),
-                    Atom::null(),
-                ]));
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
-                assert_eq!(vec.len(), 2);
-                assert_eq!(vec[0], "hello");
-                assert_eq!(vec[1], "world");
-            }
-        }
-
+    fn convert() {
         // Noun -> Vec<String>: expect failure.
         {
             {
@@ -197,67 +240,8 @@ mod tests {
             }
         }
 
-        // Noun -> HashMap<String>: expect success.
+        // &[&str] -> Noun: expect success.
         {
-            {
-                let noun = Noun::null();
-                let map =
-                    convert!(&noun => HashMap<&str, &str>).expect("Noun to HashMap<&str, &str>");
-                assert_eq!(map.len(), 0);
-            }
-
-            {
-                let noun = Noun::from(Cell::from([
-                    Noun::from(Cell::from(["red", "pickles"])),
-                    Noun::from(Cell::from(["blue", "mayonnaise"])),
-                    Noun::from(Cell::from(["one", "mustard"])),
-                    Noun::from(Cell::from(["two", "cheese"])),
-                    Noun::null(),
-                ]));
-                let map =
-                    convert!(&noun => HashMap<&str, &str>).expect("Noun to HashMap<&str, &str>");
-                assert_eq!(map.len(), 4);
-                assert_eq!(map.get("red"), Some(&"pickles"));
-                assert_eq!(map.get("blue"), Some(&"mayonnaise"));
-                assert_eq!(map.get("one"), Some(&"mustard"));
-                assert_eq!(map.get("two"), Some(&"cheese"));
-            }
-        }
-    }
-
-    #[test]
-    fn convert_into_noun() {
-        // Vec<String> -> Noun: expect success.
-        {
-            {
-                let strings = vec![
-                    String::from("1"),
-                    String::from("2"),
-                    String::from("3"),
-                    String::from("4"),
-                ];
-                let noun = convert!(strings.into_iter() => Noun).expect("Vec<String> to Noun");
-                assert_eq!(
-                    noun,
-                    Noun::from(Cell::from([
-                        Atom::from("1"),
-                        Atom::from("2"),
-                        Atom::from("3"),
-                        Atom::from("4"),
-                        Atom::null()
-                    ]))
-                );
-            }
-        }
-
-        // &[&str]: expect success.
-        {
-            {
-                let strings = [];
-                let noun = convert!(strings.iter() => Noun).expect("&[str] to Noun");
-                assert_eq!(noun, Noun::null());
-            }
-
             {
                 let strings = ["a", "b", "c"];
                 let noun = convert!(strings.iter() => Noun).expect("&[str] to Noun");
