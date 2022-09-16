@@ -50,7 +50,7 @@ macro_rules! convert {
     ($noun:expr => Vec<$elem_type:ty>) => {{
         use $crate::{convert::Error, noun::Noun};
         let mut noun = $noun;
-        let mut elems = Vec::new();
+        let mut elems: Vec<$elem_type> = Vec::new();
         loop {
             match noun {
                 Noun::Atom(atom) => {
@@ -67,6 +67,47 @@ macro_rules! convert {
                     }
                     Err(err) => break Err(err),
                 },
+            }
+        }
+    }};
+    // Converts a `&Noun` of the form `[[a0 b0] [a1 b1] ... [aN bN] 0]` (i.e. a null-terminated
+    // map) to a [`HashMap`] with key type `$key_type` and value type `$value_type`., returning
+    // `Ok(HashMap<$key_type, $val_type>)` on success and `Err(Error)` on error.
+    //
+    // `$key_type` and `$val_type` both must implement `TryFrom<&Noun>`.
+    //
+    // The resulting map does not include the null terminator.
+    ($noun:expr => HashMap<$key_type:ty, $val_type:ty>) => {{
+        use std::collections::HashMap;
+        use $crate::{convert::Error, noun::Noun};
+        let mut noun = $noun;
+        let mut map: HashMap<$key_type, $val_type> = HashMap::new();
+        loop {
+            match noun {
+                Noun::Atom(atom) => {
+                    if atom.is_null() {
+                        break Ok(map);
+                    } else {
+                        break Err(Error::ExpectedNull);
+                    }
+                }
+                Noun::Cell(cell) => {
+                    if let Noun::Cell(head) = cell.head_ref() {
+                        match (
+                            <$key_type>::try_from(head.head_ref()),
+                            <$val_type>::try_from(head.tail_ref()),
+                        ) {
+                            (Ok(key), Ok(val)) => {
+                                map.insert(key, val);
+                                noun = cell.tail_ref();
+                            }
+                            (Err(err), _) => break Err(err),
+                            (_, Err(err)) => break Err(err),
+                        }
+                    } else {
+                        break Err(Error::UnexpectedAtom);
+                    }
+                }
             }
         }
     }};
@@ -112,6 +153,18 @@ mod tests {
                 } else {
                     Err(Error::AtomToStr)
                 }
+            } else {
+                Err(Error::UnexpectedCell)
+            }
+        }
+    }
+
+    impl<'a> TryFrom<&'a Noun> for &'a str {
+        type Error = Error;
+
+        fn try_from(noun: &'a Noun) -> Result<Self, Self::Error> {
+            if let Noun::Atom(noun) = noun {
+                noun.as_str().or(Err(Error::AtomToStr))
             } else {
                 Err(Error::UnexpectedCell)
             }
@@ -170,6 +223,33 @@ mod tests {
                     Noun::null(),
                 ]));
                 assert!(convert!(&noun => Vec<String>).is_err());
+            }
+        }
+
+        // Noun -> HashMap<String>: expect success.
+        {
+            {
+                let noun = Noun::null();
+                let map =
+                    convert!(&noun => HashMap<&str, &str>).expect("Noun to HashMap<&str, &str>");
+                assert_eq!(map.len(), 0);
+            }
+
+            {
+                let noun = Noun::from(Cell::from([
+                    Noun::from(Cell::from(["red", "pickles"])),
+                    Noun::from(Cell::from(["blue", "mayonnaise"])),
+                    Noun::from(Cell::from(["one", "mustard"])),
+                    Noun::from(Cell::from(["two", "cheese"])),
+                    Noun::null(),
+                ]));
+                let map =
+                    convert!(&noun => HashMap<&str, &str>).expect("Noun to HashMap<&str, &str>");
+                assert_eq!(map.len(), 4);
+                assert_eq!(map.get("red"), Some(&"pickles"));
+                assert_eq!(map.get("blue"), Some(&"mayonnaise"));
+                assert_eq!(map.get("one"), Some(&"mustard"));
+                assert_eq!(map.get("two"), Some(&"cheese"));
             }
         }
     }
