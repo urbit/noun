@@ -21,16 +21,16 @@ use std::{
 /// To create a new cell, use one of the `From<[T; N]>` implementations. For example:
 /// ```
 /// # use noun::{atom::Atom, cell::Cell, Noun, cell};
-/// let cell = cell!["hello", "world"];
+/// let cell = Cell::from(["hello", "world"]);
 /// assert_eq!(*cell.head(), Noun::from(Atom::from("hello")));
 /// assert_eq!(*cell.tail(), Noun::from(Atom::from("world")));
 /// ```
 ///
 /// ```
 /// # use noun::{atom::Atom, cell::Cell, Noun, cell};
-/// let cell = cell![0u8, 2u8, 4u8, 8u8];
+/// let cell = Cell::from([0u8, 2u8, 4u8, 8u8]);
 /// assert_eq!(*cell.head(), Noun::from(Atom::from(0u8)));
-/// assert_eq!(*cell.tail(), Noun::from(cell![2u8, 4u8, 8u8]));
+/// assert_eq!(*cell.tail(), Noun::from(Cell::from([2u8, 4u8, 8u8])));
 /// ```
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct Cell {
@@ -79,7 +79,7 @@ impl Cell {
     ///
     /// ```
     /// # use noun::{atom::Atom, cell::Cell, Noun, cell};
-    /// let cell = cell![0u8, 1u8, 2u8, 3u8, 4u8, 5u8];
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8, 4u8, 5u8]);
     ///
     /// let nouns = cell.to_array::<6>().unwrap();
     /// assert_eq!(*nouns[0], Noun::from(Atom::from(0u8)));
@@ -92,7 +92,7 @@ impl Cell {
     ///
     /// ```
     /// # use noun::{atom::Atom, cell::Cell, cell};
-    /// let cell = cell![0u8, 1u8, 2u8, 3u8];
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
     ///
     /// assert_eq!(cell.to_array::<6>(), None);
     /// ```
@@ -126,7 +126,7 @@ impl Cell {
     ///
     /// ```
     /// # use noun::{atom::Atom, cell::Cell, Noun, cell};
-    /// let cell = cell![0u8, 1u8, 2u8, 4u8, 8u8, 16u8, 32u8, 64u8, 128u8];
+    /// let cell = Cell::from([0u8, 1u8, 2u8, 4u8, 8u8, 16u8, 32u8, 64u8, 128u8]);
     ///
     /// let nouns = cell.to_vec();
     /// assert_eq!(nouns.len(), 9);
@@ -306,20 +306,20 @@ impl PartialEq for Cell {
 ///
 /// - Create a [`Cell`] from a single expression of type `T`. [`Cell`] must implement [`From<T>`].
 /// ```
-/// # use noun::{atom::Atom, cell, Noun, Rc};
-/// let cell = cell![vec![
+/// # use noun::{atom::Atom, cell::Cell, Noun, Rc};
+/// let cell = Cell::from(vec![
 ///     Rc::<Noun>::from(Atom::from(0u8)),
 ///     Rc::<Noun>::from(Atom::from(1u8)),
 ///     Rc::<Noun>::from(Atom::from(2u8)),
 ///     Rc::<Noun>::from(Atom::from(3u8)),
-/// ]];
+/// ]);
 /// ```
 ///
 /// - Create a [`Cell`] from a sequence of expressions. Each expression must be of the same type
 ///   `T`, and [`Cell`] must implement [`From<[T; N]>`], where `N` is the number of expressions.
 /// ```
-/// # use noun::cell;
-/// let cell = cell![0u8, 1u8, 2u8, 3u8];
+/// # use noun::cell::Cell;
+/// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
 /// ```
 #[macro_export]
 macro_rules! cell {
@@ -338,24 +338,24 @@ mod tests {
     #[test]
     fn to_array() {
         {
-            let cell = cell![
+            let cell = Cell::from([
                 Noun::from(Atom::from("request")),
                 Noun::from(Atom::from(0u8)),
                 Noun::from(Atom::from("POST")),
                 Noun::from(Atom::from("http://eth-mainnet.urbit.org:8545")),
-                Noun::from(cell![
-                    Noun::from(cell![
+                Noun::from(Cell::from([
+                    Noun::from(Cell::from([
                         Atom::from("Content-Type"),
                         Atom::from("application/json"),
-                    ]),
+                    ])),
                     Noun::from(Atom::from(0u8)),
-                ]),
+                ])),
                 Noun::from(Atom::from(0u8)),
                 Noun::from(Atom::from(78u8)),
                 Noun::from(Atom::from(
-                    r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#
+                    r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#,
                 )),
-            ];
+            ]);
             let [tag, req_num, method, uri, headers, body] = cell.to_array::<6>().expect("as list");
             if let (Noun::Atom(tag), Noun::Atom(req_num), Noun::Atom(method), Noun::Atom(uri)) =
                 (&*tag, &*req_num, &*method, &*uri)
@@ -420,7 +420,7 @@ mod tests {
             let _8 = Rc::<Noun>::from(Atom::from(8u8));
             let _32 = Rc::<Noun>::from(Atom::from(32u8));
             let _128 = Rc::<Noun>::from(Atom::from(128u8));
-            let cell = cell!(vec![
+            let cell = Cell::from(vec![
                 _0.clone(),
                 _2.clone(),
                 _8.clone(),

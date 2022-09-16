@@ -87,14 +87,17 @@ macro_rules! convert {
     //
     // `Noun` must implement `TryFrom<<iterator_item_type>>`.
     ($iter:expr => Noun) => {{
-        use $crate::{cell, noun::Noun, Rc};
+        use $crate::{cell::Cell, noun::Noun, Rc};
         let mut noun = Rc::<Noun>::from(Noun::null());
         let mut iter = $iter.rev();
         loop {
             match iter.next() {
                 Some(elem) => match Noun::try_from(elem) {
                     Ok(elem) => {
-                        noun = Rc::<Noun>::from(Noun::from(cell![Rc::<Noun>::from(elem), noun]));
+                        noun = Rc::<Noun>::from(Noun::from(Cell::from([
+                            Rc::<Noun>::from(elem),
+                            noun,
+                        ])));
                     }
                     Err(err) => break Err(err),
                 },
@@ -107,7 +110,7 @@ macro_rules! convert {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{atom::Atom, cell, noun::Noun};
+    use crate::{atom::Atom, cell::Cell, noun::Noun};
 
     impl TryFrom<&Noun> for String {
         type Error = Error;
@@ -152,11 +155,11 @@ mod tests {
             }
 
             {
-                let noun = Noun::from(cell![
+                let noun = Noun::from(Cell::from([
                     Atom::from("hello"),
                     Atom::from("world"),
-                    Atom::null()
-                ]);
+                    Atom::null(),
+                ]));
                 let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
                 assert_eq!(vec.len(), 2);
                 assert_eq!(vec[0], "hello");
@@ -167,13 +170,15 @@ mod tests {
         // Noun -> Vec<String>: expect failure.
         {
             {
-                let noun = Noun::from(cell!["no", "null", "terminator"]);
+                let noun = Noun::from(Cell::from(["no", "null", "terminator"]));
                 assert!(convert!(&noun => Vec<String>).is_err());
             }
 
             {
-                let noun =
-                    Noun::from(cell![Noun::from(cell!["unexpected", "cell"]), Noun::null(),]);
+                let noun = Noun::from(Cell::from([
+                    Noun::from(Cell::from(["unexpected", "cell"])),
+                    Noun::null(),
+                ]));
                 assert!(convert!(&noun => Vec<String>).is_err());
             }
         }
@@ -193,13 +198,13 @@ mod tests {
                 let noun = convert!(strings.into_iter() => Noun).expect("Vec<String> to Noun");
                 assert_eq!(
                     noun,
-                    Noun::from(cell![
+                    Noun::from(Cell::from([
                         Atom::from("1"),
                         Atom::from("2"),
                         Atom::from("3"),
                         Atom::from("4"),
                         Atom::null()
-                    ])
+                    ]))
                 );
             }
         }
@@ -217,12 +222,12 @@ mod tests {
                 let noun = convert!(strings.iter() => Noun).expect("&[str] to Noun");
                 assert_eq!(
                     noun,
-                    Noun::from(cell![
+                    Noun::from(Cell::from([
                         Atom::from("a"),
                         Atom::from("b"),
                         Atom::from("c"),
                         Atom::null()
-                    ])
+                    ]))
                 );
             }
         }
