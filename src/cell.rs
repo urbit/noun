@@ -181,22 +181,41 @@ impl Display for Cell {
     }
 }
 
-/// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array.
+/// Create a cell of the form `[a1 a2 ... aN]` from an `N`-element array of [`Rc<Noun>`].
 macro_rules! cell_from_array {
+    ($array:expr) => {{
+        debug_assert!($array.len() >= 2);
+        let (mut remaining, pair) = $array.split_at($array.len() - 2);
+        let mut cell = {
+            let head: &Rc<Noun> = &pair[0];
+            let tail: &Rc<Noun> = &pair[1];
+            Cell::new(head.clone(), tail.clone())
+        };
+        while !remaining.is_empty() {
+            let split = remaining.split_at(remaining.len() - 1);
+            remaining = split.0;
+            let single = split.1;
+            cell = Cell::new(single[0].clone(), Rc::new(Noun::from(cell)));
+        }
+        cell
+    }};
+}
+
+macro_rules! impl_from_array_for_cell {
     (n = $n:expr) => {
-        cell_from_array!([Atom; $n]);
-        cell_from_array!([Cell; $n]);
-        cell_from_array!([Noun; $n]);
-        cell_from_array!([Rc<Noun>; $n]);
-        cell_from_array!([&str; $n]);
-        cell_from_array!([String; $n]);
-        cell_from_array!([u8; $n]);
-        cell_from_array!([u16; $n]);
-        cell_from_array!([u32; $n]);
-        cell_from_array!([u64; $n]);
-        cell_from_array!([u128; $n]);
-        cell_from_array!([usize; $n]);
-        cell_from_array!([Vec<u8>; $n]);
+        impl_from_array_for_cell!([Atom; $n]);
+        impl_from_array_for_cell!([Cell; $n]);
+        impl_from_array_for_cell!([Noun; $n]);
+        impl_from_array_for_cell!([Rc<Noun>; $n]);
+        impl_from_array_for_cell!([&str; $n]);
+        impl_from_array_for_cell!([String; $n]);
+        impl_from_array_for_cell!([u8; $n]);
+        impl_from_array_for_cell!([u16; $n]);
+        impl_from_array_for_cell!([u32; $n]);
+        impl_from_array_for_cell!([u64; $n]);
+        impl_from_array_for_cell!([u128; $n]);
+        impl_from_array_for_cell!([usize; $n]);
+        impl_from_array_for_cell!([Vec<u8>; $n]);
     };
     ([Atom; $len:expr]) => {
         impl From<[Atom; $len]> for Cell {
@@ -237,53 +256,37 @@ macro_rules! cell_from_array {
             }
         }
     };
-    ($array:expr) => {{
-        debug_assert!($array.len() >= 2);
-        let (mut remaining, pair) = $array.split_at($array.len() - 2);
-        let mut cell = {
-            let head: &Rc<Noun> = &pair[0];
-            let tail: &Rc<Noun> = &pair[1];
-            Cell::new(head.clone(), tail.clone())
-        };
-        while !remaining.is_empty() {
-            let split = remaining.split_at(remaining.len() - 1);
-            remaining = split.0;
-            let single = split.1;
-            cell = Cell::new(single[0].clone(), Rc::new(Noun::from(cell)));
-        }
-        cell
-    }};
 }
 
-cell_from_array!(n = 2);
-cell_from_array!(n = 3);
-cell_from_array!(n = 4);
-cell_from_array!(n = 5);
-cell_from_array!(n = 6);
-cell_from_array!(n = 7);
-cell_from_array!(n = 8);
-cell_from_array!(n = 9);
-cell_from_array!(n = 10);
-cell_from_array!(n = 11);
-cell_from_array!(n = 12);
-cell_from_array!(n = 13);
-cell_from_array!(n = 14);
-cell_from_array!(n = 15);
-cell_from_array!(n = 16);
-cell_from_array!(n = 17);
-cell_from_array!(n = 18);
-cell_from_array!(n = 19);
-cell_from_array!(n = 20);
-cell_from_array!(n = 21);
-cell_from_array!(n = 22);
-cell_from_array!(n = 23);
-cell_from_array!(n = 24);
-cell_from_array!(n = 25);
-cell_from_array!(n = 26);
-cell_from_array!(n = 27);
-cell_from_array!(n = 28);
-cell_from_array!(n = 29);
-cell_from_array!(n = 30);
+impl_from_array_for_cell!(n = 2);
+impl_from_array_for_cell!(n = 3);
+impl_from_array_for_cell!(n = 4);
+impl_from_array_for_cell!(n = 5);
+impl_from_array_for_cell!(n = 6);
+impl_from_array_for_cell!(n = 7);
+impl_from_array_for_cell!(n = 8);
+impl_from_array_for_cell!(n = 9);
+impl_from_array_for_cell!(n = 10);
+impl_from_array_for_cell!(n = 11);
+impl_from_array_for_cell!(n = 12);
+impl_from_array_for_cell!(n = 13);
+impl_from_array_for_cell!(n = 14);
+impl_from_array_for_cell!(n = 15);
+impl_from_array_for_cell!(n = 16);
+impl_from_array_for_cell!(n = 17);
+impl_from_array_for_cell!(n = 18);
+impl_from_array_for_cell!(n = 19);
+impl_from_array_for_cell!(n = 20);
+impl_from_array_for_cell!(n = 21);
+impl_from_array_for_cell!(n = 22);
+impl_from_array_for_cell!(n = 23);
+impl_from_array_for_cell!(n = 24);
+impl_from_array_for_cell!(n = 25);
+impl_from_array_for_cell!(n = 26);
+impl_from_array_for_cell!(n = 27);
+impl_from_array_for_cell!(n = 28);
+impl_from_array_for_cell!(n = 29);
+impl_from_array_for_cell!(n = 30);
 
 impl From<Vec<Rc<Noun>>> for Cell {
     fn from(nouns: Vec<Rc<Noun>>) -> Self {
