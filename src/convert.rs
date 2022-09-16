@@ -107,7 +107,7 @@ macro_rules! convert {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{atom, atom::Atom, cell, noun::Noun};
+    use crate::{atom::Atom, cell, noun::Noun};
 
     impl TryFrom<&Noun> for String {
         type Error = Error;
@@ -129,7 +129,7 @@ mod tests {
         type Error = ();
 
         fn try_from(string: String) -> Result<Self, Self::Error> {
-            Ok(Noun::from(atom!(string)))
+            Ok(Noun::from(Atom::from(string)))
         }
     }
 
@@ -146,13 +146,17 @@ mod tests {
         // Noun -> Vec<String>: expect success.
         {
             {
-                let noun = Noun::from(atom!());
+                let noun = Noun::null();
                 let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
                 assert!(vec.is_empty());
             }
 
             {
-                let noun = Noun::from(cell![atom!("hello"), atom!("world"), atom!()]);
+                let noun = Noun::from(cell![
+                    Atom::from("hello"),
+                    Atom::from("world"),
+                    Atom::null()
+                ]);
                 let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
                 assert_eq!(vec.len(), 2);
                 assert_eq!(vec[0], "hello");
@@ -168,10 +172,8 @@ mod tests {
             }
 
             {
-                let noun = Noun::from(cell![
-                    Noun::from(cell!["unexpected", "cell"]),
-                    Noun::from(atom!())
-                ]);
+                let noun =
+                    Noun::from(cell![Noun::from(cell!["unexpected", "cell"]), Noun::null(),]);
                 assert!(convert!(&noun => Vec<String>).is_err());
             }
         }
@@ -192,11 +194,11 @@ mod tests {
                 assert_eq!(
                     noun,
                     Noun::from(cell![
-                        atom!("1"),
-                        atom!("2"),
-                        atom!("3"),
-                        atom!("4"),
-                        atom!()
+                        Atom::from("1"),
+                        Atom::from("2"),
+                        Atom::from("3"),
+                        Atom::from("4"),
+                        Atom::null()
                     ])
                 );
             }
@@ -207,7 +209,7 @@ mod tests {
             {
                 let strings = [];
                 let noun = convert!(strings.iter() => Noun).expect("&[str] to Noun");
-                assert_eq!(noun, Noun::from(atom!()));
+                assert_eq!(noun, Noun::null());
             }
 
             {
@@ -215,7 +217,12 @@ mod tests {
                 let noun = convert!(strings.iter() => Noun).expect("&[str] to Noun");
                 assert_eq!(
                     noun,
-                    Noun::from(cell![atom!("a"), atom!("b"), atom!("c"), atom!()])
+                    Noun::from(cell![
+                        Atom::from("a"),
+                        Atom::from("b"),
+                        Atom::from("c"),
+                        Atom::null()
+                    ])
                 );
             }
         }

@@ -1,7 +1,6 @@
 //! Nouns.
 
 use crate::{
-    atom,
     atom::{Atom, Builder as AtomBuilder, Iter as AtomIter},
     cell,
     cell::Cell,
@@ -77,7 +76,7 @@ impl Cue for Noun {
                 }
             };
             if len == 0 {
-                Ok(atom!(0u8))
+                Ok(Atom::from(0u8))
             } else {
                 let mut atom_builder = Atom::builder();
                 for _ in 0..len {
@@ -209,7 +208,7 @@ impl Jam for Noun {
                         return;
                     }
                 }
-                let idx = atom!(*idx);
+                let idx = Atom::from(*idx);
                 // Backreference tag = 0b11.
                 bits.push_bit(true);
                 bits.push_bit(true);
@@ -267,40 +266,40 @@ mod tests {
     fn jam_cue_atom() {
         // 0 serializes to 2.
         {
-            let atom: Noun = Noun::from(atom!(0u8));
-            let jammed_atom = atom!(2u8);
+            let atom: Noun = Noun::from(Atom::from(0u8));
+            let jammed_atom = Atom::from(2u8);
             assert_eq!(atom.clone().jam(), jammed_atom);
             assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 1 serializes to 12.
         {
-            let atom: Noun = Noun::from(atom!(1u8));
-            let jammed_atom = atom!(12u8);
+            let atom: Noun = Noun::from(Atom::from(1u8));
+            let jammed_atom = Atom::from(12u8);
             assert_eq!(atom.clone().jam(), jammed_atom);
             assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 2 serializes to 72.
         {
-            let atom: Noun = Noun::from(atom!(2u8));
-            let jammed_atom = atom!(72u8);
+            let atom: Noun = Noun::from(Atom::from(2u8));
+            let jammed_atom = Atom::from(72u8);
             assert_eq!(atom.clone().jam(), jammed_atom);
             assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 19 serializes to 2480.
         {
-            let atom: Noun = Noun::from(atom!(19u8));
-            let jammed_atom = atom!(2480u16);
+            let atom: Noun = Noun::from(Atom::from(19u8));
+            let jammed_atom = Atom::from(2480u16);
             assert_eq!(atom.clone().jam(), jammed_atom);
             assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
 
         // 581.949.002 serializes to 1.191.831.557.952.
         {
-            let atom: Noun = Noun::from(atom!(581_949_002u32));
-            let jammed_atom = atom!(1_191_831_557_952u64);
+            let atom: Noun = Noun::from(Atom::from(581_949_002u32));
+            let jammed_atom = Atom::from(1_191_831_557_952u64);
             assert_eq!(atom.clone().jam(), jammed_atom);
             assert_eq!(Noun::cue(jammed_atom).expect("cue"), atom);
         }
@@ -311,7 +310,7 @@ mod tests {
         // [0 19] serializes into 39.689.
         {
             let cell: Noun = Noun::from(cell![0u8, 19u8]);
-            let jammed_cell = atom!(39_689u16);
+            let jammed_cell = Atom::from(39_689u16);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -319,7 +318,7 @@ mod tests {
         // [1 1] serializes to 817.
         {
             let cell: Noun = Noun::from(cell![1u8, 1u8]);
-            let jammed_cell = atom!(817u16);
+            let jammed_cell = Atom::from(817u16);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -327,7 +326,7 @@ mod tests {
         // [10.000 10.000] serializes into 4.952.983.169.
         {
             let cell: Noun = Noun::from(cell![10_000u16, 10_000u16]);
-            let jammed_cell = atom!(0b100100111001110001000011010000001u64);
+            let jammed_cell = Atom::from(0b100100111001110001000011010000001u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -335,7 +334,7 @@ mod tests {
         // [999.999.999 999.999.999] serializes to 1.301.217.674.263.809.
         {
             let cell: Noun = Noun::from(cell![999_999_999u32, 999_999_999u32]);
-            let jammed_cell = atom!(0b100100111110111001101011001001111111111110100000001u64);
+            let jammed_cell = Atom::from(0b100100111110111001101011001001111111111110100000001u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -343,7 +342,7 @@ mod tests {
         // [222 444 888] serializes to 250.038.217.192.960.129.
         {
             let cell: Noun = Noun::from(cell![222u16, 444u16, 888u16]);
-            let jammed_cell = atom!(250_038_217_192_960_129u64);
+            let jammed_cell = Atom::from(250_038_217_192_960_129u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -352,7 +351,7 @@ mod tests {
         {
             let head = Rc::<Noun>::from(cell![107u8, 110u8]);
             let cell: Noun = Noun::from(cell![head.clone(), head]);
-            let jammed_cell = atom!(0b1001001111011101110000110101111100000101u64);
+            let jammed_cell = Atom::from(0b1001001111011101110000110101111100000101u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -363,7 +362,7 @@ mod tests {
                 0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8, 10u8
             ]);
 
-            let jammed_cell = atom!(25_681_224_503_728_653_597_984_370_231_065u128);
+            let jammed_cell = Atom::from(25_681_224_503_728_653_597_984_370_231_065u128);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -371,7 +370,7 @@ mod tests {
         // [99 100 101 102 103 104 0] serializes to 223.372.995.869.285.333.705.242.560.449.
         {
             let cell: Noun = Noun::from(cell![99u8, 100u8, 101u8, 102u8, 103u8, 104u8, 0u8]);
-            let jammed_cell = atom!(223_372_995_869_285_333_705_242_560_449u128);
+            let jammed_cell = Atom::from(223_372_995_869_285_333_705_242_560_449u128);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -380,7 +379,7 @@ mod tests {
         {
             let head = Rc::<Noun>::from(cell![222u16, 444u16, 888u16]);
             let cell: Noun = Noun::from(cell![head.clone(), head]);
-            let jammed_cell = atom!(170_479_614_045_978_345_989u128);
+            let jammed_cell = Atom::from(170_479_614_045_978_345_989u128);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -392,9 +391,9 @@ mod tests {
                 Noun::from(cell![1u8, 2u8]),
                 Noun::from(cell![2u8, 3u8]),
                 Noun::from(cell![3u8, 4u8]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(11_976_248_475_217_237_797u64);
+            let jammed_cell = Atom::from(11_976_248_475_217_237_797u64);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -412,9 +411,9 @@ mod tests {
                 Noun::from(cell![6u8, 7u8]),
                 Noun::from(cell![7u8, 8u8]),
                 Noun::from(cell![8u8, 9u8]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 37, 23, 35, 11, 137, 46, 52, 102, 97, 226, 22, 46, 118, 97, 227, 23, 62, 4, 11,
                 130, 144, 20,
             ]);
@@ -438,9 +437,9 @@ mod tests {
                 Noun::from(cell![16u8, 17u8]),
                 Noun::from(cell![18u8, 19u8]),
                 Noun::from(cell![20u8, 21u8]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 37, 23, 18, 93, 152, 184, 133, 141, 95, 16, 132, 100, 65, 20, 178, 5, 97, 72, 23,
                 196, 33, 95, 48, 8, 139, 5, 147, 176, 89, 48, 10, 171, 2,
             ]);
@@ -455,7 +454,7 @@ mod tests {
                 cell!["vary", "Origin"],
                 cell!["vary", "Accept-Encoding"],
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 124, 187, 48, 185, 60, 224, 123, 146, 75, 59, 75, 115, 55, 19, 224, 29, 52, 54,
                 86, 6, 71, 215, 82, 228, 54, 246, 70, 150, 230, 118, 6,
             ]);
@@ -466,7 +465,7 @@ mod tests {
         // [%x-cached 'HIT'] serializes to 3.419.056.981.361.227.851.413.339.139.505.665.
         {
             let cell: Noun = Noun::from(cell!["x-cached", "HIT"]);
-            let jammed_cell = atom!(3_419_056_981_361_227_851_413_339_139_505_665u128);
+            let jammed_cell = Atom::from(3_419_056_981_361_227_851_413_339_139_505_665u128);
             assert_eq!(cell.clone().jam(), jammed_cell);
             assert_eq!(Noun::cue(jammed_cell).expect("cue"), cell);
         }
@@ -484,9 +483,9 @@ mod tests {
                 Noun::from(cell!["x-cached", "HIT"]),
                 Noun::from(cell!["vary", "Origin"]),
                 Noun::from(cell!["vary", "Accept-Encoding"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 89,
@@ -510,9 +509,9 @@ mod tests {
                 Noun::from(cell!["vary", "Origin"]),
                 Noun::from(cell!["vary", "Accept-Encoding"]),
                 Noun::from(cell!["connection", "keep-alive"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
@@ -539,10 +538,10 @@ mod tests {
                 Noun::from(cell!["vary", "Accept-Encoding"]),
                 Noun::from(cell!["connection", "keep-alive"]),
                 Noun::from(cell!["content-length", "59"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
 
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
@@ -572,10 +571,10 @@ mod tests {
                 Noun::from(cell!["connection", "keep-alive"]),
                 Noun::from(cell!["content-length", "59"]),
                 Noun::from(cell!["content-type", "application/json"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
 
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
@@ -609,10 +608,10 @@ mod tests {
                 Noun::from(cell!["content-length", "59"]),
                 Noun::from(cell!["content-type", "application/json"]),
                 Noun::from(cell!["date", "Fri, 08 Jul 2022 16:43:50 GMT"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
 
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
@@ -631,7 +630,7 @@ mod tests {
         //  36.625.686.482.471.374.629.531.055.727.019.932.223.514.833.888.924.393.604.670.670.633.971.596.801.
         {
             let cell: Noun = Noun::from(cell!["server", "nginx/1.14.0 (Ubuntu)"]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 1, 190, 185, 50, 57, 187, 50, 57, 128, 38, 183, 179, 52, 55, 188, 151, 24, 151, 24,
                 26, 23, 24, 16, 148, 42, 177, 58, 55, 186, 186, 20,
             ]);
@@ -663,9 +662,9 @@ mod tests {
                 Noun::from(cell!["content-type", "application/json"]),
                 Noun::from(cell!["date", "Fri, 08 Jul 2022 16:43:50 GMT"]),
                 Noun::from(cell!["server", "nginx/1.14.0 (Ubuntu)"]),
-                Noun::from(atom!(0u8)),
+                Noun::from(Atom::from(0u8)),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 5, 248, 241, 90, 198, 194, 198, 208, 202, 200, 192, 67, 74, 162, 22, 240, 237, 194,
                 228, 242, 128, 239, 73, 46, 237, 44, 205, 93, 227, 118, 128, 119, 208, 216, 88, 25,
                 28, 93, 75, 145, 219, 216, 27, 89, 154, 219, 185, 0, 62, 99, 111, 110, 110, 101,
@@ -698,21 +697,24 @@ mod tests {
         // 534926240328183504043224467158150263359506153835684400054708654784265586779466767311401093568872399514089871794788465339360316141009784521401502584590628538383397474667076686296931914112162585777490924604432397967740482953038069595525949395091512693509388265834094423223982487236123144939682105684811115401159600617316591045520893570145126936115415644005172954075003434319780206191080707020476210689
         {
             let cell: Noun = Noun::from(cell![
-                Noun::from(atom!("request")),
-                Noun::from(atom!(0u8)),
-                Noun::from(atom!("POST")),
-                Noun::from(atom!("http://eth-mainnet.urbit.org:8545")),
+                Noun::from(Atom::from("request")),
+                Noun::from(Atom::from(0u8)),
+                Noun::from(Atom::from("POST")),
+                Noun::from(Atom::from("http://eth-mainnet.urbit.org:8545")),
                 Noun::from(cell![
-                    Noun::from(cell![atom!("Content-Type"), atom!("application/json")]),
-                    Noun::from(atom!(0u8)),
+                    Noun::from(cell![
+                        Atom::from("Content-Type"),
+                        Atom::from("application/json")
+                    ]),
+                    Noun::from(Atom::from(0u8)),
                 ]),
-                Noun::from(atom!(0u8)),
-                Noun::from(atom!(78u8)),
-                Noun::from(atom!(
+                Noun::from(Atom::from(0u8)),
+                Noun::from(Atom::from(78u8)),
+                Noun::from(Atom::from(
                     r#"[{"params":[],"id":"block number","jsonrpc":"2.0","method":"eth_blockNumber"}]"#
                 )),
             ]);
-            let jammed_cell = atom!(vec![
+            let jammed_cell = Atom::from(vec![
                 1, 94, 185, 178, 184, 186, 178, 57, 122, 6, 124, 168, 167, 41, 106, 0, 52, 64, 163,
                 163, 131, 211, 121, 121, 41, 163, 67, 107, 105, 11, 75, 115, 115, 43, 163, 115,
                 169, 147, 19, 75, 163, 115, 121, 147, 59, 211, 193, 169, 161, 169, 43, 128, 223,
