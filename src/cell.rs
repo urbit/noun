@@ -300,37 +300,6 @@ impl PartialEq for Cell {
     }
 }
 
-/// Creates a new [`Cell`].
-///
-/// This is syntactic sugar for `Cell::from()`.
-///
-/// - Create a [`Cell`] from a single expression of type `T`. [`Cell`] must implement [`From<T>`].
-/// ```
-/// # use noun::{atom::Atom, cell::Cell, Noun, Rc};
-/// let cell = Cell::from(vec![
-///     Rc::<Noun>::from(Atom::from(0u8)),
-///     Rc::<Noun>::from(Atom::from(1u8)),
-///     Rc::<Noun>::from(Atom::from(2u8)),
-///     Rc::<Noun>::from(Atom::from(3u8)),
-/// ]);
-/// ```
-///
-/// - Create a [`Cell`] from a sequence of expressions. Each expression must be of the same type
-///   `T`, and [`Cell`] must implement [`From<[T; N]>`], where `N` is the number of expressions.
-/// ```
-/// # use noun::cell::Cell;
-/// let cell = Cell::from([0u8, 1u8, 2u8, 3u8]);
-/// ```
-#[macro_export]
-macro_rules! cell {
-    ($x:expr) => {
-        $crate::cell::Cell::from($x)
-    };
-    ($($x:expr),+ $(,)?) => {
-        $crate::cell::Cell::from([$($x,)+])
-    };
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
