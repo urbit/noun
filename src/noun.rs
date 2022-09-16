@@ -262,59 +262,6 @@ unsafe impl Sync for Noun {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::convert;
-
-    #[test]
-    fn convert() {
-        impl TryFrom<&Noun> for String {
-            type Error = convert::Error;
-
-            fn try_from(noun: &Noun) -> Result<Self, Self::Error> {
-                if let Noun::Atom(noun) = noun {
-                    if let Ok(noun) = noun.as_str() {
-                        Ok(Self::from(noun))
-                    } else {
-                        Err(convert::Error::AtomToStr)
-                    }
-                } else {
-                    Err(convert::Error::UnexpectedCell)
-                }
-            }
-        }
-
-        // Noun -> Vec<String>: expect success.
-        {
-            {
-                let noun = Noun::from(atom!());
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
-                assert!(vec.is_empty());
-            }
-
-            {
-                let noun = Noun::from(cell![atom!("hello"), atom!("world"), atom!()]);
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
-                assert_eq!(vec.len(), 2);
-                assert_eq!(vec[0], "hello");
-                assert_eq!(vec[1], "world");
-            }
-        }
-
-        // Noun -> Vec<String>: expect failure.
-        {
-            {
-                let noun = Noun::from(cell!["no", "null", "terminator"]);
-                assert!(convert!(&noun => Vec<String>).is_err());
-            }
-
-            {
-                let noun = Noun::from(cell![
-                    Noun::from(cell!["unexpected", "cell"]),
-                    Noun::from(atom!())
-                ]);
-                assert!(convert!(&noun => Vec<String>).is_err());
-            }
-        }
-    }
 
     #[test]
     fn jam_cue_atom() {
