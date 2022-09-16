@@ -15,6 +15,7 @@ pub mod atom;
 pub mod cell;
 pub mod convert;
 pub mod marker;
+#[doc(hidden)]
 pub mod noun;
 pub mod serdes;
 
