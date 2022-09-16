@@ -49,34 +49,24 @@ macro_rules! convert {
     // The resulting vector does not include the null terminator.
     ($noun:expr => Vec<$elem_type:ty>) => {{
         use $crate::{convert::Error, noun::Noun};
-        match $noun {
-            Noun::Atom(atom) => {
-                if atom.is_null() {
-                    Ok(Vec::new())
-                } else {
-                    Err(Error::UnexpectedAtom)
-                }
-            }
-            mut noun => {
-                let mut elems = Vec::new();
-                loop {
-                    match noun {
-                        Noun::Atom(atom) => {
-                            if atom.is_null() {
-                                break Ok(elems);
-                            } else {
-                                break Err(Error::ExpectedNull);
-                            }
-                        }
-                        Noun::Cell(cell) => match <$elem_type>::try_from(cell.head_ref()) {
-                            Ok(elem) => {
-                                elems.push(elem);
-                                noun = cell.tail_ref();
-                            }
-                            Err(err) => break Err(err),
-                        },
+        let mut noun = $noun;
+        let mut elems = Vec::new();
+        loop {
+            match noun {
+                Noun::Atom(atom) => {
+                    if atom.is_null() {
+                        break Ok(elems);
+                    } else {
+                        break Err(Error::ExpectedNull);
                     }
                 }
+                Noun::Cell(cell) => match <$elem_type>::try_from(cell.head_ref()) {
+                    Ok(elem) => {
+                        elems.push(elem);
+                        noun = cell.tail_ref();
+                    }
+                    Err(err) => break Err(err),
+                },
             }
         }
     }};
