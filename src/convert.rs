@@ -38,15 +38,16 @@ impl Display for Error {
     }
 }
 
-/// Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a
-/// [`Vec`] of `$elem_type`, returning a [`convert::Error`] on error.
-///
-/// `$elem_type` must implement [`TryFrom<&Noun>`].
-///
-/// The resulting vector does not include the null terminator.
+/// Converts nouns to and from other complex types.
 #[macro_export]
 macro_rules! convert {
-    ($noun:expr => Vec<$elem_type:ty>) => {{
+    // Converts a `&Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list) to a [`Vec`]
+    // of `$elem_type`, returning `Ok(Vec<$elem_type>)` on success and `Err(Error)` on error.
+    //
+    // `$elem_type` must implement `TryFrom<&Noun>`.
+    //
+    // The resulting vector does not include the null terminator.
+    ($noun:expr; &Noun => Vec<$elem_type:ty>) => {{
         use $crate::{convert::Error, noun::Noun};
         match $noun {
             Noun::Atom(atom) => {
@@ -79,15 +80,37 @@ macro_rules! convert {
             }
         }
     }};
+    // Converts a slice into a `Noun` of the form `[a0 a1 ... aN 0]` (i.e. a null-terminated list),
+    // returning `Ok(<noun>)` on success and `Err(())` on error.
+    //
+    // `Noun` must implement `TryFrom<$elem_type>`.
+    //
+    // The slice should not include the null terminator.
+    ($slice:expr; &[$elem_type:ty] => Noun) => {{
+        use $crate::{cell, noun::Noun, Rc};
+        let mut noun = Rc::<Noun>::from(Noun::null());
+        let mut iter = $slice.iter().rev();
+        loop {
+            match iter.next() {
+                Some(elem) => match Noun::try_from(elem) {
+                    Ok(elem) => {
+                        noun = Rc::<Noun>::from(Noun::from(cell![Rc::<Noun>::from(elem), noun,]))
+                    }
+                    Err(err) => break Err(err),
+                },
+                None => break Ok(Rc::try_unwrap(noun).unwrap()),
+            }
+        }
+    }};
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{atom, cell, noun::Noun};
+    use crate::{atom, atom::Atom, cell, noun::Noun};
 
     #[test]
-    fn convert() {
+    fn convert_from_noun() {
         impl TryFrom<&Noun> for String {
             type Error = Error;
 
@@ -108,13 +131,13 @@ mod tests {
         {
             {
                 let noun = Noun::from(atom!());
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
+                let vec = convert!(&noun; &Noun => Vec<String>).expect("Noun to Vec<String>");
                 assert!(vec.is_empty());
             }
 
             {
                 let noun = Noun::from(cell![atom!("hello"), atom!("world"), atom!()]);
-                let vec = convert!(&noun => Vec<String>).expect("Noun to Vec<String>");
+                let vec = convert!(&noun; &Noun => Vec<String>).expect("Noun to Vec<String>");
                 assert_eq!(vec.len(), 2);
                 assert_eq!(vec[0], "hello");
                 assert_eq!(vec[1], "world");
@@ -125,7 +148,7 @@ mod tests {
         {
             {
                 let noun = Noun::from(cell!["no", "null", "terminator"]);
-                assert!(convert!(&noun => Vec<String>).is_err());
+                assert!(convert!(&noun; &Noun => Vec<String>).is_err());
             }
 
             {
@@ -133,7 +156,36 @@ mod tests {
                     Noun::from(cell!["unexpected", "cell"]),
                     Noun::from(atom!())
                 ]);
-                assert!(convert!(&noun => Vec<String>).is_err());
+                assert!(convert!(&noun; &Noun => Vec<String>).is_err());
+            }
+        }
+    }
+
+    #[test]
+    fn convert_into_noun() {
+        impl TryFrom<&&str> for Noun {
+            type Error = ();
+
+            fn try_from(string: &&str) -> Result<Self, Self::Error> {
+                Ok(Noun::from(Atom::from(*string)))
+            }
+        }
+
+        // &[&str]: expect success.
+        {
+            {
+                let strings = [];
+                let noun = convert!(&strings[..]; &[&str] => Noun).expect("&[str] to Noun");
+                assert_eq!(noun, Noun::from(atom!()));
+            }
+
+            {
+                let strings = ["a", "b", "c"];
+                let noun = convert!(&strings[..]; &[&str] => Noun).expect("&[str] to Noun");
+                assert_eq!(
+                    noun,
+                    Noun::from(cell![atom!("a"), atom!("b"), atom!("c"), atom!()])
+                );
             }
         }
     }
