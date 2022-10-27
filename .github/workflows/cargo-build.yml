@@ -2,8 +2,6 @@ name: Cargo build
 on:
   pull_request:
   push:
-    branches:
-      - main
 env:
   RUST_BACKTRACE: 1
 jobs:

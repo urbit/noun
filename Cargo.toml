@@ -2,6 +2,7 @@
 name = "noun"
 version = "0.1.0"
 edition = "2021"
+authors = ["Peter McEvoy <peter@tlon.io>"]
 
 [features]
 default = []
