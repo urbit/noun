@@ -23,6 +23,10 @@ jobs:
         with:
           command: fmt
           args: --all --check
+      - name: cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
   doc: 
     name: Build docs with features [${{ matrix.features }}]
     strategy:
