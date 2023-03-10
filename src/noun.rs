@@ -12,7 +12,7 @@ use std::{
 };
 
 /// An [`Atom`] or a [`Cell`].
-#[derive(Clone, Debug, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Noun {
     /// An arbitrarily large unsigned integer.
     Atom(Atom),
@@ -111,7 +111,7 @@ impl Cue for Noun {
 
                             Ok(cell)
                         }
-                        None => return Err(serdes::Error::InvalidTag),
+                        None => Err(serdes::Error::InvalidTag),
                     }
                 }
                 // Atom tag = 0b0.
@@ -235,18 +235,6 @@ impl Jam for Noun {
         let mut cache = HashMap::new();
         encode(noun, &mut bits, &mut cache);
         bits.into_atom()
-    }
-}
-
-impl PartialEq for Noun {
-    fn eq(&self, other: &Self) -> bool {
-        if let (Self::Atom(this), Self::Atom(that)) = (self, other) {
-            this == that
-        } else if let (Self::Cell(this), Self::Cell(that)) = (self, other) {
-            this == that
-        } else {
-            false
-        }
     }
 }
 

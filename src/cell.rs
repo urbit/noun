@@ -33,7 +33,7 @@ use std::{
 /// assert_eq!(*cell.head(), Noun::from(Atom::from(0u8)));
 /// assert_eq!(*cell.tail(), Noun::from(Cell::from([2u8, 4u8, 8u8])));
 /// ```
-#[derive(Clone, Debug, Eq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Cell {
     head: Rc<Noun>,
     tail: Rc<Noun>,
@@ -68,8 +68,8 @@ impl Cell {
     /// Computes the hash of this cell.
     pub fn hash(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
-        hasher.write_u64((&*self.head()).hash());
-        hasher.write_u64((&*self.tail()).hash());
+        hasher.write_u64((*self.head()).hash());
+        hasher.write_u64((*self.tail()).hash());
         hasher.finish()
     }
 
@@ -103,14 +103,14 @@ impl Cell {
         let mut nouns: [MaybeUninit<Rc<Noun>>; N] = unsafe { MaybeUninit::uninit().assume_init() };
         nouns[0] = MaybeUninit::new(self.head());
         let mut noun = self.tail();
-        for i in 1..N {
+        for (i, n) in nouns.iter_mut().enumerate().take(N).skip(1) {
             match *noun {
                 Noun::Atom(_) if i < N - 1 => return None,
                 Noun::Cell(ref cell) if i < N - 1 => {
-                    nouns[i] = MaybeUninit::new(cell.head());
+                    *n = MaybeUninit::new(cell.head());
                     noun = cell.tail();
                 }
-                _ => nouns[i] = MaybeUninit::new(noun.clone()),
+                _ => *n = MaybeUninit::new(noun.clone()),
             }
         }
         // Using `mem::transmute()` here as suggested in the Rustnomicon example linked above results in
@@ -292,12 +292,6 @@ impl_from_array_for_cell!(n = 30);
 impl From<Vec<Rc<Noun>>> for Cell {
     fn from(nouns: Vec<Rc<Noun>>) -> Self {
         cell_from_array!(nouns)
-    }
-}
-
-impl PartialEq for Cell {
-    fn eq(&self, other: &Self) -> bool {
-        self.head == other.head && self.tail == other.tail
     }
 }
 

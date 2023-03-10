@@ -62,6 +62,12 @@ impl Builder {
     }
 }
 
+impl Default for Builder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// An arbitrarily large unsigned integer.
 ///
 /// An [atom] is an arbitrarily large unsigned integer represented as a little-endian contiguous
@@ -90,7 +96,7 @@ impl Builder {
 /// let atom = Atom::from(0u8);
 /// assert_eq!(atom, 0u8);
 /// ```
-#[derive(Eq, Clone, Debug, Hash)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Atom {
     bytes: Vec<u8>,
     bit_len: usize,
@@ -269,7 +275,7 @@ impl Display for Atom {
         if self.bytes.is_empty() {
             write!(f, "0")
         } else {
-            for (i, byte) in (&self.bytes).iter().enumerate() {
+            for (i, byte) in (self.bytes).iter().enumerate() {
                 if i > 0 && i % 4 == 0 {
                     write!(f, ".")?;
                 }
@@ -335,12 +341,6 @@ impl From<Vec<u8>> for Atom {
     }
 }
 
-impl PartialEq for Atom {
-    fn eq(&self, other: &Self) -> bool {
-        self.bytes == other.bytes
-    }
-}
-
 impl PartialEq<&Self> for Atom {
     fn eq(&self, other: &&Self) -> bool {
         self.bytes == other.bytes
@@ -402,7 +402,7 @@ pub struct Iter<'a> {
     bit_mask: u8,
 }
 
-impl<'a> Iter<'_> {
+impl Iter<'_> {
     /// Returns the current bitwise position of this iterator.
     pub fn pos(&self) -> usize {
         self.bit_idx
